@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Planner - Workout Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <h1>Workout Dashboard</h1>
+      <p>Track volume, manage sessions, and quickly find the workout you want.</p>
+    </header>
+
+    <section class="dashboard" aria-label="Workout overview metrics">
+      <article class="metric-card">
+        <h2>Total Workouts</h2>
+        <p id="totalWorkouts" class="metric-value">0</p>
+      </article>
+      <article class="metric-card">
+        <h2>Completed</h2>
+        <p id="completedWorkouts" class="metric-value">0</p>
+      </article>
+      <article class="metric-card">
+        <h2>Avg Duration</h2>
+        <p id="avgDuration" class="metric-value">0 min</p>
+      </article>
+      <article class="metric-card">
+        <h2>Upcoming</h2>
+        <p id="upcomingWorkouts" class="metric-value">0</p>
+      </article>
+    </section>
+
+    <section class="workout-panel" aria-label="Workout list">
+      <div class="panel-top-row">
+        <h2>Workout Library</h2>
+        <label class="search-label" for="workoutSearch">Search workouts</label>
+        <input id="workoutSearch" type="search" placeholder="Search by name, focus, or difficulty..." />
+      </div>
+      <ul id="workoutList" class="workout-list"></ul>
+      <p id="emptyState" class="empty-state" hidden>No workouts matched your search.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
