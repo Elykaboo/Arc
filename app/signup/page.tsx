@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
@@ -12,6 +12,7 @@ import { saveUserProfile } from "@/lib/profile-db";
 
 export default function SignupPage() {
   const router = useRouter();
+  const isCreatingAccountRef = useRef(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +21,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+      if (user && !isCreatingAccountRef.current) {
         router.replace("/socializing");
       }
     });
@@ -31,6 +32,7 @@ export default function SignupPage() {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
+    isCreatingAccountRef.current = true;
 
     try {
       const normalizedUsername = username.trim();
@@ -53,8 +55,9 @@ export default function SignupPage() {
       await saveUserProfile(credential.user.uid, starterProfile);
       await saveMemberProfile(credential.user.uid, starterProfile);
       await savePublicUserProfile(credential.user.uid, starterProfile);
-      router.replace("/socializing");
+      router.replace(`/welcome?mode=new&name=${encodeURIComponent(normalizedUsername)}`);
     } catch (err) {
+      isCreatingAccountRef.current = false;
       if (err instanceof FirebaseError) {
         if (err.code === "auth/email-already-in-use") {
           setError("That email is already registered. Try logging in instead.");

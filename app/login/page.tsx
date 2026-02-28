@@ -19,8 +19,13 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/socializing");
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const resolvedUsername =
+        credential.user.displayName?.trim() ||
+        credential.user.email?.split("@")[0]?.trim() ||
+        "Athlete";
+
+      router.push(`/welcome?mode=returning&name=${encodeURIComponent(resolvedUsername)}`);
     } catch {
       setError("Unable to log in. Check your email/password and try again.");
     } finally {
