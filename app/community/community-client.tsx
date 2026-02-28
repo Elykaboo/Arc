@@ -5,6 +5,7 @@ import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
+  countFollowersForUser,
   followUser,
   isFollowingUser,
   listFollowingUsers,
@@ -17,6 +18,7 @@ import {
   createCommunityPost,
   deleteCommunityPost,
   listCommunityPosts,
+  listCommunityPostsByUser,
   updateCommunityPostCaption,
   type CommunityPost,
 } from "@/lib/community-db";
@@ -127,6 +129,16 @@ type UserSuggestion = {
   photo: string;
 };
 
+type SidebarProfileSummary = {
+  username: string;
+  bio: string;
+  workoutSplit: string;
+  photoDataUrl: string;
+  postCount: number;
+  mediaCount: number;
+  followerCount: number;
+};
+
 export default function CommunityClient({
   heading = "Community",
   description = "Share progress photos, milestones, and small wins with everyone training on Arc.",
@@ -158,6 +170,8 @@ export default function CommunityClient({
   const [followingUsers, setFollowingUsers] = useState<FollowingUser[]>([]);
   const [followingByUid, setFollowingByUid] = useState<Record<string, boolean>>({});
   const [followBusyByUid, setFollowBusyByUid] = useState<Record<string, boolean>>({});
+  const [sidebarProfile, setSidebarProfile] = useState<SidebarProfileSummary | null>(null);
+  const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -184,6 +198,72 @@ export default function CommunityClient({
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      setSidebarProfile(null);
+      setIsSidebarProfileLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSidebarProfile = async () => {
+      setIsSidebarProfileLoading(true);
+
+      try {
+        const [profileResult, postsResult, followersResult] = await Promise.allSettled([
+          loadUserProfile(userId),
+          listCommunityPostsByUser(userId, 100),
+          countFollowersForUser(userId),
+        ]);
+        if (cancelled) return;
+
+        const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
+        const userPosts = postsResult.status === "fulfilled" ? postsResult.value : [];
+        const followerCount = followersResult.status === "fulfilled" ? followersResult.value : 0;
+
+        setSidebarProfile({
+          username:
+            profile?.username?.trim() ||
+            auth.currentUser?.displayName?.trim() ||
+            auth.currentUser?.email?.split("@")[0] ||
+            "Arc User",
+          bio: profile?.bio?.trim() || "",
+          workoutSplit: profile?.workoutSplit?.trim() || "",
+          photoDataUrl: profile?.photoDataUrl?.trim() || auth.currentUser?.photoURL?.trim() || "",
+          postCount: userPosts.length,
+          mediaCount: userPosts.filter((post) => Boolean(post.progressPhotoDataUrl?.trim())).length,
+          followerCount,
+        });
+      } catch {
+        if (cancelled) return;
+
+        setSidebarProfile({
+          username:
+            auth.currentUser?.displayName?.trim() ||
+            auth.currentUser?.email?.split("@")[0] ||
+            "Arc User",
+          bio: "",
+          workoutSplit: "",
+          photoDataUrl: auth.currentUser?.photoURL?.trim() || "",
+          postCount: 0,
+          mediaCount: 0,
+          followerCount: 0,
+        });
+      } finally {
+        if (!cancelled) {
+          setIsSidebarProfileLoading(false);
+        }
+      }
+    };
+
+    void loadSidebarProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const loadPosts = async (silent = false) => {
     if (silent) {
@@ -489,6 +569,15 @@ export default function CommunityClient({
       setPhotoDataUrl("");
       setPhotoPreview("");
       setPhotoError(null);
+      setSidebarProfile((current) =>
+        current
+          ? {
+              ...current,
+              postCount: current.postCount + 1,
+              mediaCount: current.mediaCount + (photoDataUrl ? 1 : 0),
+            }
+          : current,
+      );
       setFormStatus({ type: "success", message: "Post shared with the community." });
       await loadPosts(true);
     } catch (error: unknown) {
@@ -685,6 +774,18 @@ export default function CommunityClient({
     try {
       await deleteCommunityPost(post.id);
       setPosts((current) => current.filter((candidate) => candidate.id !== post.id));
+      setSidebarProfile((current) =>
+        current && post.uid === userId
+          ? {
+              ...current,
+              postCount: Math.max(0, current.postCount - 1),
+              mediaCount: Math.max(
+                0,
+                current.mediaCount - (post.progressPhotoDataUrl?.trim() ? 1 : 0),
+              ),
+            }
+          : current,
+      );
       setCommentsByPost((current) => {
         const next = { ...current };
         delete next[post.id];
@@ -705,7 +806,97 @@ export default function CommunityClient({
   };
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-4 bg-[radial-gradient(circle_at_15%_0%,rgba(15,23,42,0.22),transparent_42%),radial-gradient(circle_at_86%_8%,rgba(8,47,73,0.16),transparent_36%)] px-2 py-4 sm:px-4 sm:py-6">
+    <main className="w-full px-2 py-4 sm:px-4 sm:py-6">
+      <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)_320px] lg:items-start lg:gap-6">
+        <aside className="lg:sticky lg:top-24">
+          <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex items-start gap-3">
+              {sidebarProfile?.photoDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={sidebarProfile.photoDataUrl}
+                  alt={`${sidebarProfile.username} profile`}
+                  className="h-14 w-14 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                />
+              ) : (
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white dark:bg-slate-100 dark:text-slate-900">
+                  {getInitials(sidebarProfile?.username || displayName)}
+                </span>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                  Your Profile
+                </p>
+                <h2 className="truncate text-lg font-bold text-slate-900 dark:text-slate-100">
+                  {sidebarProfile?.username || displayName}
+                </h2>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  {sidebarProfile?.workoutSplit || "Set your split in profile"}
+                </p>
+              </div>
+            </div>
+
+            {userId ? (
+              <>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <div className="rounded-2xl bg-slate-50 px-3 py-2 text-center dark:bg-slate-800/70">
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">
+                      {isSidebarProfileLoading ? "..." : sidebarProfile?.postCount ?? 0}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Posts</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 px-3 py-2 text-center dark:bg-slate-800/70">
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">
+                      {isSidebarProfileLoading ? "..." : sidebarProfile?.mediaCount ?? 0}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Media</p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 px-3 py-2 text-center dark:bg-slate-800/70">
+                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">
+                      {isSidebarProfileLoading ? "..." : sidebarProfile?.followerCount ?? 0}
+                    </p>
+                    <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Followers</p>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+                  {sidebarProfile?.bio || "Add a bio so people on Arc can recognize your training style."}
+                </p>
+
+                <div className="mt-4 flex gap-2">
+                  <Link
+                    href="/profile"
+                    className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                  >
+                    Edit profile
+                  </Link>
+                  <Link
+                    href={`/users/${userId}`}
+                    className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    View profile
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+                  Log in to see your post, media, and follower counts here.
+                </p>
+                <Link
+                  href="/login"
+                  className="mt-4 inline-flex w-full justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                >
+                  Log in
+                </Link>
+              </>
+            )}
+          </section>
+        </aside>
+
+        <div className="mt-4 lg:col-start-2 lg:mt-0">
+          <div className="mx-auto max-w-5xl space-y-4 rounded-[2rem] bg-[radial-gradient(circle_at_15%_0%,rgba(15,23,42,0.22),transparent_42%),radial-gradient(circle_at_86%_8%,rgba(8,47,73,0.16),transparent_36%)] p-1.5 sm:p-2">
       <header className="rounded-3xl border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -974,7 +1165,6 @@ export default function CommunityClient({
           ) : null}
         </form>
       </section>
-
       {isLoadingPosts ? (
         <p className="px-1 text-sm text-slate-500 dark:text-slate-400">Loading posts...</p>
       ) : posts.length === 0 ? (
@@ -1209,6 +1399,12 @@ export default function CommunityClient({
           })}
         </ul>
       )}
+          </div>
+        </div>
+
+        <div className="hidden lg:block" aria-hidden="true" />
+
+      </div>
     </main>
   );
 }
