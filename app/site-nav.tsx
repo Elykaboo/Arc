@@ -162,21 +162,7 @@ export default function SiteNav() {
         }
       } catch {
         // Use auth fallback values when profile read fails.
-        const fallbackProfile: UserProfile = {
-          username: user.displayName?.trim() || user.email?.split("@")[0] || "Arc User",
-          gender: "",
-          bio: "",
-          workoutSplit: "",
-          photoDataUrl: user.photoURL?.trim() || "",
-        };
-
-        try {
-          await saveUserProfile(user.uid, fallbackProfile);
-          await saveMemberProfile(user.uid, fallbackProfile);
-          await savePublicUserProfile(user.uid, fallbackProfile);
-        } catch {
-          // Ignore sync failures here and preserve auth fallback UI.
-        }
+        // Preserve auth fallback UI without overwriting existing profile data.
       }
     });
 

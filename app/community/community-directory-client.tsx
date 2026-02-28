@@ -14,17 +14,14 @@ import {
 } from "@/lib/follow-db";
 import {
   listMemberProfiles,
-  saveMemberProfile,
   type MemberProfile,
 } from "@/lib/member-db";
 import {
   listPublicUserProfiles,
-  savePublicUserProfile,
   type PublicUserProfile,
 } from "@/lib/public-profile-db";
 import {
   listSearchableUserProfiles,
-  saveUserProfile,
   type SearchableUserProfile,
   type UserProfile,
 } from "@/lib/profile-db";
@@ -177,62 +174,46 @@ export default function CommunityDirectoryClient() {
 
       if (!user?.uid) return;
 
-      const fallbackProfile: UserProfile = {
-        username: fallbackName,
-        gender: "",
-        bio: "",
-        workoutSplit: "",
-        photoDataUrl: fallbackPhoto,
-      };
-
       setMemberProfiles((current) => {
+        const existing = current.find((entry) => entry.uid === user.uid);
         const next = current.filter((entry) => entry.uid !== user.uid);
         next.push({
           uid: user.uid,
-          username: fallbackName,
-          bio: "",
-          workoutSplit: "",
-          photoDataUrl: fallbackPhoto,
+          username: existing?.username || fallbackName,
+          bio: existing?.bio || "",
+          workoutSplit: existing?.workoutSplit || "",
+          photoDataUrl: existing?.photoDataUrl || fallbackPhoto,
         });
         return next;
       });
       setPublicProfiles((current) =>
         upsertPublicProfile(current, {
           uid: user.uid,
-          username: fallbackName,
-          bio: "",
-          workoutSplit: "",
-          photoDataUrl: fallbackPhoto,
+          username: current.find((entry) => entry.uid === user.uid)?.username || fallbackName,
+          bio: current.find((entry) => entry.uid === user.uid)?.bio || "",
+          workoutSplit: current.find((entry) => entry.uid === user.uid)?.workoutSplit || "",
+          photoDataUrl: current.find((entry) => entry.uid === user.uid)?.photoDataUrl || fallbackPhoto,
         }),
       );
       setSearchableProfiles((current) =>
         upsertSearchableProfile(current, {
           uid: user.uid,
-          username: fallbackName,
-          bio: "",
-          workoutSplit: "",
-          photoDataUrl: fallbackPhoto,
+          username: current.find((entry) => entry.uid === user.uid)?.username || fallbackName,
+          bio: current.find((entry) => entry.uid === user.uid)?.bio || "",
+          workoutSplit: current.find((entry) => entry.uid === user.uid)?.workoutSplit || "",
+          photoDataUrl: current.find((entry) => entry.uid === user.uid)?.photoDataUrl || fallbackPhoto,
         }),
       );
 
       setFollowGraphUsers((current) => {
+        const existing = current.find((entry) => entry.uid === user.uid);
         const next = current.filter((entry) => entry.uid !== user.uid);
         next.push({
           uid: user.uid,
-          username: fallbackName,
-          photoDataUrl: fallbackPhoto,
+          username: existing?.username || fallbackName,
+          photoDataUrl: existing?.photoDataUrl || fallbackPhoto,
         });
         return next;
-      });
-
-      void saveUserProfile(user.uid, fallbackProfile).catch(() => {
-        // Keep the directory readable even if profile backfill fails.
-      });
-      void saveMemberProfile(user.uid, fallbackProfile).catch(() => {
-        // Keep the directory readable even if member backfill fails.
-      });
-      void savePublicUserProfile(user.uid, fallbackProfile).catch(() => {
-        // Keep the directory readable even if profile backfill fails.
       });
     });
 

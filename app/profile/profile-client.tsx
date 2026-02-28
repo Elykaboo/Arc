@@ -220,8 +220,6 @@ export default function ProfileClient() {
       } catch {
         if (cancelled) return;
         setProfile(authProfile);
-        void saveMemberProfile(userId, authProfile);
-        void savePublicUserProfile(userId, authProfile);
         setStatus({
           type: "error",
           message: "Could not load your profile details right now.",
