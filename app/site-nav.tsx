@@ -123,15 +123,15 @@ export default function SiteNav() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsAuthResolved(true);
-      setIsAuthenticated(Boolean(user));
-      setCurrentUserId(user?.uid || "");
+      setIsAuthenticated(Boolean(user?.emailVerified));
+      setCurrentUserId(user?.emailVerified ? user.uid : "");
 
       const fallbackName = user?.email?.split("@")[0] || "Guest";
       const resolvedName = user?.displayName?.trim() || fallbackName;
       setProfileName(resolvedName);
       setProfilePhoto(user?.photoURL || "");
 
-      if (!user?.uid) {
+      if (!user?.uid || !user.emailVerified) {
         return;
       }
 

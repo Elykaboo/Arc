@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
@@ -12,6 +12,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+
+      if (user.emailVerified) {
+        router.replace("/socializing");
+        return;
+      }
+
+      const params = new URLSearchParams({
+        email: user.email || "",
+        mode: "returning",
+        name: user.displayName?.trim() || user.email?.split("@")[0]?.trim() || "Athlete",
+      });
+      router.replace(`/verify-email?${params.toString()}`);
+    });
+
+    return unsubscribe;
+  }, [router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -24,6 +44,16 @@ export default function LoginPage() {
         credential.user.displayName?.trim() ||
         credential.user.email?.split("@")[0]?.trim() ||
         "Athlete";
+
+      if (!credential.user.emailVerified) {
+        const params = new URLSearchParams({
+          email: credential.user.email || email.trim(),
+          mode: "returning",
+          name: resolvedUsername,
+        });
+        router.replace(`/verify-email?${params.toString()}`);
+        return;
+      }
 
       router.push(`/welcome?mode=returning&name=${encodeURIComponent(resolvedUsername)}`);
     } catch {

@@ -4,11 +4,13 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
-import { createUserWithEmailAndPassword, onAuthStateChanged, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { saveMemberProfile } from "@/lib/member-db";
-import { savePublicUserProfile } from "@/lib/public-profile-db";
-import { saveUserProfile } from "@/lib/profile-db";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -22,7 +24,17 @@ export default function SignupPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && !isCreatingAccountRef.current) {
-        router.replace("/socializing");
+        if (user.emailVerified) {
+          router.replace("/socializing");
+          return;
+        }
+
+        const params = new URLSearchParams({
+          email: user.email || "",
+          mode: "new",
+          name: user.displayName?.trim() || user.email?.split("@")[0]?.trim() || "Athlete",
+        });
+        router.replace(`/verify-email?${params.toString()}`);
       }
     });
     return unsubscribe;
@@ -45,17 +57,14 @@ export default function SignupPage() {
 
       const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
       await updateProfile(credential.user, { displayName: normalizedUsername });
-      const starterProfile = {
-        username: normalizedUsername,
-        gender: "",
-        bio: "",
-        workoutSplit: "",
-        photoDataUrl: "",
-      };
-      await saveUserProfile(credential.user.uid, starterProfile);
-      await saveMemberProfile(credential.user.uid, starterProfile);
-      await savePublicUserProfile(credential.user.uid, starterProfile);
-      router.replace(`/welcome?mode=new&name=${encodeURIComponent(normalizedUsername)}`);
+      await sendEmailVerification(credential.user);
+
+      const params = new URLSearchParams({
+        email: normalizedEmail,
+        mode: "new",
+        name: normalizedUsername,
+      });
+      router.replace(`/verify-email?${params.toString()}`);
     } catch (err) {
       isCreatingAccountRef.current = false;
       if (err instanceof FirebaseError) {
@@ -65,6 +74,8 @@ export default function SignupPage() {
           setError("Please enter a valid email address.");
         } else if (err.code === "auth/weak-password") {
           setError("Password should be at least 6 characters.");
+        } else if (err.code === "auth/too-many-requests") {
+          setError("Too many attempts. Wait a bit, then try again.");
         } else {
           setError("Unable to create account. Please verify your details and try again.");
         }
@@ -86,7 +97,7 @@ export default function SignupPage() {
           Sign Up
         </h1>
         <p className="mt-2 text-sm text-slate-600">
-          Create your account and start building your personalized training plan.
+          Create your account, verify your email, and then start building your training plan.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

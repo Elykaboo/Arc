@@ -64,7 +64,7 @@ Notes:
 
 ## Firebase auth setup
 
-The `/login` and `/signup` pages use Firebase Authentication (email/password).
+The `/login` and `/signup` pages use Firebase Authentication (email/password), and new users must verify their email address before they can enter the app.
 
 Create a `.env.local` file in the project root with your Firebase web app values:
 
@@ -77,7 +77,10 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="..."
 NEXT_PUBLIC_FIREBASE_APP_ID="..."
 ```
 
-In Firebase Console, also enable `Authentication -> Sign-in method -> Email/Password`.
+In Firebase Console:
+
+1. Enable `Authentication -> Sign-in method -> Email/Password`.
+2. Review `Authentication -> Templates -> Email address verification` so the built-in Firebase verification email matches your product and sender settings.
 
 ## Firestore database setup
 
