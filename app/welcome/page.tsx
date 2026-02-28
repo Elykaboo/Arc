@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const DISPLAY_MS = 2000;
 
-export default function WelcomePage() {
+function WelcomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
@@ -69,5 +69,13 @@ export default function WelcomePage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function WelcomePage() {
+  return (
+    <Suspense fallback={null}>
+      <WelcomePageContent />
+    </Suspense>
   );
 }

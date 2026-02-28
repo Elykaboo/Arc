@@ -240,6 +240,7 @@ export default function PlannerClient() {
   const [exerciseOptions, setExerciseOptions] = useState<Exercise[]>([]);
   const [plan, setPlan] = useState<WeeklyDraft>(emptyDraft);
   const [isLoading, setIsLoading] = useState(true);
+  const [exerciseLoadError, setExerciseLoadError] = useState<string | null>(null);
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string>("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(routineTemplates[0]?.id ?? "");
@@ -298,16 +299,20 @@ export default function PlannerClient() {
   useEffect(() => {
     const loadExercises = async () => {
       try {
+        setExerciseLoadError(null);
         const response = await fetch("/api/v1/exercises", { cache: "no-store" });
         if (!response.ok) throw new Error("Failed to load exercises");
         const payload = (await response.json()) as ExerciseResponse;
         setExerciseOptions(payload.items);
+      } catch {
+        setExerciseOptions([]);
+        setExerciseLoadError("Unable to load exercises right now. Please refresh and try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadExercises();
+    void loadExercises();
   }, []);
 
   const exerciseById = useMemo(
@@ -647,79 +652,86 @@ export default function PlannerClient() {
           Loading exercises...
         </p>
       ) : (
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {weekdays.map((day) => {
-            const dayItems = plan[day].items;
-            const activeCount = dayItems.filter((item) => item.exerciseId.trim()).length;
-            const plannedCount = dayItems.length;
-            const dayTemplateLabels = Array.from(
-              new Set(dayItems.map((item) => item.templateLabel?.trim()).filter(Boolean)),
-            ) as string[];
-            const suggestions = suggestionsByDay[day] ?? [];
+        <>
+          {exerciseLoadError ? (
+            <p className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+              {exerciseLoadError}
+            </p>
+          ) : null}
 
-            return (
-              <article
-                key={day}
-                className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-lg font-bold text-slate-900">{day}</h2>
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                      plannedCount > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {plannedCount > 0 ? `${activeCount}/${plannedCount} selected` : "Rest"}
-                  </span>
-                </div>
-                {dayTemplateLabels.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {dayTemplateLabels.map((label) => (
-                      <span
-                        key={`${day}-${label}`}
-                        className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800"
-                      >
-                        {label}
-                      </span>
-                    ))}
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {weekdays.map((day) => {
+              const dayItems = plan[day].items;
+              const activeCount = dayItems.filter((item) => item.exerciseId.trim()).length;
+              const plannedCount = dayItems.length;
+              const dayTemplateLabels = Array.from(
+                new Set(dayItems.map((item) => item.templateLabel?.trim()).filter(Boolean)),
+              ) as string[];
+              const suggestions = suggestionsByDay[day] ?? [];
+
+              return (
+                <article
+                  key={day}
+                  className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-lg font-bold text-slate-900">{day}</h2>
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        plannedCount > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {plannedCount > 0 ? `${activeCount}/${plannedCount} selected` : "Rest"}
+                    </span>
                   </div>
-                ) : null}
+                  {dayTemplateLabels.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {dayTemplateLabels.map((label) => (
+                        <span
+                          key={`${day}-${label}`}
+                          className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800"
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
 
-                <div className="rounded-lg border border-slate-100 bg-slate-50 p-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Suggestions
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {suggestions.map((exercise) => (
-                      <button
-                        key={exercise.id}
-                        type="button"
-                        onClick={() => addWorkout(day, exercise.id)}
-                        className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
-                      >
-                        + {exercise.name}
-                      </button>
-                    ))}
-                    {suggestions.length === 0 ? (
-                      <p className="text-xs text-slate-500">No suggestions available.</p>
-                    ) : null}
+                  <div className="rounded-lg border border-slate-100 bg-slate-50 p-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Suggestions
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {suggestions.map((exercise) => (
+                        <button
+                          key={exercise.id}
+                          type="button"
+                          onClick={() => addWorkout(day, exercise.id)}
+                          className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
+                        >
+                          + {exercise.name}
+                        </button>
+                      ))}
+                      {suggestions.length === 0 ? (
+                        <p className="text-xs text-slate-500">No suggestions available.</p>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
 
-                {dayItems.length === 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => addWorkout(day)}
-                    className="w-full rounded-md border border-dashed border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                  >
-                    + Add workout
-                  </button>
-                ) : null}
+                  {dayItems.length === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => addWorkout(day)}
+                      className="w-full rounded-md border border-dashed border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    >
+                      + Add workout
+                    </button>
+                  ) : null}
 
-                {dayItems.map((item, index) => {
-                  const selectedExercise = exerciseById.get(item.exerciseId);
-                  return (
-                    <div key={item.id} className="space-y-2 rounded-lg border border-slate-200 p-3">
+                  {dayItems.map((item, index) => {
+                    const selectedExercise = exerciseById.get(item.exerciseId);
+                    return (
+                      <div key={item.id} className="space-y-2 rounded-lg border border-slate-200 p-3">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-slate-800">Workout {index + 1}</p>
@@ -813,6 +825,7 @@ export default function PlannerClient() {
             );
           })}
         </section>
+        </>
       )}
     </main>
   );

@@ -28,7 +28,7 @@ export default function WorkoutDetailClient({ id }: WorkoutDetailClientProps) {
         }
 
         if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+          throw new Error("Failed to load exercise");
         }
 
         const payload = (await response.json()) as Exercise;
@@ -37,10 +37,9 @@ export default function WorkoutDetailClient({ id }: WorkoutDetailClientProps) {
           setExercise(payload);
         }
       } catch (requestError: unknown) {
+        void requestError;
         if (!isStale) {
-          const message =
-            requestError instanceof Error ? requestError.message : "Failed to load exercise";
-          setError(message);
+          setError("Exercise not found");
           setExercise(null);
         }
       } finally {

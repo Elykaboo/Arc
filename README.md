@@ -26,6 +26,42 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## Deploy on Vercel
+
+This app can deploy directly to Vercel as a standard Next.js project.
+
+1. Push this repo to GitHub.
+2. In Vercel, click `Add New -> Project` and import the repo.
+3. Keep the default framework preset as `Next.js`.
+4. Add the environment variables from [.env.example](/Users/kyleliwanag/Project Files/gymplanner/.env.example) before the first production deploy.
+5. Deploy.
+
+Recommended Vercel environment variables:
+
+```bash
+NEXT_PUBLIC_SITE_URL="https://your-project.vercel.app"
+
+NEXT_PUBLIC_FIREBASE_API_KEY="..."
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="..."
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="..."
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="..."
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="..."
+NEXT_PUBLIC_FIREBASE_APP_ID="..."
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="..."
+
+RAPIDAPI_KEY="..."
+RAPIDAPI_HOST="edb-with-videos-and-images-by-ascendapi.p.rapidapi.com"
+EXERCISE_API_BASE_URL="https://edb-with-videos-and-images-by-ascendapi.p.rapidapi.com"
+EXERCISE_API_VERSION="/api/v1"
+```
+
+Notes:
+- `NEXT_PUBLIC_SITE_URL` should be your production Vercel URL or custom domain so metadata uses the correct base URL.
+- Firebase web app variables are required for login, signup, profile, planner sync, and community features.
+- `RAPIDAPI_KEY` is recommended for the exercise API routes. Without it, the app falls back to a public exercise dataset when the RapidAPI source is unavailable.
+- `FIREBASE_SERVICE_ACCOUNT_JSON` is only needed if you plan to run `npm run backfill:members` in a server environment.
+- The production build uses `webpack` instead of Turbopack for more reliable deployment builds.
+
 ## Firebase auth setup
 
 The `/login` and `/signup` pages use Firebase Authentication (email/password).

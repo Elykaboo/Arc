@@ -118,7 +118,7 @@ export default function WorkoutsClient() {
         const response = await fetch(queryUrl, { cache: "no-store" });
 
         if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+          throw new Error("Failed to load exercises");
         }
 
         const data = (await response.json()) as ExerciseResponse;
@@ -127,10 +127,9 @@ export default function WorkoutsClient() {
           setItems(data.items);
         }
       } catch (requestError: unknown) {
+        void requestError;
         if (!isStale) {
-          const message =
-            requestError instanceof Error ? requestError.message : "Failed to load exercises";
-          setError(message);
+          setError("Unable to load exercises right now. Please try again.");
           setItems([]);
         }
       } finally {
