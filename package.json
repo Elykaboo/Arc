@@ -1,14 +1,17 @@
 {
-  "name": "gymplanner",
+  "name": "arc",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "tunnel": "ngrok http 3000",
+    "dev:public": "sh -c \"npm run dev & npm run tunnel\""
   },
   "dependencies": {
+    "firebase": "^12.9.0",
     "next": "16.1.6",
     "ngrok": "^5.0.0-beta.2",
     "react": "19.2.3",

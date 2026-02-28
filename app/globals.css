@@ -1,8 +1,15 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #f7f7f5;
   --foreground: #0f172a;
+}
+
+.dark {
+  --background: #10151d;
+  --foreground: #dde4ee;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -17,4 +24,285 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.arc-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at top, #f1f5f9 0%, #dbe4f0 45%, #cbd5e1 100%);
+  animation: arcSplashFadeOut 250ms ease-in forwards;
+  animation-delay: 1.35s;
+}
+
+.arc-splash__inner {
+  width: min(92vw, 500px);
+  border-radius: 20px;
+  border: 1px solid #cbd5e1;
+  background: linear-gradient(165deg, #ffffff 0%, #f8fafc 70%, #f1f5f9 100%);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+}
+
+.arc-splash__label {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.arc-splash__barbell {
+  margin: 1rem auto 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  animation: arcLiftBounce 1.1s ease-in-out infinite;
+}
+
+.arc-splash__bar {
+  display: inline-block;
+  width: clamp(150px, 48vw, 220px);
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #334155, #0f172a, #334155);
+}
+
+.arc-splash__plate {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 4px solid #1e293b;
+  background: #94a3b8;
+}
+
+.arc-splash__plate--left {
+  box-shadow: -6px 0 0 #475569;
+}
+
+.arc-splash__plate--right {
+  box-shadow: 6px 0 0 #475569;
+}
+
+.arc-splash__text {
+  margin: 0;
+  color: #334155;
+  font-weight: 600;
+}
+
+.arc-splash__progress {
+  margin: 1rem auto 0;
+  width: 100%;
+  max-width: 340px;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.arc-splash__progress-fill {
+  display: block;
+  height: 100%;
+  width: 30%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f97316, #ef4444, #f97316);
+  animation: arcLoad 1.3s ease-in-out infinite;
+}
+
+@keyframes arcLiftBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-11px);
+  }
+}
+
+@keyframes arcLoad {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+@keyframes arcSplashFadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Dark mode utility overrides for existing palette usage. */
+.dark .bg-white {
+  background-color: #171e28;
+}
+
+.dark .bg-slate-50 {
+  background-color: #131a23;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1c2531;
+}
+
+.dark .bg-slate-900 {
+  background-color: #334155;
+}
+
+.dark .bg-rose-50 {
+  background-color: #3a2332;
+}
+
+.dark .bg-amber-100 {
+  background-color: #3b2d1a;
+}
+
+.dark .bg-orange-50 {
+  background-color: #3f2a1b;
+}
+
+.dark .bg-orange-100 {
+  background-color: #4c3321;
+}
+
+.dark .bg-emerald-100 {
+  background-color: #123428;
+}
+
+.dark .from-amber-100,
+.dark .via-orange-50,
+.dark .to-white {
+  --tw-gradient-from: #252d3a var(--tw-gradient-from-position);
+  --tw-gradient-via: #1b2430 var(--tw-gradient-via-position);
+  --tw-gradient-to: #171e28 var(--tw-gradient-to-position);
+}
+
+.dark .border-slate-100 {
+  border-color: #2a3341;
+}
+
+.dark .border-slate-200 {
+  border-color: #3a4658;
+}
+
+.dark .border-slate-300 {
+  border-color: #4a5870;
+}
+
+.dark .border-orange-200,
+.dark .border-orange-300 {
+  border-color: #9a5b2e;
+}
+
+.dark .border-rose-200 {
+  border-color: #8b4b69;
+}
+
+.dark .text-slate-500 {
+  color: #96a4b8;
+}
+
+.dark .text-slate-600 {
+  color: #b8c3d3;
+}
+
+.dark .text-slate-700 {
+  color: #cad5e3;
+}
+
+.dark .text-slate-800,
+.dark .text-slate-900 {
+  color: #e5ecf6;
+}
+
+.dark .text-rose-700 {
+  color: #f0a4bf;
+}
+
+.dark .text-rose-900 {
+  color: #f5c7d7;
+}
+
+.dark .text-amber-800 {
+  color: #f3be8a;
+}
+
+.dark .text-orange-800,
+.dark .text-orange-900 {
+  color: #f4bc86;
+}
+
+.dark .text-emerald-800 {
+  color: #91dfbf;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #2c384a;
+}
+
+.dark .hover\:bg-slate-700:hover {
+  background-color: #4a5870;
+}
+
+.dark .focus\:ring,
+.dark .focus\:ring-2 {
+  --tw-ring-color: rgba(148, 163, 184, 0.5);
+}
+
+.dark .arc-splash {
+  background: radial-gradient(circle at top, #18202c 0%, #131a23 45%, #0f141b 100%);
+}
+
+.dark .arc-splash__inner {
+  border-color: #3a4658;
+  background: linear-gradient(165deg, #171e28 0%, #141c26 70%, #131a23 100%);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.dark .arc-splash__label,
+.dark .arc-splash__text {
+  color: #b8c3d3;
+}
+
+.dark .arc-splash__progress {
+  background: #3a4658;
+}
+
+/* Sidebar dark-mode hardening so navigation always renders with dark surfaces. */
+.dark .site-sidebar {
+  background: #131a23;
+  border-color: #3a4658;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .site-sidebar__stripe {
+  background: rgba(139, 92, 246, 0.45);
+}
+
+.dark .site-sidebar__card {
+  background: rgba(20, 29, 40, 0.82);
+  border-color: #3a4658;
+}
+
+.dark .site-sidebar__footer {
+  border-color: #3a4658;
+}
+
+.dark .site-sidebar__item {
+  color: #cad5e3;
+}
+
+.dark .site-sidebar__item:hover {
+  background: #1f2a37;
+  color: #e5ecf6;
 }
