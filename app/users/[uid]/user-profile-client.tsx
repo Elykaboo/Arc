@@ -11,6 +11,7 @@ import {
   listFollowingUsers,
   unfollowUser,
 } from "@/lib/follow-db";
+import { loadMemberProfile } from "@/lib/member-db";
 import { listCommunityPostsByUser, type CommunityPost } from "@/lib/community-db";
 import { loadPublicUserProfile } from "@/lib/public-profile-db";
 import { loadUserProfile } from "@/lib/profile-db";
@@ -75,39 +76,51 @@ export default function UserProfileClient({ uid }: UserProfileClientProps) {
       setStatus(null);
 
       try {
-        const [publicProfileResult, recentPostsResult] = await Promise.allSettled([
+        const [memberProfileResult, publicProfileResult, privateProfileResult, recentPostsResult] = await Promise.allSettled([
+          loadMemberProfile(uid),
           loadPublicUserProfile(uid),
+          loadUserProfile(uid),
           listCommunityPostsByUser(uid, 12),
         ]);
         if (cancelled) return;
 
+        const memberProfile =
+          memberProfileResult.status === "fulfilled" ? memberProfileResult.value : null;
         const publicProfile =
           publicProfileResult.status === "fulfilled" ? publicProfileResult.value : null;
+        const privateProfile =
+          privateProfileResult.status === "fulfilled" ? privateProfileResult.value : null;
         const recentPosts = recentPostsResult.status === "fulfilled" ? recentPostsResult.value : [];
 
         if (
+          memberProfileResult.status === "rejected" &&
           publicProfileResult.status === "rejected" &&
+          privateProfileResult.status === "rejected" &&
           recentPostsResult.status === "rejected"
         ) {
           setStatus("Unable to load this profile right now.");
-        } else if (publicProfileResult.status === "rejected") {
+        } else if (
+          memberProfileResult.status === "rejected" &&
+          publicProfileResult.status === "rejected" &&
+          privateProfileResult.status === "rejected"
+        ) {
           setStatus("Profile details are limited right now.");
         }
 
-        const privateProfile =
-          !publicProfile && viewerUid === uid ? await loadUserProfile(uid).catch(() => null) : null;
         const fallbackName =
           recentPosts[0]?.authorName?.trim() ||
+          memberProfile?.username?.trim() ||
           privateProfile?.username?.trim() ||
           auth.currentUser?.displayName?.trim() ||
           "Arc User";
         const fallbackPhoto =
           recentPosts[0]?.authorPhotoDataUrl?.trim() ||
+          memberProfile?.photoDataUrl?.trim() ||
           privateProfile?.photoDataUrl?.trim() ||
           auth.currentUser?.photoURL?.trim() ||
           "";
 
-        if (!publicProfile && !privateProfile && recentPosts.length === 0) {
+        if (!memberProfile && !publicProfile && !privateProfile && recentPosts.length === 0) {
           setProfile(null);
           setPosts([]);
           return;
@@ -115,12 +128,26 @@ export default function UserProfileClient({ uid }: UserProfileClientProps) {
 
         setProfile({
           uid,
-          username: publicProfile?.username?.trim() || privateProfile?.username?.trim() || fallbackName,
-          bio: publicProfile?.bio?.trim() || privateProfile?.bio?.trim() || "",
+          username:
+            memberProfile?.username?.trim() ||
+            publicProfile?.username?.trim() ||
+            privateProfile?.username?.trim() ||
+            fallbackName,
+          bio:
+            memberProfile?.bio?.trim() ||
+            publicProfile?.bio?.trim() ||
+            privateProfile?.bio?.trim() ||
+            "",
           workoutSplit:
-            publicProfile?.workoutSplit?.trim() || privateProfile?.workoutSplit?.trim() || "",
+            memberProfile?.workoutSplit?.trim() ||
+            publicProfile?.workoutSplit?.trim() ||
+            privateProfile?.workoutSplit?.trim() ||
+            "",
           photoDataUrl:
-            publicProfile?.photoDataUrl?.trim() || privateProfile?.photoDataUrl?.trim() || fallbackPhoto,
+            memberProfile?.photoDataUrl?.trim() ||
+            publicProfile?.photoDataUrl?.trim() ||
+            privateProfile?.photoDataUrl?.trim() ||
+            fallbackPhoto,
         });
         setPosts(recentPosts);
       } catch {

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { saveMemberProfile } from "@/lib/member-db";
 import { loadPlannerDraft, savePlannerDraft } from "@/lib/planner-db";
 import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
 import { savePublicUserProfile } from "@/lib/public-profile-db";
@@ -407,6 +408,7 @@ export default function PlannerClient() {
         };
 
         await saveUserProfile(userId, mergedProfile);
+        await saveMemberProfile(userId, mergedProfile);
         await savePublicUserProfile(userId, mergedProfile);
       } catch {
         // Keep planner save successful even if profile sync fails.

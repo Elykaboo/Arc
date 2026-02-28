@@ -11,7 +11,7 @@ import {
   unfollowUser,
   type FollowingUser,
 } from "@/lib/follow-db";
-import { listPublicUserProfiles, type PublicUserProfile } from "@/lib/public-profile-db";
+import { listMemberProfiles, type MemberProfile } from "@/lib/member-db";
 import { loadUserProfile } from "@/lib/profile-db";
 import {
   createCommunityPost,
@@ -154,8 +154,7 @@ export default function CommunityClient({
   const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
   const [menuActionPostId, setMenuActionPostId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [publicProfiles, setPublicProfiles] = useState<PublicUserProfile[]>([]);
+  const [memberProfiles, setMemberProfiles] = useState<MemberProfile[]>([]);
   const [followingUsers, setFollowingUsers] = useState<FollowingUser[]>([]);
   const [followingByUid, setFollowingByUid] = useState<Record<string, boolean>>({});
   const [followBusyByUid, setFollowBusyByUid] = useState<Record<string, boolean>>({});
@@ -209,20 +208,20 @@ export default function CommunityClient({
   useEffect(() => {
     let cancelled = false;
 
-    const loadSearchableProfiles = async () => {
+    const loadMemberIndex = async () => {
       try {
-        const profiles = await listPublicUserProfiles(500);
+        const profiles = await listMemberProfiles(4000);
         if (!cancelled) {
-          setPublicProfiles(profiles);
+          setMemberProfiles(profiles);
         }
       } catch {
         if (!cancelled) {
-          setPublicProfiles([]);
+          setMemberProfiles([]);
         }
       }
     };
 
-    void loadSearchableProfiles();
+    void loadMemberIndex();
 
     return () => {
       cancelled = true;
@@ -329,7 +328,7 @@ export default function CommunityClient({
   const searchableUsers = useMemo(() => {
     const unique = new Map<string, UserSuggestion>();
 
-    for (const profile of publicProfiles) {
+    for (const profile of memberProfiles) {
       const name = profile.username.trim();
       if (!name) continue;
       const key = profile.uid.toLowerCase();
@@ -355,14 +354,14 @@ export default function CommunityClient({
 
     for (const post of posts) {
       const name = (post.authorName || "").trim();
-      if (!name) continue;
-      const key = (post.uid || name).toLowerCase();
+      if (!name || !post.uid) continue;
+      const key = post.uid.toLowerCase();
       if (unique.has(key)) continue;
-      unique.set(key, { uid: post.uid || "", name, photo: post.authorPhotoDataUrl || "" });
+      unique.set(key, { uid: post.uid, name, photo: post.authorPhotoDataUrl || "" });
     }
 
     return Array.from(unique.values());
-  }, [followingUsers, posts, publicProfiles]);
+  }, [followingUsers, memberProfiles, posts]);
 
   const usernameSuggestions = useMemo(() => {
     if (!normalizedSearch) return [];
@@ -396,7 +395,11 @@ export default function CommunityClient({
     });
   }, [normalizedSearch, posts]);
 
-  const matchedUsers = useMemo(() => usernameSuggestions.map((suggestion) => suggestion.name), [usernameSuggestions]);
+  const matchedUsers = useMemo(
+    () => usernameSuggestions.map((suggestion) => suggestion.name),
+    [usernameSuggestions],
+  );
+  const totalSearchMatches = filteredPosts.length + usernameSuggestions.length;
 
   const viewerStorageKey = userId ?? "guest";
 
@@ -804,21 +807,21 @@ export default function CommunityClient({
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
                 placeholder="Search by username, post caption, or post ID..."
                 className="min-w-0 w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-slate-300 focus:ring dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100"
               />
-              {isSearchFocused && normalizedSearch && usernameSuggestions.length > 0 ? (
+              {normalizedSearch && usernameSuggestions.length > 0 ? (
                 <ul className="absolute left-0 right-[90px] top-11 z-20 max-h-60 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
                   {usernameSuggestions.map((suggestion) => (
                     <li key={`${suggestion.uid}:${suggestion.name}`}>
-                      <button
-                        type="button"
+                      <Link
+                        href={suggestion.uid ? `/users/${suggestion.uid}` : "#"}
                         onMouseDown={(event) => {
                           event.preventDefault();
                           setSearchQuery(suggestion.name);
-                          setIsSearchFocused(false);
+                        }}
+                        onClick={() => {
+                          setSearchQuery(suggestion.name);
                         }}
                         className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left transition hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
@@ -830,12 +833,12 @@ export default function CommunityClient({
                             className="h-7 w-7 rounded-full border border-slate-200 object-cover dark:border-slate-700"
                           />
                         ) : (
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] text-white dark:bg-slate-100 dark:text-slate-900">
-                            👤
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                            {getInitials(suggestion.name)}
                           </span>
                         )}
                         <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{suggestion.name}</span>
-                      </button>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -846,7 +849,6 @@ export default function CommunityClient({
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
-                  setIsSearchFocused(false);
                 }}
                 className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
               >
@@ -856,7 +858,7 @@ export default function CommunityClient({
           </div>
           {normalizedSearch ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {filteredPosts.length} result{filteredPosts.length === 1 ? "" : "s"} for &quot;{searchQuery.trim()}&quot;
+              {totalSearchMatches} result{totalSearchMatches === 1 ? "" : "s"} for &quot;{searchQuery.trim()}&quot;
               {matchedUsers.length > 0 ? ` · Users: ${matchedUsers.join(", ")}` : ""}
             </p>
           ) : (
@@ -865,6 +867,41 @@ export default function CommunityClient({
             </p>
           )}
         </div>
+        {normalizedSearch && usernameSuggestions.length > 0 ? (
+          <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-800/50">
+            <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-300">
+              Matching Users
+            </p>
+            <div className="space-y-1">
+              {usernameSuggestions.map((suggestion) => (
+                <Link
+                  key={`result:${suggestion.uid}:${suggestion.name}`}
+                  href={suggestion.uid ? `/users/${suggestion.uid}` : "#"}
+                  className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white dark:hover:bg-slate-900"
+                >
+                  {suggestion.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={suggestion.photo}
+                      alt={`${suggestion.name} avatar`}
+                      className="h-9 w-9 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                    />
+                  ) : (
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                      {getInitials(suggestion.name)}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {suggestion.name}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Open profile</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -944,9 +981,13 @@ export default function CommunityClient({
         <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
           No community posts yet. Share the first update.
         </p>
-      ) : normalizedSearch && filteredPosts.length === 0 ? (
+      ) : normalizedSearch && filteredPosts.length === 0 && usernameSuggestions.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
           No posts matched &quot;{searchQuery.trim()}&quot;. Try another username, caption keyword, or post ID.
+        </p>
+      ) : normalizedSearch && filteredPosts.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+          No posts matched &quot;{searchQuery.trim()}&quot;, but matching users were found above.
         </p>
       ) : (
         <ul className="space-y-4">

@@ -37,6 +37,12 @@ export type FollowerEntry = FollowerUser & {
   createdAtMs: number | null;
 };
 
+export type FollowGraphUser = {
+  uid: string;
+  username: string;
+  photoDataUrl: string;
+};
+
 type FollowerUserDocument = Omit<FollowerUser, "uid"> & {
   createdAt?: Timestamp;
 };
@@ -174,4 +180,66 @@ export const listFollowersForUser = async (
       createdAtMs: data.createdAt ? data.createdAt.toMillis() : null,
     };
   });
+};
+
+export const listUsersFromFollowGraph = async (maxItems = 2000): Promise<FollowGraphUser[]> => {
+  const usersById = new Map<string, FollowGraphUser>();
+
+  try {
+    const followingSnapshot = await getDocs(query(collectionGroup(db, "following"), limit(maxItems)));
+    for (const document of followingSnapshot.docs) {
+      const data = document.data();
+      const targetUid = document.id;
+      const sourceUid = document.ref.parent.parent?.id || "";
+
+      if (targetUid) {
+        usersById.set(targetUid, {
+          uid: targetUid,
+          username: typeof data.username === "string" ? data.username.trim() : "",
+          photoDataUrl: typeof data.photoDataUrl === "string" ? data.photoDataUrl.trim() : "",
+        });
+      }
+
+      if (sourceUid && !usersById.has(sourceUid)) {
+        usersById.set(sourceUid, {
+          uid: sourceUid,
+          username: "",
+          photoDataUrl: "",
+        });
+      }
+    }
+  } catch {
+    // Ignore follow graph fallbacks when the query is unavailable.
+  }
+
+  try {
+    const followersSnapshot = await getDocs(query(collectionGroup(db, "followers"), limit(maxItems)));
+    for (const document of followersSnapshot.docs) {
+      const data = document.data();
+      const viewerUid = document.id;
+      const targetUid = document.ref.parent.parent?.id || "";
+
+      if (viewerUid) {
+        const existingViewer = usersById.get(viewerUid);
+        usersById.set(viewerUid, {
+          uid: viewerUid,
+          username: existingViewer?.username || (typeof data.username === "string" ? data.username.trim() : ""),
+          photoDataUrl:
+            existingViewer?.photoDataUrl || (typeof data.photoDataUrl === "string" ? data.photoDataUrl.trim() : ""),
+        });
+      }
+
+      if (targetUid && !usersById.has(targetUid)) {
+        usersById.set(targetUid, {
+          uid: targetUid,
+          username: "",
+          photoDataUrl: "",
+        });
+      }
+    }
+  } catch {
+    // Ignore follower graph fallbacks when the query is unavailable.
+  }
+
+  return Array.from(usersById.values());
 };

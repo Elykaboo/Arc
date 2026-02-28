@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "backfill:members": "node scripts/backfill-members.mjs",
     "tunnel": "ngrok http 3000",
     "dev:public": "sh -c \"npm run dev & npm run tunnel\""
   },
   "dependencies": {
     "firebase": "^12.9.0",
+    "firebase-admin": "^13.7.0",
     "next": "16.1.6",
     "ngrok": "^5.0.0-beta.2",
     "react": "19.2.3",

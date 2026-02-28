@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { createUserWithEmailAndPassword, onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { saveMemberProfile } from "@/lib/member-db";
 import { savePublicUserProfile } from "@/lib/public-profile-db";
 import { saveUserProfile } from "@/lib/profile-db";
 
@@ -50,6 +51,7 @@ export default function SignupPage() {
         photoDataUrl: "",
       };
       await saveUserProfile(credential.user.uid, starterProfile);
+      await saveMemberProfile(credential.user.uid, starterProfile);
       await savePublicUserProfile(credential.user.uid, starterProfile);
       router.replace("/socializing");
     } catch (err) {

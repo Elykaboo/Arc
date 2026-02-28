@@ -5,6 +5,7 @@ import {
   doc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -12,6 +13,7 @@ import {
   where,
   type FirestoreDataConverter,
   type Timestamp,
+  type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -88,6 +90,37 @@ export const listCommunityPosts = async (maxItems = 30): Promise<CommunityPost[]
       createdAt: data.createdAt ?? null,
     };
   });
+};
+
+export const subscribeCommunityPosts = (
+  onData: (posts: CommunityPost[]) => void,
+  onError?: (error: Error) => void,
+  maxItems = 30,
+): Unsubscribe => {
+  const postsQuery = query(communityPostsCollection, orderBy("createdAt", "desc"), limit(maxItems));
+
+  return onSnapshot(
+    postsQuery,
+    (snapshot) => {
+      onData(
+        snapshot.docs.map((docSnapshot) => {
+          const data = docSnapshot.data();
+          return {
+            id: docSnapshot.id,
+            uid: data.uid,
+            authorName: data.authorName,
+            authorPhotoDataUrl: data.authorPhotoDataUrl,
+            caption: data.caption,
+            progressPhotoDataUrl: data.progressPhotoDataUrl,
+            createdAt: data.createdAt ?? null,
+          };
+        }),
+      );
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 };
 
 export const listCommunityPostsByUser = async (

@@ -4,6 +4,7 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { saveMemberProfile } from "@/lib/member-db";
 import { loadPlannerDraft } from "@/lib/planner-db";
 import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
 import { savePublicUserProfile } from "@/lib/public-profile-db";
@@ -31,6 +32,9 @@ const weekdays = [
   "Saturday",
   "Sunday",
 ] as const;
+
+// Firestore document limit is 1 MiB; keep profile images well under that when base64-encoded.
+const MAX_PHOTO_DATA_URL_BYTES = 280_000;
 
 const toSplitToken = (label: string): string => {
   const value = label.trim().toLowerCase();
@@ -87,6 +91,67 @@ const extractPlannerItems = (draft: unknown): PlannerItem[] => {
 const buildFallbackUsername = (email: string | null | undefined): string => {
   if (!email) return "";
   return email.split("@")[0] || "";
+};
+
+const dataUrlToBytes = (dataUrl: string): number => {
+  const payload = dataUrl.split(",")[1] || "";
+  return Math.ceil((payload.length * 3) / 4);
+};
+
+const dataUrlStringBytes = (dataUrl: string): number => {
+  return dataUrl.length;
+};
+
+const resizeImageToDataUrl = async (file: File): Promise<string> => {
+  const originalDataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Unable to read image."));
+      }
+    };
+    reader.onerror = () => reject(new Error("Unable to read image."));
+    reader.readAsDataURL(file);
+  });
+
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Unable to load image."));
+    img.src = originalDataUrl;
+  });
+
+  const maxDimension = 960;
+  const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+  const targetWidth = Math.max(1, Math.round(image.width * scale));
+  const targetHeight = Math.max(1, Math.round(image.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Unable to process image.");
+  }
+
+  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  let quality = 0.82;
+  let result = canvas.toDataURL("image/jpeg", quality);
+
+  while (dataUrlStringBytes(result) > MAX_PHOTO_DATA_URL_BYTES && quality > 0.2) {
+    quality -= 0.07;
+    result = canvas.toDataURL("image/jpeg", quality);
+  }
+
+  if (dataUrlStringBytes(result) > MAX_PHOTO_DATA_URL_BYTES || dataUrlToBytes(result) > 220_000) {
+    throw new Error("Image is still too large after compression. Try a smaller photo.");
+  }
+
+  return result;
 };
 
 const broadcastProfileUpdated = (nextProfile: UserProfile) => {
@@ -150,10 +215,12 @@ export default function ProfileClient() {
           photoDataUrl: storedProfile?.photoDataUrl || authProfile.photoDataUrl,
         };
         setProfile(resolvedProfile);
+        void saveMemberProfile(userId, resolvedProfile);
         void savePublicUserProfile(userId, resolvedProfile);
       } catch {
         if (cancelled) return;
         setProfile(authProfile);
+        void saveMemberProfile(userId, authProfile);
         void savePublicUserProfile(userId, authProfile);
         setStatus({
           type: "error",
@@ -272,7 +339,7 @@ export default function ProfileClient() {
     setProfile((previous) => ({ ...previous, [key]: value }));
   };
 
-  const handlePictureChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handlePictureChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -286,18 +353,19 @@ export default function ProfileClient() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
+    try {
+      const result = await resizeImageToDataUrl(file);
       const nextProfile = { ...profile, photoDataUrl: result };
       setProfile(nextProfile);
       broadcastProfileUpdated(nextProfile);
       setPictureError(null);
-    };
-    reader.onerror = () => {
-      setPictureError("Could not read that image. Please try another file.");
-    };
-    reader.readAsDataURL(file);
+    } catch (error: unknown) {
+      setPictureError(
+        error instanceof Error ? error.message : "Could not process that image. Please try another file.",
+      );
+    } finally {
+      event.target.value = "";
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -326,15 +394,31 @@ export default function ProfileClient() {
     setIsSaving(true);
 
     try {
-      await updateProfile(auth.currentUser, {
-        displayName: normalizedProfile.username,
-      });
-
       await saveUserProfile(userId, normalizedProfile);
-      await savePublicUserProfile(userId, normalizedProfile);
+
+      try {
+        await updateProfile(auth.currentUser, {
+          displayName: normalizedProfile.username,
+        });
+      } catch {
+        // Keep the profile save successful even if auth profile sync fails.
+      }
+
+      const mirrorWrites = await Promise.allSettled([
+        saveMemberProfile(userId, normalizedProfile),
+        savePublicUserProfile(userId, normalizedProfile),
+      ]);
+
       setProfile(normalizedProfile);
       broadcastProfileUpdated(normalizedProfile);
-      setStatus({ type: "success", message: "Profile updated." });
+
+      const hasMirrorFailure = mirrorWrites.some((result) => result.status === "rejected");
+      setStatus({
+        type: "success",
+        message: hasMirrorFailure
+          ? "Profile saved. Some public sync updates may take another save to fully appear."
+          : "Profile updated.",
+      });
     } catch {
       setStatus({
         type: "error",

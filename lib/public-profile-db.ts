@@ -4,11 +4,14 @@ import {
   getDoc,
   getDocs,
   limit,
+  onSnapshot,
   query,
   serverTimestamp,
   setDoc,
+  type QuerySnapshot,
   type FirestoreDataConverter,
   type Timestamp,
+  type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { UserProfile } from "@/lib/profile-db";
@@ -50,6 +53,22 @@ const publicProfileRef = (uid: string) =>
   doc(db, "publicProfiles", uid).withConverter(publicProfileConverter);
 const publicProfilesCollection = collection(db, "publicProfiles").withConverter(publicProfileConverter);
 
+const mapPublicProfilesSnapshot = (
+  snapshot: QuerySnapshot<PublicUserProfileDocument>,
+): PublicUserProfile[] =>
+  snapshot.docs
+    .map((document) => {
+      const data = document.data();
+      return {
+        uid: document.id,
+        username: data.username.trim(),
+        bio: data.bio,
+        workoutSplit: data.workoutSplit,
+        photoDataUrl: data.photoDataUrl,
+      };
+    })
+    .filter((profile) => Boolean(profile.username));
+
 export const loadPublicUserProfile = async (uid: string): Promise<PublicUserProfile | null> => {
   const snapshot = await getDoc(publicProfileRef(uid));
   if (!snapshot.exists()) return null;
@@ -80,17 +99,23 @@ export const savePublicUserProfile = async (uid: string, profile: UserProfile): 
 
 export const listPublicUserProfiles = async (maxItems = 300): Promise<PublicUserProfile[]> => {
   const snapshot = await getDocs(query(publicProfilesCollection, limit(maxItems)));
+  return mapPublicProfilesSnapshot(snapshot);
+};
 
-  return snapshot.docs
-    .map((document) => {
-      const data = document.data();
-      return {
-        uid: document.id,
-        username: data.username.trim(),
-        bio: data.bio,
-        workoutSplit: data.workoutSplit,
-        photoDataUrl: data.photoDataUrl,
-      };
-    })
-    .filter((profile) => Boolean(profile.username));
+export const subscribePublicUserProfiles = (
+  onData: (profiles: PublicUserProfile[]) => void,
+  onError?: (error: Error) => void,
+  maxItems = 300,
+): Unsubscribe => {
+  const publicProfilesQuery = query(publicProfilesCollection, limit(maxItems));
+
+  return onSnapshot(
+    publicProfilesQuery,
+    (snapshot) => {
+      onData(mapPublicProfilesSnapshot(snapshot));
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 };

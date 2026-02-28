@@ -8,7 +8,9 @@ import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestor
 import { auth } from "@/lib/firebase";
 import { db } from "@/lib/firebase";
 import { listFollowersForUser, type FollowerEntry } from "@/lib/follow-db";
-import { loadUserProfile, type UserProfile } from "@/lib/profile-db";
+import { saveMemberProfile } from "@/lib/member-db";
+import { savePublicUserProfile } from "@/lib/public-profile-db";
+import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
 
 type NavItem = {
   href: string;
@@ -18,6 +20,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/socializing", label: "Home", match: "startsWith" },
+  { href: "/community", label: "Community", match: "startsWith" },
   { href: "/", label: "Training Dashboard", match: "exact" },
   { href: "/workouts", label: "Workouts", match: "startsWith" },
   { href: "/planner", label: "Planner", match: "startsWith" },
@@ -134,14 +137,46 @@ export default function SiteNav() {
 
       try {
         const storedProfile = await loadUserProfile(user.uid);
+        const syncedProfile: UserProfile = {
+          username:
+            storedProfile?.username?.trim() || user.displayName?.trim() || user.email?.split("@")[0] || "Arc User",
+          gender: storedProfile?.gender ?? "",
+          bio: storedProfile?.bio ?? "",
+          workoutSplit: storedProfile?.workoutSplit ?? "",
+          photoDataUrl: storedProfile?.photoDataUrl?.trim() || user.photoURL?.trim() || "",
+        };
+
         if (storedProfile?.username?.trim()) {
           setProfileName(storedProfile.username.trim());
         }
         if (storedProfile?.photoDataUrl?.trim()) {
           setProfilePhoto(storedProfile.photoDataUrl.trim());
         }
+
+        try {
+          await saveUserProfile(user.uid, syncedProfile);
+          await saveMemberProfile(user.uid, syncedProfile);
+          await savePublicUserProfile(user.uid, syncedProfile);
+        } catch {
+          // Keep navigation responsive even if profile sync fails.
+        }
       } catch {
         // Use auth fallback values when profile read fails.
+        const fallbackProfile: UserProfile = {
+          username: user.displayName?.trim() || user.email?.split("@")[0] || "Arc User",
+          gender: "",
+          bio: "",
+          workoutSplit: "",
+          photoDataUrl: user.photoURL?.trim() || "",
+        };
+
+        try {
+          await saveUserProfile(user.uid, fallbackProfile);
+          await saveMemberProfile(user.uid, fallbackProfile);
+          await savePublicUserProfile(user.uid, fallbackProfile);
+        } catch {
+          // Ignore sync failures here and preserve auth fallback UI.
+        }
       }
     });
 
