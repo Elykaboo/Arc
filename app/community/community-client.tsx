@@ -17,7 +17,9 @@ import { loadUserProfile } from "@/lib/profile-db";
 import {
   createCommunityComment,
   createCommunityPost,
+  deleteCommunityComment,
   deleteCommunityPost,
+  getCommunityPostById,
   listCommunityCommentsForPosts,
   listCommunityPosts,
   listCommunityPostsByUser,
@@ -173,6 +175,7 @@ export default function CommunityClient({
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [commentDeleteBusyId, setCommentDeleteBusyId] = useState<string | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
   const [menuActionPostId, setMenuActionPostId] = useState<string | null>(null);
@@ -183,6 +186,14 @@ export default function CommunityClient({
   const [followBusyByUid, setFollowBusyByUid] = useState<Record<string, boolean>>({});
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfileSummary | null>(null);
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(false);
+
+  const refreshCommentsForPost = async (postId: string) => {
+    const refreshedComments = await listCommunityCommentsForPosts([postId]);
+    setCommentsByPost((current) => ({
+      ...current,
+      [postId]: refreshedComments[postId] || [],
+    }));
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -322,6 +333,72 @@ export default function CommunityClient({
 
     return () => {
       cancelled = true;
+    };
+  }, [posts]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    const openHashLinkedPost = async () => {
+      const hash = window.location.hash.trim();
+      if (!hash.startsWith("#post-")) return;
+
+      const postId = hash.slice("#post-".length).trim();
+      if (!postId) return;
+
+      const existingPost = posts.find((post) => post.id === postId);
+
+      try {
+        const targetPost = existingPost ?? (await getCommunityPostById(postId));
+        if (cancelled || !targetPost) return;
+
+        if (!existingPost) {
+          setPosts((current) => {
+            const next = current.filter((candidate) => candidate.id !== targetPost.id);
+            next.push(targetPost);
+            next.sort((left, right) => {
+              const leftTime = left.createdAt?.toMillis?.() ?? 0;
+              const rightTime = right.createdAt?.toMillis?.() ?? 0;
+              return rightTime - leftTime;
+            });
+            return next;
+          });
+        }
+
+        const refreshedComments = await listCommunityCommentsForPosts([postId]);
+        if (cancelled) return;
+
+        setCommentsByPost((current) => ({
+          ...current,
+          [postId]: refreshedComments[postId] || [],
+        }));
+
+        setExpandedComments((current) => ({
+          ...current,
+          [postId]: true,
+        }));
+
+        window.requestAnimationFrame(() => {
+          const target = document.getElementById(`post-${postId}`);
+          target?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      } catch {
+        // Ignore broken or stale deep links.
+      }
+    };
+
+    const handleHashChange = () => {
+      void openHashLinkedPost();
+    };
+
+    void openHashLinkedPost();
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("hashchange", handleHashChange);
     };
   }, [posts]);
 
@@ -696,10 +773,16 @@ export default function CommunityClient({
   };
 
   const toggleComments = (postId: string) => {
+    const nextOpen = !expandedComments[postId];
+
     setExpandedComments((current) => ({
       ...current,
-      [postId]: !current[postId],
+      [postId]: nextOpen,
     }));
+
+    if (nextOpen) {
+      void refreshCommentsForPost(postId);
+    }
   };
 
   const submitComment = async (post: CommunityPost) => {
@@ -722,11 +805,7 @@ export default function CommunityClient({
         postCaption: post.caption,
       });
 
-      const refreshedComments = await listCommunityCommentsForPosts([post.id]);
-      setCommentsByPost((current) => ({
-        ...current,
-        [post.id]: refreshedComments[post.id] || [],
-      }));
+      await refreshCommentsForPost(post.id);
       setCommentDrafts((current) => ({
         ...current,
         [post.id]: "",
@@ -738,6 +817,30 @@ export default function CommunityClient({
       setActionStatus("Comment added.");
     } catch {
       setActionStatus("Unable to add comment right now.");
+    }
+  };
+
+  const removeComment = async (postId: string, comment: CommunityComment) => {
+    if (!userId) {
+      setActionStatus("Log in to delete comments.");
+      return;
+    }
+    if (comment.uid !== userId) {
+      setActionStatus("You can only delete your own comments.");
+      return;
+    }
+    if (commentDeleteBusyId) return;
+    if (!window.confirm("Delete this comment?")) return;
+
+    setCommentDeleteBusyId(comment.id);
+    try {
+      await deleteCommunityComment(comment.id);
+      await refreshCommentsForPost(postId);
+      setActionStatus("Comment deleted.");
+    } catch {
+      setActionStatus("Unable to delete comment right now.");
+    } finally {
+      setCommentDeleteBusyId(null);
     }
   };
 
@@ -1391,12 +1494,30 @@ export default function CommunityClient({
                         <ul className="space-y-1">
                           {postComments.map((comment) => (
                             <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
-                              <p>
-                                <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
-                              </p>
-                              <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                {formatCommentTimestamp(comment.createdAt)}
-                              </p>
+                              <div className="flex items-start gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p>
+                                    <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
+                                  </p>
+                                  <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    {formatCommentTimestamp(comment.createdAt)}
+                                  </p>
+                                </div>
+                                {userId === comment.uid ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      void removeComment(post.id, comment);
+                                    }}
+                                    disabled={commentDeleteBusyId === comment.id}
+                                    className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
+                                    aria-label="Delete comment"
+                                    title="Delete comment"
+                                  >
+                                    {commentDeleteBusyId === comment.id ? "…" : "×"}
+                                  </button>
+                                ) : null}
+                              </div>
                             </li>
                           ))}
                         </ul>

@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
@@ -145,6 +146,25 @@ export const listCommunityPosts = async (maxItems = 30): Promise<CommunityPost[]
   });
 };
 
+export const getCommunityPostById = async (postId: string): Promise<CommunityPost | null> => {
+  const cleanedPostId = postId.trim();
+  if (!cleanedPostId) return null;
+
+  const snapshot = await getDoc(doc(db, "communityPosts", cleanedPostId).withConverter(communityPostConverter));
+  if (!snapshot.exists()) return null;
+
+  const data = snapshot.data();
+  return {
+    id: snapshot.id,
+    uid: data.uid,
+    authorName: data.authorName,
+    authorPhotoDataUrl: data.authorPhotoDataUrl,
+    caption: data.caption,
+    progressPhotoDataUrl: data.progressPhotoDataUrl,
+    createdAt: data.createdAt ?? null,
+  };
+};
+
 export const subscribeCommunityPosts = (
   onData: (posts: CommunityPost[]) => void,
   onError?: (error: Error) => void,
@@ -218,6 +238,13 @@ export const deleteCommunityPost = async (postId: string): Promise<void> => {
 
   const postRef = doc(db, "communityPosts", postId);
   await deleteDoc(postRef);
+};
+
+export const deleteCommunityComment = async (commentId: string): Promise<void> => {
+  const cleanedCommentId = commentId.trim();
+  if (!cleanedCommentId) return;
+
+  await deleteDoc(doc(db, "communityComments", cleanedCommentId));
 };
 
 export const listCommunityCommentsForPosts = async (
