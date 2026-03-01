@@ -4,11 +4,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect, useRef, useState } from "react";
-import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { auth } from "@/lib/firebase";
-import { db } from "@/lib/firebase";
-import { listFollowersForUser, type FollowerEntry } from "@/lib/follow-db";
 import { saveMemberProfile } from "@/lib/member-db";
+import {
+  clearUserNotifications,
+  deleteUserNotification,
+  listUserNotifications,
+  subscribeUserNotifications,
+  type UserNotification,
+} from "@/lib/notification-db";
 import { savePublicUserProfile } from "@/lib/public-profile-db";
 import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
 
@@ -108,8 +112,10 @@ export default function SiteNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
-  const [notifications, setNotifications] = useState<FollowerEntry[]>([]);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsClearing, setNotificationsClearing] = useState(false);
+  const [notificationDeletingId, setNotificationDeletingId] = useState("");
   const [lastReadAtMs, setLastReadAtMs] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof document === "undefined") {
@@ -187,45 +193,63 @@ export default function SiteNav() {
     }
     setNotificationsLoading(true);
 
-    const notificationsQuery = query(
-      collection(db, "users", currentUserId, "followers"),
-      orderBy("createdAt", "desc"),
-      limit(50),
-    );
+    let cancelled = false;
 
-    const unsubscribe = onSnapshot(
-      notificationsQuery,
-      (snapshot) => {
-        const items: FollowerEntry[] = snapshot.docs.map((document) => {
-          const data = document.data();
-          const createdAt = data.createdAt;
-          return {
-            uid: document.id,
-            username: typeof data.username === "string" ? data.username : "",
-            photoDataUrl: typeof data.photoDataUrl === "string" ? data.photoDataUrl : "",
-            createdAtMs:
-              createdAt && typeof createdAt.toMillis === "function" ? createdAt.toMillis() : null,
-          };
-        });
+    const refreshNotifications = async () => {
+      try {
+        const items = await listUserNotifications(currentUserId, 50);
+        if (!cancelled) {
+          setNotifications(items);
+        }
+      } catch {
+        if (!cancelled) {
+          setNotifications([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setNotificationsLoading(false);
+        }
+      }
+    };
+
+    void refreshNotifications();
+
+    const unsubscribe = subscribeUserNotifications(
+      currentUserId,
+      (items) => {
         setNotifications(items);
         setNotificationsLoading(false);
       },
       () => {
-        // Fallback when listeners are blocked by environment/network/rules.
-        void (async () => {
-          try {
-            const followers = await listFollowersForUser(currentUserId, 50);
-            setNotifications(followers);
-          } catch {
-            setNotifications([]);
-          } finally {
-            setNotificationsLoading(false);
-          }
-        })();
+        // Keep refreshing when the snapshot channel is blocked or stale.
+        void refreshNotifications();
       },
     );
 
-    return unsubscribe;
+    const intervalId = window.setInterval(() => {
+      void refreshNotifications();
+    }, 4000);
+
+    const handleWindowFocus = () => {
+      void refreshNotifications();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void refreshNotifications();
+      }
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      unsubscribe();
+    };
   }, [currentUserId]);
 
   useEffect(() => {
@@ -300,6 +324,68 @@ export default function SiteNav() {
     return `${Math.floor(deltaSeconds / 86400)}d ago`;
   };
 
+  const buildNotificationHref = (notification: UserNotification) => {
+    if (notification.type === "comment" && notification.postId) {
+      return `/socializing#post-${notification.postId}`;
+    }
+
+    if (notification.actorUid) {
+      return `/users/${notification.actorUid}`;
+    }
+
+    return "/community";
+  };
+
+  const buildNotificationText = (notification: UserNotification) => {
+    const actorName = notification.actorName || "Someone";
+
+    if (notification.type === "comment") {
+      return `${actorName} commented on your post.`;
+    }
+
+    return `${actorName} followed you.`;
+  };
+
+  const buildNotificationDetail = (notification: UserNotification) => {
+    if (notification.type === "comment") {
+      const comment = notification.commentText.trim();
+      if (comment) {
+        return `"${comment.length > 72 ? `${comment.slice(0, 69)}...` : comment}"`;
+      }
+
+      const postCaption = notification.postCaption.trim();
+      if (postCaption) {
+        return `On: ${postCaption.length > 72 ? `${postCaption.slice(0, 69)}...` : postCaption}`;
+      }
+    }
+
+    return formatRelativeTime(notification.createdAtMs);
+  };
+
+  const clearAllNotifications = async () => {
+    if (!currentUserId || notifications.length === 0 || notificationsClearing) return;
+
+    setNotificationsClearing(true);
+    try {
+      await clearUserNotifications(currentUserId);
+      setNotifications([]);
+    } finally {
+      setNotificationsClearing(false);
+    }
+  };
+
+  const clearNotification = async (notificationId: string) => {
+    if (!currentUserId || !notificationId || notificationDeletingId) return;
+
+    setNotificationDeletingId(notificationId);
+    try {
+      await deleteUserNotification(currentUserId, notificationId);
+      setNotifications((current) => current.filter((item) => item.id !== notificationId));
+    } finally {
+      setNotificationDeletingId("");
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
       <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
@@ -357,14 +443,17 @@ export default function SiteNav() {
                   setNotificationsOpen((value) => !value);
                   setMenuOpen(false);
                 }}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
-                aria-label="Notifications"
+                className="relative inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+                aria-label="Open notifications"
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
               >
                 <BellIcon className="h-5 w-5" />
+                <span className="text-sm font-semibold">Notifications</span>
                 {unreadCount > 0 ? (
-                  <span className="absolute right-2 top-2 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900" />
+                  <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 ) : null}
               </button>
 
@@ -380,14 +469,26 @@ export default function SiteNav() {
                         {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={markAllNotificationsRead}
-                      disabled={unreadCount === 0}
-                      className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-700"
-                    >
-                      Mark all as read
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsRead}
+                        disabled={unreadCount === 0}
+                        className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-700"
+                      >
+                        Mark all as read
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void clearAllNotifications();
+                        }}
+                        disabled={notifications.length === 0 || notificationsClearing}
+                        className="rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                      >
+                        {notificationsClearing ? "Clearing..." : "Clear all"}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="max-h-72 overflow-y-auto">
@@ -399,22 +500,41 @@ export default function SiteNav() {
                       notifications.map((item) => {
                         const isUnread = item.createdAtMs !== null && item.createdAtMs > lastReadAtMs;
                         return (
-                          <Link
-                            key={item.uid}
-                            href={`/users/${item.uid}`}
-                            onClick={() => setNotificationsOpen(false)}
-                            className={`block rounded-xl px-3 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-700 ${
+                          <div
+                            key={item.id}
+                            className={`flex items-start gap-2 rounded-xl px-3 py-2 transition hover:bg-slate-100 dark:hover:bg-slate-700 ${
                               isUnread ? "bg-red-50/60 dark:bg-red-500/10" : ""
                             }`}
-                            role="menuitem"
                           >
-                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                              <span className="font-semibold">{item.username || "Someone"}</span> followed you.
-                            </p>
-                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">
-                              {formatRelativeTime(item.createdAtMs)}
-                            </p>
-                          </Link>
+                            <Link
+                              href={buildNotificationHref(item)}
+                              onClick={() => setNotificationsOpen(false)}
+                              className="min-w-0 flex-1"
+                              role="menuitem"
+                            >
+                              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                {buildNotificationText(item)}
+                              </p>
+                              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">
+                                {buildNotificationDetail(item)}
+                              </p>
+                              <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                {formatRelativeTime(item.createdAtMs)}
+                              </p>
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void clearNotification(item.id);
+                              }}
+                              disabled={notificationDeletingId === item.id}
+                              className="mt-0.5 shrink-0 rounded-lg px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500 transition hover:bg-slate-200 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-slate-100"
+                              aria-label="Clear notification"
+                              title="Clear notification"
+                            >
+                              {notificationDeletingId === item.id ? "..." : "Clear"}
+                            </button>
+                          </div>
                         );
                       })
                     )}

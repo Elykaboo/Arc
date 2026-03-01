@@ -15,11 +15,14 @@ import {
 import { listMemberProfiles, type MemberProfile } from "@/lib/member-db";
 import { loadUserProfile } from "@/lib/profile-db";
 import {
+  createCommunityComment,
   createCommunityPost,
   deleteCommunityPost,
+  listCommunityCommentsForPosts,
   listCommunityPosts,
   listCommunityPostsByUser,
   updateCommunityPostCaption,
+  type CommunityComment,
   type CommunityPost,
 } from "@/lib/community-db";
 
@@ -39,6 +42,21 @@ const formatTimestamp = (value: CommunityPost["createdAt"]): string => {
     }).format(value.toDate());
   } catch {
     return "Recently";
+  }
+};
+
+const formatCommentTimestamp = (value: CommunityComment["createdAt"]): string => {
+  if (!value) return "Just now";
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(value.toDate());
+  } catch {
+    return "Just now";
   }
 };
 
@@ -116,13 +134,6 @@ type CommunityClientProps = {
   description?: string;
 };
 
-type LocalComment = {
-  id: string;
-  author: string;
-  text: string;
-  createdAt: number;
-};
-
 type UserSuggestion = {
   uid: string;
   name: string;
@@ -159,7 +170,7 @@ export default function CommunityClient({
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [likedPostIds, setLikedPostIds] = useState<Record<string, boolean>>({});
-  const [commentsByPost, setCommentsByPost] = useState<Record<string, LocalComment[]>>({});
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [actionStatus, setActionStatus] = useState<string | null>(null);
@@ -284,6 +295,35 @@ export default function CommunityClient({
   useEffect(() => {
     void loadPosts();
   }, []);
+
+  useEffect(() => {
+    const visiblePostIds = posts.map((post) => post.id);
+    if (visiblePostIds.length === 0) {
+      setCommentsByPost({});
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadComments = async () => {
+      try {
+        const comments = await listCommunityCommentsForPosts(visiblePostIds);
+        if (!cancelled) {
+          setCommentsByPost(comments);
+        }
+      } catch {
+        if (!cancelled) {
+          setCommentsByPost({});
+        }
+      }
+    };
+
+    void loadComments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [posts]);
 
   useEffect(() => {
     let cancelled = false;
@@ -491,12 +531,6 @@ export default function CommunityClient({
       setLikedPostIds({});
     }
 
-    try {
-      const commentsRaw = window.localStorage.getItem(`community:comments:${viewerStorageKey}`);
-      setCommentsByPost(commentsRaw ? (JSON.parse(commentsRaw) as Record<string, LocalComment[]>) : {});
-    } catch {
-      setCommentsByPost({});
-    }
   }, [viewerStorageKey]);
 
   useEffect(() => {
@@ -506,14 +540,6 @@ export default function CommunityClient({
       // Ignore persistence failures.
     }
   }, [likedPostIds, viewerStorageKey]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(`community:comments:${viewerStorageKey}`, JSON.stringify(commentsByPost));
-    } catch {
-      // Ignore persistence failures.
-    }
-  }, [commentsByPost, viewerStorageKey]);
 
   useEffect(() => {
     if (!activePostMenuId) return;
@@ -676,7 +702,7 @@ export default function CommunityClient({
     }));
   };
 
-  const submitComment = (post: CommunityPost) => {
+  const submitComment = async (post: CommunityPost) => {
     if (!userId) {
       setActionStatus("Log in to comment on posts.");
       return;
@@ -685,26 +711,34 @@ export default function CommunityClient({
     const text = commentDrafts[post.id]?.trim() || "";
     if (!text) return;
 
-    const newComment: LocalComment = {
-      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-      author: displayName || "Arc User",
-      text,
-      createdAt: Date.now(),
-    };
+    try {
+      await createCommunityComment({
+        postId: post.id,
+        postOwnerUid: post.uid,
+        uid: userId,
+        authorName: displayName || "Arc User",
+        authorPhotoDataUrl: profilePhoto,
+        text,
+        postCaption: post.caption,
+      });
 
-    setCommentsByPost((current) => ({
-      ...current,
-      [post.id]: [...(current[post.id] || []), newComment],
-    }));
-    setCommentDrafts((current) => ({
-      ...current,
-      [post.id]: "",
-    }));
-    setExpandedComments((current) => ({
-      ...current,
-      [post.id]: true,
-    }));
-    setActionStatus("Comment added.");
+      const refreshedComments = await listCommunityCommentsForPosts([post.id]);
+      setCommentsByPost((current) => ({
+        ...current,
+        [post.id]: refreshedComments[post.id] || [],
+      }));
+      setCommentDrafts((current) => ({
+        ...current,
+        [post.id]: "",
+      }));
+      setExpandedComments((current) => ({
+        ...current,
+        [post.id]: true,
+      }));
+      setActionStatus("Comment added.");
+    } catch {
+      setActionStatus("Unable to add comment right now.");
+    }
   };
 
   const sharePost = async (postId: string) => {
@@ -1356,8 +1390,13 @@ export default function CommunityClient({
                       ) : (
                         <ul className="space-y-1">
                           {postComments.map((comment) => (
-                            <li key={comment.id} className="text-xs text-slate-700 dark:text-slate-200">
-                              <span className="font-semibold">{comment.author}</span> {comment.text}
+                            <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                              <p>
+                                <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
+                              </p>
+                              <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                {formatCommentTimestamp(comment.createdAt)}
+                              </p>
                             </li>
                           ))}
                         </ul>

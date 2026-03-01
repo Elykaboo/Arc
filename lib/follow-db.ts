@@ -16,6 +16,7 @@ import {
   type Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { createUserNotification } from "@/lib/notification-db";
 
 export type FollowingUser = {
   uid: string;
@@ -114,6 +115,18 @@ export const followUser = async (
     );
   } catch {
     // Follower mirror can fail when rules are older; keep following relation successful.
+  }
+
+  try {
+    await createUserNotification({
+      type: "follow",
+      recipientUid: targetUser.uid,
+      actorUid: viewerUid,
+      actorName: viewerProfile?.username?.trim() || "",
+      actorPhotoDataUrl: viewerProfile?.photoDataUrl?.trim() || "",
+    });
+  } catch {
+    // Notification writes are best-effort so following still succeeds on older rulesets.
   }
 };
 

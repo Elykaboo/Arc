@@ -19,6 +19,15 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == followerUid;
     }
 
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+        && request.resource.data.recipientUid == userId
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.type in ["follow", "comment"];
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     match /users/{userId}/profile/details {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
@@ -32,6 +41,16 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    match /communityComments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null
+        && (
+          resource.data.uid == request.auth.uid
+          || resource.data.postOwnerUid == request.auth.uid
+        );
     }
 
     match /publicProfiles/{userId} {
