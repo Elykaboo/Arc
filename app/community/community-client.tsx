@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -12,7 +12,7 @@ import {
   unfollowUser,
   type FollowingUser,
 } from "@/lib/follow-db";
-import { listMemberProfiles, type MemberProfile } from "@/lib/member-db";
+import { subscribeMemberProfiles, type MemberProfile } from "@/lib/member-db";
 import { loadUserProfile } from "@/lib/profile-db";
 import {
   createCommunityComment,
@@ -150,6 +150,11 @@ type SidebarProfileSummary = {
   postCount: number;
   mediaCount: number;
   followerCount: number;
+};
+
+type ResolvedIdentity = {
+  name: string;
+  photo: string;
 };
 
 export default function CommunityClient({
@@ -403,27 +408,59 @@ export default function CommunityClient({
   }, [posts]);
 
   useEffect(() => {
-    let cancelled = false;
+    const unsubscribe = subscribeMemberProfiles(
+      (profiles) => {
+        setMemberProfiles(profiles);
+      },
+      () => {
+        setMemberProfiles([]);
+      },
+      4000,
+    );
 
-    const loadMemberIndex = async () => {
-      try {
-        const profiles = await listMemberProfiles(4000);
-        if (!cancelled) {
-          setMemberProfiles(profiles);
-        }
-      } catch {
-        if (!cancelled) {
-          setMemberProfiles([]);
-        }
-      }
-    };
-
-    void loadMemberIndex();
-
-    return () => {
-      cancelled = true;
-    };
+    return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const onProfileUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        username?: string;
+        bio?: string;
+        workoutSplit?: string;
+        photoDataUrl?: string;
+      }>).detail;
+
+      if (!userId || !detail) return;
+
+      const nextName =
+        detail.username?.trim() ||
+        auth.currentUser?.displayName?.trim() ||
+        auth.currentUser?.email?.split("@")[0] ||
+        "Arc User";
+      const nextPhoto = detail.photoDataUrl?.trim() || "";
+
+      setDisplayName(nextName);
+      setProfilePhoto(nextPhoto);
+      setMemberProfiles((current) => {
+        const next = current.filter((profile) => profile.uid !== userId);
+        next.push({
+          uid: userId,
+          username: nextName,
+          bio: detail.bio?.trim() || "",
+          workoutSplit: detail.workoutSplit?.trim() || "",
+          photoDataUrl: nextPhoto,
+        });
+        return next;
+      });
+    };
+
+    window.addEventListener("profile-updated", onProfileUpdated as EventListener);
+    return () => {
+      window.removeEventListener("profile-updated", onProfileUpdated as EventListener);
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) {
@@ -487,21 +524,53 @@ export default function CommunityClient({
     return Boolean(userId && caption.trim().length > 0 && !isSubmitting);
   }, [caption, isSubmitting, userId]);
 
+  const memberProfilesByUid = useMemo(() => {
+    return memberProfiles.reduce<Record<string, MemberProfile>>((accumulator, profile) => {
+      if (!profile.uid) return accumulator;
+      accumulator[profile.uid] = profile;
+      return accumulator;
+    }, {});
+  }, [memberProfiles]);
+
+  const resolveIdentity = useCallback((
+    uid: string | null | undefined,
+    fallbackName: string,
+    fallbackPhoto: string,
+  ): ResolvedIdentity => {
+    const liveProfile = uid ? memberProfilesByUid[uid] : undefined;
+    const resolvedName = liveProfile?.username?.trim() || fallbackName.trim() || "Arc User";
+    const resolvedPhoto = liveProfile?.photoDataUrl?.trim() || fallbackPhoto.trim();
+
+    return {
+      name: resolvedName,
+      photo: resolvedPhoto,
+    };
+  }, [memberProfilesByUid]);
+
   const storyProfiles = useMemo(() => {
+    const currentUserIdentity = resolveIdentity(userId, displayName, profilePhoto);
     const currentUserProfile = {
       uid: userId ?? "",
-      name: displayName,
-      photo: profilePhoto,
+      name: currentUserIdentity.name,
+      photo: currentUserIdentity.photo,
     };
     const followedProfiles = followingUsers
       .filter((followedUser) => followedUser.uid !== userId)
-      .map((followedUser) => ({
-        uid: followedUser.uid,
-        name: followedUser.username || "Arc User",
-        photo: followedUser.photoDataUrl || "",
-      }));
+      .map((followedUser) => {
+        const resolvedIdentity = resolveIdentity(
+          followedUser.uid,
+          followedUser.username || "Arc User",
+          followedUser.photoDataUrl || "",
+        );
+
+        return {
+          uid: followedUser.uid,
+          name: resolvedIdentity.name,
+          photo: resolvedIdentity.photo,
+        };
+      });
     return [currentUserProfile, ...followedProfiles].slice(0, 9);
-  }, [displayName, followingUsers, profilePhoto, userId]);
+  }, [displayName, followingUsers, profilePhoto, resolveIdentity, userId]);
 
   const last7DaysPosts = useMemo(() => {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -724,6 +793,11 @@ export default function CommunityClient({
 
     try {
       const currentlyFollowing = await isFollowingUser(userId, post.uid);
+      const resolvedIdentity = resolveIdentity(
+        post.uid,
+        post.authorName || "Arc User",
+        post.authorPhotoDataUrl || "",
+      );
       if (currentlyFollowing) {
         await unfollowUser(userId, post.uid);
       } else {
@@ -731,8 +805,8 @@ export default function CommunityClient({
           userId,
           {
             uid: post.uid,
-            username: post.authorName || "Arc User",
-            photoDataUrl: post.authorPhotoDataUrl || "",
+            username: resolvedIdentity.name,
+            photoDataUrl: resolvedIdentity.photo,
           },
           {
             username: displayName,
@@ -755,12 +829,18 @@ export default function CommunityClient({
         const alreadyPresent = current.some((user) => user.uid === post.uid);
         if (alreadyPresent) return current;
 
+        const resolvedIdentity = resolveIdentity(
+          post.uid,
+          post.authorName || "Arc User",
+          post.authorPhotoDataUrl || "",
+        );
+
         return [
           ...current,
           {
             uid: post.uid,
-            username: post.authorName || "Arc User",
-            photoDataUrl: post.authorPhotoDataUrl || "",
+            username: resolvedIdentity.name,
+            photoDataUrl: resolvedIdentity.photo,
           },
         ];
       });
@@ -1319,7 +1399,12 @@ export default function CommunityClient({
       ) : (
         <ul className="space-y-4">
           {filteredPosts.map((post, index) => {
-            const initials = getInitials(post.authorName || "Arc");
+            const resolvedIdentity = resolveIdentity(
+              post.uid,
+              post.authorName || "Arc User",
+              post.authorPhotoDataUrl || "",
+            );
+            const initials = getInitials(resolvedIdentity.name || "Arc");
             const isLiked = Boolean(likedPostIds[post.id]);
             const postComments = commentsByPost[post.id] || [];
             const isCommentsOpen = Boolean(expandedComments[post.id]);
@@ -1341,11 +1426,11 @@ export default function CommunityClient({
                 <div className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <div className="flex min-w-0 items-center gap-3.5">
                     <Link href={`/users/${post.uid}`} className="shrink-0" aria-label="Open user profile">
-                      {post.authorPhotoDataUrl ? (
+                      {resolvedIdentity.photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={post.authorPhotoDataUrl}
-                          alt={`${post.authorName || "User"} avatar`}
+                          src={resolvedIdentity.photo}
+                          alt={`${resolvedIdentity.name || "User"} avatar`}
                           className="h-11 w-11 rounded-full border border-slate-200 object-cover dark:border-slate-700"
                         />
                       ) : (
@@ -1359,7 +1444,7 @@ export default function CommunityClient({
                         href={`/users/${post.uid}`}
                         className="truncate text-base font-bold leading-tight text-slate-900 hover:underline dark:text-slate-100"
                       >
-                        {post.authorName || "Arc User"}
+                        {resolvedIdentity.name || "Arc User"}
                       </Link>
                       <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                         {formatTimestamp(post.createdAt)}
@@ -1442,7 +1527,7 @@ export default function CommunityClient({
 
                 <div className="space-y-2 px-4 py-3">
                   <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-800 dark:text-slate-100">
-                    <span className="mr-1 font-semibold">{post.authorName || "Arc User"}</span>
+                    <span className="mr-1 font-semibold">{resolvedIdentity.name || "Arc User"}</span>
                     {post.caption}
                   </p>
                   <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-200">
