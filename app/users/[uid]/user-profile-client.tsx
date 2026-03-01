@@ -12,7 +12,11 @@ import {
   unfollowUser,
 } from "@/lib/follow-db";
 import { loadMemberProfile } from "@/lib/member-db";
-import { listCommunityPostsByUser, type CommunityPost } from "@/lib/community-db";
+import {
+  getCommunityPostPhotoDataUrls,
+  listCommunityPostsByUser,
+  type CommunityPost,
+} from "@/lib/community-db";
 import { loadPublicUserProfile } from "@/lib/public-profile-db";
 import { loadUserProfile } from "@/lib/profile-db";
 
@@ -436,25 +440,41 @@ export default function UserProfileClient({ uid }: UserProfileClientProps) {
           </p>
         ) : (
           <ul className="space-y-3">
-            {displayedPosts.map((post) => (
-              <li
-                key={post.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900"
-              >
-                <p className="whitespace-pre-wrap text-sm text-slate-800 dark:text-slate-100">{post.caption}</p>
-                {post.progressPhotoDataUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={post.progressPhotoDataUrl}
-                    alt="Progress update"
-                    className="mt-3 max-h-[420px] w-full rounded-xl border border-slate-200 object-cover dark:border-slate-700"
-                  />
-                ) : null}
-                <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                  {formatTimestamp(post.createdAt)}
-                </p>
-              </li>
-            ))}
+            {displayedPosts.map((post) => {
+              const postPhotos = getCommunityPostPhotoDataUrls(post);
+
+              return (
+                <li key={post.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                  <p className="whitespace-pre-wrap text-sm text-slate-800 dark:text-slate-100">{post.caption}</p>
+                  {postPhotos.length > 0 ? (
+                    <div
+                      className={`mt-3 mx-auto grid max-w-sm gap-1 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 ${
+                        postPhotos.length === 1 ? "grid-cols-1" : "grid-cols-2"
+                      }`}
+                    >
+                      {postPhotos.map((photo, photoIndex) => (
+                        <div
+                          key={`${post.id}:photo:${photoIndex}`}
+                          className={postPhotos.length === 3 && photoIndex === 0 ? "col-span-2" : ""}
+                        >
+                          <div className="aspect-[4/5] bg-slate-100 dark:bg-slate-800">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={photo}
+                              alt={`Progress update ${photoIndex + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                    {formatTimestamp(post.createdAt)}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
