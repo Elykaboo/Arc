@@ -157,6 +157,12 @@ type ResolvedIdentity = {
   photo: string;
 };
 
+type RailUser = {
+  uid: string;
+  name: string;
+  photo: string;
+};
+
 export default function CommunityClient({
   heading = "Community",
   description = "Share progress photos, milestones, and small wins with everyone training on Arc.",
@@ -191,6 +197,7 @@ export default function CommunityClient({
   const [followBusyByUid, setFollowBusyByUid] = useState<Record<string, boolean>>({});
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfileSummary | null>(null);
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(false);
+  const [brokenAvatarKeys, setBrokenAvatarKeys] = useState<Record<string, boolean>>({});
 
   const refreshCommentsForPost = async (postId: string) => {
     const refreshedComments = await listCommunityCommentsForPosts([postId]);
@@ -572,6 +579,24 @@ export default function CommunityClient({
     return [currentUserProfile, ...followedProfiles].slice(0, 9);
   }, [displayName, followingUsers, profilePhoto, resolveIdentity, userId]);
 
+  const railFollowingUsers = useMemo<RailUser[]>(() => {
+    return followingUsers
+      .slice(0, 5)
+      .map((user) => {
+        const resolvedIdentity = resolveIdentity(
+          user.uid,
+          user.username || "Arc User",
+          user.photoDataUrl || "",
+        );
+
+        return {
+          uid: user.uid,
+          name: resolvedIdentity.name,
+          photo: resolvedIdentity.photo,
+        };
+      });
+  }, [followingUsers, resolveIdentity]);
+
   const last7DaysPosts = useMemo(() => {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     return posts.filter((post) => {
@@ -666,11 +691,20 @@ export default function CommunityClient({
     [usernameSuggestions],
   );
   const totalSearchMatches = filteredPosts.length + usernameSuggestions.length;
-  const discoverProfiles = useMemo(() => {
+  const discoverProfiles = useMemo<RailUser[]>(() => {
     return searchableUsers
       .filter((profile) => profile.uid && profile.uid !== userId && !followingByUid[profile.uid])
+      .map((profile) => {
+        const resolvedIdentity = resolveIdentity(profile.uid, profile.name, profile.photo);
+
+        return {
+          uid: profile.uid,
+          name: resolvedIdentity.name,
+          photo: resolvedIdentity.photo,
+        };
+      })
       .slice(0, 5);
-  }, [followingByUid, searchableUsers, userId]);
+  }, [followingByUid, resolveIdentity, searchableUsers, userId]);
   const composerCharacterCount = caption.trim().length;
   const visibleFeedCount = normalizedSearch ? filteredPosts.length : posts.length;
 
@@ -1735,27 +1769,30 @@ export default function CommunityClient({
               </p>
             </div>
             <div className="space-y-2 p-4">
-              {followingUsers.slice(0, 5).map((user) => (
+              {railFollowingUsers.map((user) => (
                 <Link
                   key={`following:${user.uid}`}
                   href={`/users/${user.uid}`}
                   className="flex items-center gap-3 rounded-2xl border border-slate-200 px-3 py-2 transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/60"
                 >
-                  {user.photoDataUrl ? (
+                  {user.photo && !brokenAvatarKeys[`following:${user.uid}`] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={user.photoDataUrl}
-                      alt={`${user.username} avatar`}
+                      src={user.photo}
+                      alt={`${user.name} avatar`}
                       className="h-10 w-10 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                      onError={() =>
+                        setBrokenAvatarKeys((current) => ({ ...current, [`following:${user.uid}`]: true }))
+                      }
                     />
                   ) : (
                     <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">
-                      {getInitials(user.username || "Arc User")}
+                      {getInitials(user.name || "Arc User")}
                     </span>
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      {user.username || "Arc User"}
+                      {user.name || "Arc User"}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">View profile</p>
                   </div>
@@ -1780,12 +1817,15 @@ export default function CommunityClient({
                   href={`/users/${profile.uid}`}
                   className="flex items-center gap-3 rounded-2xl bg-slate-50 px-3 py-2 transition hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800"
                 >
-                  {profile.photo ? (
+                  {profile.photo && !brokenAvatarKeys[`discover:${profile.uid}`] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={profile.photo}
                       alt={`${profile.name} avatar`}
                       className="h-10 w-10 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                      onError={() =>
+                        setBrokenAvatarKeys((current) => ({ ...current, [`discover:${profile.uid}`]: true }))
+                      }
                     />
                   ) : (
                     <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">
