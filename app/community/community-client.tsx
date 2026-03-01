@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -20,6 +20,7 @@ import {
   deleteCommunityComment,
   deleteCommunityPost,
   getCommunityPostById,
+  getCommunityPostPhotoDataUrls,
   listCommunityCommentsForPosts,
   listCommunityPosts,
   listCommunityPostsByUser,
@@ -29,7 +30,26 @@ import {
 } from "@/lib/community-db";
 
 // Firestore document limit is 1 MiB; keep image payload well below that when base64-encoded.
-const MAX_PHOTO_DATA_URL_BYTES = 280_000;
+const MAX_UPLOAD_PHOTOS = 6;
+const MAX_PREVIEW_PHOTO_DATA_URL_BYTES = 160_000;
+const MAX_TOTAL_PHOTO_DATA_URL_BYTES = 720_000;
+const PHOTO_FRAME_ASPECT_RATIO = 4 / 5;
+
+type CropSettings = {
+  zoom: number;
+  offsetX: number;
+  offsetY: number;
+};
+
+type PhotoDraft = {
+  id: string;
+  fileName: string;
+  originalDataUrl: string;
+  width: number;
+  height: number;
+  crop: CropSettings;
+  previewDataUrl: string;
+};
 
 const formatTimestamp = (value: CommunityPost["createdAt"]): string => {
   if (!value) return "Just now";
@@ -79,8 +99,10 @@ const dataUrlStringBytes = (dataUrl: string): number => {
   return dataUrl.length;
 };
 
-const resizeImageToDataUrl = async (file: File): Promise<string> => {
-  const originalDataUrl = await new Promise<string>((resolve, reject) => {
+const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
+
+const readFileAsDataUrl = async (file: File): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
@@ -92,43 +114,152 @@ const resizeImageToDataUrl = async (file: File): Promise<string> => {
     reader.onerror = () => reject(new Error("Unable to read image."));
     reader.readAsDataURL(file);
   });
+};
 
-  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+const loadImageFromDataUrl = async (dataUrl: string): Promise<HTMLImageElement> => {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("Unable to load image."));
-    img.src = originalDataUrl;
+    img.src = dataUrl;
   });
+};
 
-  const maxDimension = 960;
-  const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
-  const targetWidth = Math.max(1, Math.round(image.width * scale));
-  const targetHeight = Math.max(1, Math.round(image.height * scale));
+const getBaseCropDimensions = (
+  width: number,
+  height: number,
+  targetAspectRatio = PHOTO_FRAME_ASPECT_RATIO,
+): { width: number; height: number } => {
+  const sourceAspectRatio = width / height;
+
+  if (sourceAspectRatio > targetAspectRatio) {
+    return {
+      width: height * targetAspectRatio,
+      height,
+    };
+  }
+
+  return {
+    width,
+    height: width / targetAspectRatio,
+  };
+};
+
+const renderCroppedImageDataUrl = async (
+  draft: Pick<PhotoDraft, "originalDataUrl" | "width" | "height" | "crop">,
+  maxBytes: number,
+): Promise<string> => {
+  const image = await loadImageFromDataUrl(draft.originalDataUrl);
+  const baseCrop = getBaseCropDimensions(draft.width, draft.height);
+  const cropWidth = Math.max(1, baseCrop.width / draft.crop.zoom);
+  const cropHeight = Math.max(1, baseCrop.height / draft.crop.zoom);
+  const maxOffsetX = Math.max(0, (draft.width - cropWidth) / 2);
+  const maxOffsetY = Math.max(0, (draft.height - cropHeight) / 2);
+  const sourceX = clamp((draft.width - cropWidth) / 2 + draft.crop.offsetX * maxOffsetX, 0, draft.width - cropWidth);
+  const sourceY = clamp((draft.height - cropHeight) / 2 + draft.crop.offsetY * maxOffsetY, 0, draft.height - cropHeight);
+
+  let targetWidth = Math.min(960, Math.round(cropWidth));
+  let targetHeight = Math.round(targetWidth / PHOTO_FRAME_ASPECT_RATIO);
+  if (targetHeight > 1200) {
+    targetHeight = 1200;
+    targetWidth = Math.round(targetHeight * PHOTO_FRAME_ASPECT_RATIO);
+  }
 
   const canvas = document.createElement("canvas");
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
-
   const context = canvas.getContext("2d");
   if (!context) {
     throw new Error("Unable to process image.");
   }
 
-  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+  let quality = 0.86;
+  let result = "";
 
-  let quality = 0.82;
-  let result = canvas.toDataURL("image/jpeg", quality);
-
-  while (dataUrlStringBytes(result) > MAX_PHOTO_DATA_URL_BYTES && quality > 0.2) {
-    quality -= 0.07;
+  while (true) {
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    context.clearRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, 0, 0, targetWidth, targetHeight);
     result = canvas.toDataURL("image/jpeg", quality);
+
+    if (dataUrlStringBytes(result) <= maxBytes && dataUrlToBytes(result) <= maxBytes) {
+      return result;
+    }
+
+    if (quality > 0.34) {
+      quality -= 0.08;
+      continue;
+    }
+
+    if (targetWidth <= 480) {
+      break;
+    }
+
+    targetWidth = Math.max(480, Math.round(targetWidth * 0.86));
+    targetHeight = Math.round(targetWidth / PHOTO_FRAME_ASPECT_RATIO);
+    quality = 0.82;
   }
 
-  if (dataUrlStringBytes(result) > MAX_PHOTO_DATA_URL_BYTES || dataUrlToBytes(result) > 220_000) {
-    throw new Error("Image is still too large after compression. Try a smaller photo.");
+  throw new Error("Image is still too large after compression. Try a smaller photo.");
+};
+
+const getInteractiveCropLayout = (
+  width: number,
+  height: number,
+  crop: CropSettings,
+): {
+  widthPercent: number;
+  heightPercent: number;
+  leftPercent: number;
+  topPercent: number;
+} => {
+  const sourceAspectRatio = width / height;
+  const frameAspectRatio = PHOTO_FRAME_ASPECT_RATIO;
+
+  let baseWidthPercent = 100;
+  let baseHeightPercent = 100;
+
+  if (sourceAspectRatio > frameAspectRatio) {
+    baseWidthPercent = (sourceAspectRatio / frameAspectRatio) * 100;
+  } else {
+    baseHeightPercent = (frameAspectRatio / sourceAspectRatio) * 100;
   }
 
-  return result;
+  const widthPercent = baseWidthPercent * crop.zoom;
+  const heightPercent = baseHeightPercent * crop.zoom;
+  const maxOffsetPercentX = Math.max(0, (widthPercent - 100) / 2);
+  const maxOffsetPercentY = Math.max(0, (heightPercent - 100) / 2);
+
+  return {
+    widthPercent,
+    heightPercent,
+    leftPercent: 50 - crop.offsetX * maxOffsetPercentX,
+    topPercent: 50 - crop.offsetY * maxOffsetPercentY,
+  };
+};
+
+const createPhotoDraft = async (file: File): Promise<PhotoDraft> => {
+  const originalDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImageFromDataUrl(originalDataUrl);
+  const crop: CropSettings = { zoom: 1, offsetX: 0, offsetY: 0 };
+  const previewDataUrl = await renderCroppedImageDataUrl(
+    {
+      originalDataUrl,
+      width: image.width,
+      height: image.height,
+      crop,
+    },
+    MAX_PREVIEW_PHOTO_DATA_URL_BYTES,
+  );
+
+  return {
+    id: `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
+    fileName: file.name,
+    originalDataUrl,
+    width: image.width,
+    height: image.height,
+    crop,
+    previewDataUrl,
+  };
 };
 
 type CommunityClientProps = {
@@ -176,8 +307,11 @@ export default function CommunityClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [caption, setCaption] = useState("");
-  const [photoDataUrl, setPhotoDataUrl] = useState("");
-  const [photoPreview, setPhotoPreview] = useState("");
+  const [photoDrafts, setPhotoDrafts] = useState<PhotoDraft[]>([]);
+  const [activeCropPhotoId, setActiveCropPhotoId] = useState<string | null>(null);
+  const [cropDraft, setCropDraft] = useState<CropSettings | null>(null);
+  const [isCropSaving, setIsCropSaving] = useState(false);
+  const [isDraggingCrop, setIsDraggingCrop] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -186,6 +320,7 @@ export default function CommunityClient({
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [activePhotoIndexByPost, setActivePhotoIndexByPost] = useState<Record<string, number>>({});
   const [commentDeleteBusyId, setCommentDeleteBusyId] = useState<string | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
@@ -198,6 +333,15 @@ export default function CommunityClient({
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfileSummary | null>(null);
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(false);
   const [brokenAvatarKeys, setBrokenAvatarKeys] = useState<Record<string, boolean>>({});
+  const cropDragStateRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startOffsetX: number;
+    startOffsetY: number;
+    maxTranslateX: number;
+    maxTranslateY: number;
+  } | null>(null);
 
   const refreshCommentsForPost = async (postId: string) => {
     const refreshedComments = await listCommunityCommentsForPosts([postId]);
@@ -267,7 +411,7 @@ export default function CommunityClient({
           workoutSplit: profile?.workoutSplit?.trim() || "",
           photoDataUrl: profile?.photoDataUrl?.trim() || auth.currentUser?.photoURL?.trim() || "",
           postCount: userPosts.length,
-          mediaCount: userPosts.filter((post) => Boolean(post.progressPhotoDataUrl?.trim())).length,
+          mediaCount: userPosts.filter((post) => getCommunityPostPhotoDataUrls(post).length > 0).length,
           followerCount,
         });
       } catch {
@@ -506,30 +650,164 @@ export default function CommunityClient({
   }, [userId]);
 
   const onPhotoSelected = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setPhotoDataUrl("");
-      setPhotoPreview("");
-      setPhotoError(null);
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+
+    if (files.length === 0) {
       return;
     }
 
-    setPhotoError(null);
+    const availableSlots = MAX_UPLOAD_PHOTOS - photoDrafts.length;
+    if (availableSlots <= 0) {
+      setPhotoError(`You can upload up to ${MAX_UPLOAD_PHOTOS} photos per post.`);
+      return;
+    }
+
+    const acceptedFiles = files.slice(0, availableSlots);
+    const rejectedFile = acceptedFiles.find((file) => !file.type.startsWith("image/"));
+    if (rejectedFile) {
+      setPhotoError("Please upload image files only.");
+      return;
+    }
+
+    setPhotoError(
+      files.length > availableSlots ? `Only the first ${availableSlots} photo${availableSlots === 1 ? "" : "s"} were added.` : null,
+    );
 
     try {
-      const processed = await resizeImageToDataUrl(file);
-      setPhotoDataUrl(processed);
-      setPhotoPreview(processed);
+      const nextDrafts = await Promise.all(acceptedFiles.map((file) => createPhotoDraft(file)));
+      setPhotoDrafts((current) => [...current, ...nextDrafts]);
+      if (nextDrafts[0]) {
+        setActiveCropPhotoId(nextDrafts[0].id);
+        setCropDraft(nextDrafts[0].crop);
+      }
     } catch (error: unknown) {
-      setPhotoDataUrl("");
-      setPhotoPreview("");
       setPhotoError(error instanceof Error ? error.message : "Unable to process selected image.");
+    }
+  };
+
+  const removePhotoDraft = (photoId: string) => {
+    setPhotoDrafts((current) => current.filter((draft) => draft.id !== photoId));
+    setPhotoError(null);
+    setActiveCropPhotoId((current) => (current === photoId ? null : current));
+  };
+
+  const saveCropChanges = async () => {
+    if (!activeCropPhoto || !cropDraft) return;
+
+    setIsCropSaving(true);
+    try {
+      const previewDataUrl = await renderCroppedImageDataUrl(
+        {
+          originalDataUrl: activeCropPhoto.originalDataUrl,
+          width: activeCropPhoto.width,
+          height: activeCropPhoto.height,
+          crop: cropDraft,
+        },
+        MAX_PREVIEW_PHOTO_DATA_URL_BYTES,
+      );
+
+      setPhotoDrafts((current) =>
+        current.map((draft) =>
+          draft.id === activeCropPhoto.id
+            ? {
+                ...draft,
+                crop: cropDraft,
+                previewDataUrl,
+              }
+            : draft,
+        ),
+      );
+      setPhotoError(null);
+      setActiveCropPhotoId(null);
+    } catch (error: unknown) {
+      setPhotoError(error instanceof Error ? error.message : "Unable to crop selected image.");
+    } finally {
+      setIsCropSaving(false);
+    }
+  };
+
+  const startCropDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!activeCropPhoto || !cropDraft || !activeCropLayout) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const displayWidthPx = (activeCropLayout.widthPercent / 100) * bounds.width;
+    const displayHeightPx = (activeCropLayout.heightPercent / 100) * bounds.height;
+
+    cropDragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startOffsetX: cropDraft.offsetX,
+      startOffsetY: cropDraft.offsetY,
+      maxTranslateX: Math.max(0, (displayWidthPx - bounds.width) / 2),
+      maxTranslateY: Math.max(0, (displayHeightPx - bounds.height) / 2),
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsDraggingCrop(true);
+  };
+
+  const moveCropDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const dragState = cropDragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+
+    setCropDraft((current) =>
+      current
+        ? {
+            ...current,
+            offsetX:
+              dragState.maxTranslateX > 0
+                ? clamp(dragState.startOffsetX - deltaX / dragState.maxTranslateX, -1, 1)
+                : 0,
+            offsetY:
+              dragState.maxTranslateY > 0
+                ? clamp(dragState.startOffsetY - deltaY / dragState.maxTranslateY, -1, 1)
+                : 0,
+          }
+        : current,
+    );
+  };
+
+  const endCropDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (cropDragStateRef.current?.pointerId !== event.pointerId) return;
+
+    cropDragStateRef.current = null;
+    setIsDraggingCrop(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
   };
 
   const canSubmit = useMemo(() => {
     return Boolean(userId && caption.trim().length > 0 && !isSubmitting);
   }, [caption, isSubmitting, userId]);
+
+  const activeCropPhoto = useMemo(
+    () => photoDrafts.find((draft) => draft.id === activeCropPhotoId) ?? null,
+    [activeCropPhotoId, photoDrafts],
+  );
+  const activeCropLayout = useMemo(
+    () =>
+      activeCropPhoto && cropDraft
+        ? getInteractiveCropLayout(activeCropPhoto.width, activeCropPhoto.height, cropDraft)
+        : null,
+    [activeCropPhoto, cropDraft],
+  );
+
+  useEffect(() => {
+    if (!activeCropPhoto) {
+      setCropDraft(null);
+      setIsDraggingCrop(false);
+      cropDragStateRef.current = null;
+      return;
+    }
+
+    setCropDraft(activeCropPhoto.crop);
+  }, [activeCropPhoto]);
 
   const memberProfilesByUid = useMemo(() => {
     return memberProfiles.reduce<Record<string, MemberProfile>>((accumulator, profile) => {
@@ -610,7 +888,7 @@ export default function CommunityClient({
 
   const photoPostRatio = useMemo(() => {
     if (posts.length === 0) return 0;
-    const withPhoto = posts.filter((post) => Boolean(post.progressPhotoDataUrl)).length;
+    const withPhoto = posts.filter((post) => getCommunityPostPhotoDataUrls(post).length > 0).length;
     return Math.round((withPhoto / posts.length) * 100);
   }, [posts]);
 
@@ -770,24 +1048,39 @@ export default function CommunityClient({
     setFormStatus(null);
 
     try {
+      const progressPhotoDataUrls = await Promise.all(
+        photoDrafts.map((draft) =>
+          renderCroppedImageDataUrl(
+            {
+              originalDataUrl: draft.originalDataUrl,
+              width: draft.width,
+              height: draft.height,
+              crop: draft.crop,
+            },
+            Math.max(90_000, Math.floor(MAX_TOTAL_PHOTO_DATA_URL_BYTES / Math.max(photoDrafts.length, 1))),
+          ),
+        ),
+      );
+
       await createCommunityPost({
         uid: userId,
         authorName: displayName,
         authorPhotoDataUrl: profilePhoto,
         caption: caption.trim(),
-        progressPhotoDataUrl: photoDataUrl,
+        progressPhotoDataUrls,
       });
 
       setCaption("");
-      setPhotoDataUrl("");
-      setPhotoPreview("");
+      setPhotoDrafts([]);
+      setActiveCropPhotoId(null);
+      setCropDraft(null);
       setPhotoError(null);
       setSidebarProfile((current) =>
         current
           ? {
               ...current,
               postCount: current.postCount + 1,
-              mediaCount: current.mediaCount + (photoDataUrl ? 1 : 0),
+              mediaCount: current.mediaCount + (progressPhotoDataUrls.length > 0 ? 1 : 0),
             }
           : current,
       );
@@ -1039,7 +1332,7 @@ export default function CommunityClient({
               postCount: Math.max(0, current.postCount - 1),
               mediaCount: Math.max(
                 0,
-                current.mediaCount - (post.progressPhotoDataUrl?.trim() ? 1 : 0),
+                current.mediaCount - (getCommunityPostPhotoDataUrls(post).length > 0 ? 1 : 0),
               ),
             }
           : current,
@@ -1408,25 +1701,16 @@ export default function CommunityClient({
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       className="hidden"
                       onChange={onPhotoSelected}
                       disabled={!userId || isSubmitting}
                     />
-                    Add Photo
+                    Add Photos
                   </label>
-                  {photoPreview ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPhotoDataUrl("");
-                        setPhotoPreview("");
-                        setPhotoError(null);
-                      }}
-                      className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      Remove Photo
-                    </button>
-                  ) : null}
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Up to {MAX_UPLOAD_PHOTOS} photos. Each image is cropped to a 4:5 post frame.
+                  </p>
                   <button
                     type="submit"
                     disabled={!canSubmit}
@@ -1439,18 +1723,59 @@ export default function CommunityClient({
 
                 {photoError ? <p className="text-xs text-rose-600 dark:text-rose-300">{photoError}</p> : null}
 
-                {photoPreview ? (
+                {photoDrafts.length > 0 ? (
                   <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50">
                     <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 dark:border-slate-700">
                       <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Photo preview</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Ready to upload</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {photoDrafts.length}/{MAX_UPLOAD_PHOTOS} selected
+                      </p>
                     </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photoPreview}
-                      alt="Selected upload preview"
-                      className="max-h-80 w-full object-cover"
-                    />
+                    <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
+                      {photoDrafts.map((draft, index) => (
+                        <div
+                          key={draft.id}
+                          className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900/70"
+                        >
+                          <div className="aspect-[4/5] bg-slate-100 dark:bg-slate-800">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={draft.previewDataUrl}
+                              alt={`Selected upload preview ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-2 px-3 py-2">
+                            <div className="min-w-0">
+                              <p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                {draft.fileName}
+                              </p>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">Ready to upload</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveCropPhotoId(draft.id);
+                                }}
+                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                              >
+                                Crop
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  removePhotoDraft(draft.id);
+                                }}
+                                className="rounded-full border border-rose-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-rose-600 transition hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
 
@@ -1467,6 +1792,119 @@ export default function CommunityClient({
                 ) : null}
               </form>
             </section>
+
+            {activeCropPhoto && cropDraft ? (
+              <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-col gap-4 lg:flex-row">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+                          Crop Editor
+                        </p>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                          Adjust {activeCropPhoto.fileName}
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">4:5 portrait frame</p>
+                    </div>
+                    <div className="mt-3 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-[#111] dark:border-slate-700">
+                      <div
+                        className={`relative mx-auto aspect-[4/5] max-w-sm overflow-hidden touch-none ${
+                          isDraggingCrop ? "cursor-grabbing" : "cursor-grab"
+                        }`}
+                        onPointerDown={startCropDrag}
+                        onPointerMove={moveCropDrag}
+                        onPointerUp={endCropDrag}
+                        onPointerCancel={endCropDrag}
+                      >
+                        {activeCropLayout ? (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={activeCropPhoto.originalDataUrl}
+                              alt="Crop editor"
+                              draggable={false}
+                              className="pointer-events-none absolute select-none object-cover"
+                              style={{
+                                width: `${activeCropLayout.widthPercent}%`,
+                                height: `${activeCropLayout.heightPercent}%`,
+                                left: `${activeCropLayout.leftPercent}%`,
+                                top: `${activeCropLayout.topPercent}%`,
+                                transform: "translate(-50%, -50%)",
+                              }}
+                            />
+                            <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/15" />
+                            <div className="pointer-events-none absolute inset-0 border-[10px] border-black/30" />
+                            <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/20" />
+                            <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/20" />
+                            <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/20" />
+                            <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/20" />
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full max-w-md space-y-4">
+                    <label className="block">
+                      <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                        <span>Zoom</span>
+                        <span>{cropDraft.zoom.toFixed(2)}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="3"
+                        step="0.05"
+                        value={cropDraft.zoom}
+                        onChange={(event) =>
+                          setCropDraft((current) =>
+                            current ? { ...current, zoom: Number(event.target.value) } : current,
+                          )
+                        }
+                        className="w-full"
+                      />
+                    </label>
+
+                    <p className="rounded-2xl bg-slate-100 px-3 py-2 text-xs text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+                      Drag the image to position it inside the frame, then use zoom to fine-tune the crop.
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCropDraft({ zoom: 1, offsetX: 0, offsetY: 0 });
+                        }}
+                        className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveCropPhotoId(null);
+                        }}
+                        className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void saveCropChanges();
+                        }}
+                        disabled={isCropSaving}
+                        className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                      >
+                        {isCropSaving ? "Saving..." : "Save Crop"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            ) : null}
 
             <section className="flex items-center justify-between px-1">
               <div>
@@ -1503,17 +1941,234 @@ export default function CommunityClient({
                     post.authorName || "Arc User",
                     post.authorPhotoDataUrl || "",
                   );
+                  const postPhotos = getCommunityPostPhotoDataUrls(post);
                   const initials = getInitials(resolvedIdentity.name || "Arc");
                   const isLiked = Boolean(likedPostIds[post.id]);
                   const postComments = commentsByPost[post.id] || [];
                   const isCommentsOpen = Boolean(expandedComments[post.id]);
                   const isPostOwner = userId === post.uid;
+                  const showCommentsPanel = isCommentsOpen;
+                  const activePhotoIndex = Math.min(
+                    activePhotoIndexByPost[post.id] ?? 0,
+                    Math.max(postPhotos.length - 1, 0),
+                  );
                   const accentClass =
                     index % 3 === 0
                       ? "from-slate-900/30 to-slate-900/0"
                       : index % 3 === 1
                         ? "from-slate-700/30 to-slate-700/0"
                         : "from-cyan-900/30 to-cyan-900/0";
+
+                  const postHeader = (
+                    <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+                      <div className="flex min-w-0 items-center gap-3.5">
+                        <Link href={`/users/${post.uid}`} className="shrink-0" aria-label="Open user profile">
+                          {resolvedIdentity.photo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={resolvedIdentity.photo}
+                              alt={`${resolvedIdentity.name || "User"} avatar`}
+                              className="h-11 w-11 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                            />
+                          ) : (
+                            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-white dark:text-slate-900">
+                              {initials}
+                            </span>
+                          )}
+                        </Link>
+                        <div className="min-w-0">
+                          <Link
+                            href={`/users/${post.uid}`}
+                            className="truncate text-base font-bold leading-tight text-slate-900 hover:underline dark:text-slate-100"
+                          >
+                            {resolvedIdentity.name || "Arc User"}
+                          </Link>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              {formatTimestamp(post.createdAt)}
+                            </p>
+                            {postPhotos.length > 0 ? (
+                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                {postPhotos.length === 1 ? "Photo update" : `${postPhotos.length} photos`}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                        {userId && post.uid !== userId ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void toggleFollow(post);
+                            }}
+                            disabled={Boolean(followBusyByUid[post.uid])}
+                            className={`ml-1 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
+                              followingByUid[post.uid]
+                                ? "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                                : "border-slate-900 bg-slate-900 text-white hover:bg-slate-800 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                            } disabled:cursor-not-allowed disabled:opacity-60`}
+                          >
+                            {followBusyByUid[post.uid]
+                              ? "..."
+                              : followingByUid[post.uid]
+                                ? "Following"
+                                : "Follow"}
+                          </button>
+                        ) : null}
+                      </div>
+                      {isPostOwner ? (
+                        <div className="relative" data-post-menu-root>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActivePostMenuId((current) => (current === post.id ? null : post.id))
+                            }
+                            className={`flex h-8 w-8 items-center justify-center rounded-full text-lg transition ${
+                              activePostMenuId === post.id
+                                ? "bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100"
+                                : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                            }`}
+                            aria-label="Open post menu"
+                            title="More actions"
+                          >
+                            ⋯
+                          </button>
+                          {activePostMenuId === post.id ? (
+                            <div className="absolute right-0 top-9 z-20 w-36 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  void editPost(post);
+                                }}
+                                disabled={menuActionPostId === post.id}
+                                className="w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-100 dark:hover:bg-slate-800"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  void deletePost(post);
+                                }}
+                                disabled={menuActionPostId === post.id}
+                                className="w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+
+                  const postActions = (
+                    <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => toggleLike(post.id)}
+                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-lg transition ${
+                          isLiked
+                            ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                            : "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                        }`}
+                        aria-label={isLiked ? "Unlike post" : "Like post"}
+                        title={isLiked ? "Unlike" : "Like"}
+                      >
+                        {"🔥"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleComments(post.id)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                        aria-label="Open comments"
+                        title="Comments"
+                      >
+                        💬
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void sharePost(post.id);
+                        }}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                        aria-label="Share post"
+                        title="Share"
+                      >
+                        ↗
+                      </button>
+                      <span className="ml-auto rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        Lift Log
+                      </span>
+                    </div>
+                  );
+
+                  const commentsPanel = (
+                    <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+                      {postComments.length === 0 ? (
+                        <p className="text-xs text-slate-500 dark:text-slate-400">No comments yet.</p>
+                      ) : (
+                        <ul className="space-y-1">
+                          {postComments.map((comment) => (
+                            <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                              <div className="flex items-start gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p>
+                                    <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
+                                  </p>
+                                  <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    {formatCommentTimestamp(comment.createdAt)}
+                                  </p>
+                                </div>
+                                {userId === comment.uid ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      void removeComment(post.id, comment);
+                                    }}
+                                    disabled={commentDeleteBusyId === comment.id}
+                                    className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
+                                    aria-label="Delete comment"
+                                    title="Delete comment"
+                                  >
+                                    {commentDeleteBusyId === comment.id ? "…" : "×"}
+                                  </button>
+                                ) : null}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      <form
+                        className="flex gap-2"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          submitComment(post);
+                        }}
+                      >
+                        <input
+                          type="text"
+                          value={commentDrafts[post.id] || ""}
+                          onChange={(event) =>
+                            setCommentDrafts((current) => ({
+                              ...current,
+                              [post.id]: event.target.value,
+                            }))
+                          }
+                          placeholder={userId ? "Write a comment..." : "Log in to comment."}
+                          disabled={!userId}
+                          className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none ring-slate-300 focus:ring dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                        />
+                        <button
+                          type="submit"
+                          disabled={!userId || !(commentDrafts[post.id] || "").trim()}
+                          className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+                        >
+                          Comment
+                        </button>
+                      </form>
+                    </div>
+                  );
 
                   return (
                     <li
@@ -1522,229 +2177,112 @@ export default function CommunityClient({
                       className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
                     >
                       <div className={`h-1.5 w-full bg-gradient-to-r ${accentClass}`} />
-                      <div className="flex items-center justify-between gap-3 px-4 py-3.5">
-                        <div className="flex min-w-0 items-center gap-3.5">
-                          <Link href={`/users/${post.uid}`} className="shrink-0" aria-label="Open user profile">
-                            {resolvedIdentity.photo ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={resolvedIdentity.photo}
-                                alt={`${resolvedIdentity.name || "User"} avatar`}
-                                className="h-11 w-11 rounded-full border border-slate-200 object-cover dark:border-slate-700"
-                              />
-                            ) : (
-                              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-white dark:text-slate-900">
-                                {initials}
-                              </span>
-                            )}
-                          </Link>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/users/${post.uid}`}
-                              className="truncate text-base font-bold leading-tight text-slate-900 hover:underline dark:text-slate-100"
-                            >
-                              {resolvedIdentity.name || "Arc User"}
-                            </Link>
-                            <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {formatTimestamp(post.createdAt)}
-                              </p>
-                              {post.progressPhotoDataUrl ? (
-                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                  Photo update
-                                </span>
+                      {postPhotos.length > 0 ? (
+                        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px]">
+                          <div className="border-b border-slate-200 bg-black lg:border-b-0 lg:border-r dark:border-slate-700">
+                            <div className="relative">
+                              <div className="overflow-hidden">
+                                <div
+                                  className="flex transition-transform duration-300 ease-out"
+                                  style={{ transform: `translateX(-${activePhotoIndex * 100}%)` }}
+                                >
+                                  {postPhotos.map((photo, photoIndex) => (
+                                    <div key={`${post.id}:photo:${photoIndex}`} className="w-full shrink-0">
+                                      <div className="aspect-[4/5] bg-black">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          src={photo}
+                                          alt={`Progress update ${photoIndex + 1}`}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              {postPhotos.length > 1 ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setActivePhotoIndexByPost((current) => ({
+                                        ...current,
+                                        [post.id]: Math.max(0, activePhotoIndex - 1),
+                                      }))
+                                    }
+                                    disabled={activePhotoIndex === 0}
+                                    className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-lg text-slate-900 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                                    aria-label="Previous photo"
+                                  >
+                                    ‹
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setActivePhotoIndexByPost((current) => ({
+                                        ...current,
+                                        [post.id]: Math.min(postPhotos.length - 1, activePhotoIndex + 1),
+                                      }))
+                                    }
+                                    disabled={activePhotoIndex >= postPhotos.length - 1}
+                                    className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-lg text-slate-900 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                                    aria-label="Next photo"
+                                  >
+                                    ›
+                                  </button>
+                                  <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/30 px-2 py-1 backdrop-blur">
+                                    {postPhotos.map((_, photoIndex) => (
+                                      <button
+                                        key={`${post.id}:dot:${photoIndex}`}
+                                        type="button"
+                                        onClick={() =>
+                                          setActivePhotoIndexByPost((current) => ({
+                                            ...current,
+                                            [post.id]: photoIndex,
+                                          }))
+                                        }
+                                        className={`h-1.5 w-1.5 rounded-full transition ${
+                                          photoIndex === activePhotoIndex ? "bg-white" : "bg-white/45"
+                                        }`}
+                                        aria-label={`View photo ${photoIndex + 1}`}
+                                      />
+                                    ))}
+                                  </div>
+                                </>
                               ) : null}
                             </div>
                           </div>
-                          {userId && post.uid !== userId ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                void toggleFollow(post);
-                              }}
-                              disabled={Boolean(followBusyByUid[post.uid])}
-                              className={`ml-1 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide transition ${
-                                followingByUid[post.uid]
-                                  ? "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                                  : "border-slate-900 bg-slate-900 text-white hover:bg-slate-800 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-                              } disabled:cursor-not-allowed disabled:opacity-60`}
-                            >
-                              {followBusyByUid[post.uid]
-                                ? "..."
-                                : followingByUid[post.uid]
-                                  ? "Following"
-                                  : "Follow"}
-                            </button>
-                          ) : null}
-                        </div>
-                        {isPostOwner ? (
-                          <div className="relative" data-post-menu-root>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setActivePostMenuId((current) => (current === post.id ? null : post.id))
-                              }
-                              className={`flex h-8 w-8 items-center justify-center rounded-full text-lg transition ${
-                                activePostMenuId === post.id
-                                  ? "bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100"
-                                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                              }`}
-                              aria-label="Open post menu"
-                              title="More actions"
-                            >
-                              ⋯
-                            </button>
-                            {activePostMenuId === post.id ? (
-                              <div className="absolute right-0 top-9 z-20 w-36 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    void editPost(post);
-                                  }}
-                                  disabled={menuActionPostId === post.id}
-                                  className="w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-100 dark:hover:bg-slate-800"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    void deletePost(post);
-                                  }}
-                                  disabled={menuActionPostId === post.id}
-                                  className="w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:text-rose-300 dark:hover:bg-rose-950/40"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            ) : null}
+                          <div className="flex min-h-full flex-col bg-white dark:bg-slate-900">
+                            {postHeader}
+                            <div className="space-y-3 border-t border-slate-200 px-4 py-3 dark:border-slate-700 lg:border-t-0">
+                              {postActions}
+                              <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-800 dark:text-slate-100">
+                                <span className="mr-1 font-semibold">{resolvedIdentity.name || "Arc User"}</span>
+                                {post.caption}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {isLiked ? "You liked this post" : "Tap fire to like"} · {postComments.length} comments
+                              </p>
+                            </div>
+                            {showCommentsPanel ? <div className="flex-1 px-4 pb-4">{commentsPanel}</div> : null}
                           </div>
-                        ) : null}
-                      </div>
-
-                      {post.progressPhotoDataUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={post.progressPhotoDataUrl}
-                          alt="Progress update"
-                          className="max-h-[560px] w-full border-y border-slate-200 object-cover dark:border-slate-700"
-                        />
-                      ) : null}
-
-                      <div className="space-y-2 px-4 py-3">
-                        <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-800 dark:text-slate-100">
-                          <span className="mr-1 font-semibold">{resolvedIdentity.name || "Arc User"}</span>
-                          {post.caption}
-                        </p>
-                        <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-200">
-                          <button
-                            type="button"
-                            onClick={() => toggleLike(post.id)}
-                            className={`flex h-9 w-9 items-center justify-center rounded-full border text-lg transition ${
-                              isLiked
-                                ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
-                                : "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                            }`}
-                            aria-label={isLiked ? "Unlike post" : "Like post"}
-                            title={isLiked ? "Unlike" : "Like"}
-                          >
-                            {"🔥"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => toggleComments(post.id)}
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                            aria-label="Open comments"
-                            title="Comments"
-                          >
-                            💬
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void sharePost(post.id);
-                            }}
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                            aria-label="Share post"
-                            title="Share"
-                          >
-                            ↗
-                          </button>
-                          <span className="ml-auto rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                            Lift Log
-                          </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {isLiked ? "You liked this post" : "Tap fire to like"} · {postComments.length} comments
-                        </p>
-                        {isCommentsOpen ? (
-                          <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
-                            {postComments.length === 0 ? (
-                              <p className="text-xs text-slate-500 dark:text-slate-400">No comments yet.</p>
-                            ) : (
-                              <ul className="space-y-1">
-                                {postComments.map((comment) => (
-                                  <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
-                                    <div className="flex items-start gap-2">
-                                      <div className="min-w-0 flex-1">
-                                        <p>
-                                          <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
-                                        </p>
-                                        <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                          {formatCommentTimestamp(comment.createdAt)}
-                                        </p>
-                                      </div>
-                                      {userId === comment.uid ? (
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            void removeComment(post.id, comment);
-                                          }}
-                                          disabled={commentDeleteBusyId === comment.id}
-                                          className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
-                                          aria-label="Delete comment"
-                                          title="Delete comment"
-                                        >
-                                          {commentDeleteBusyId === comment.id ? "…" : "×"}
-                                        </button>
-                                      ) : null}
-                                    </div>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-
-                            <form
-                              className="flex gap-2"
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                submitComment(post);
-                              }}
-                            >
-                              <input
-                                type="text"
-                                value={commentDrafts[post.id] || ""}
-                                onChange={(event) =>
-                                  setCommentDrafts((current) => ({
-                                    ...current,
-                                    [post.id]: event.target.value,
-                                  }))
-                                }
-                                placeholder={userId ? "Write a comment..." : "Log in to comment."}
-                                disabled={!userId}
-                                className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none ring-slate-300 focus:ring dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-                              />
-                              <button
-                                type="submit"
-                                disabled={!userId || !(commentDrafts[post.id] || "").trim()}
-                                className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
-                              >
-                                Comment
-                              </button>
-                            </form>
+                      ) : (
+                        <>
+                          {postHeader}
+                          <div className="space-y-2 px-4 py-3">
+                            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-800 dark:text-slate-100">
+                              <span className="mr-1 font-semibold">{resolvedIdentity.name || "Arc User"}</span>
+                              {post.caption}
+                            </p>
+                            {postActions}
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              {isLiked ? "You liked this post" : "Tap fire to like"} · {postComments.length} comments
+                            </p>
+                            {showCommentsPanel ? commentsPanel : null}
                           </div>
-                        ) : null}
-                      </div>
+                        </>
+                      )}
                     </li>
                   );
                 })}

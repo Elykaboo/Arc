@@ -26,6 +26,7 @@ export type CommunityPost = {
   authorPhotoDataUrl: string;
   caption: string;
   progressPhotoDataUrl: string;
+  progressPhotoDataUrls: string[];
   createdAt: Timestamp | null;
 };
 
@@ -46,7 +47,20 @@ type CommunityPostDocument = {
   authorPhotoDataUrl: string;
   caption: string;
   progressPhotoDataUrl: string;
+  progressPhotoDataUrls?: string[];
   createdAt?: Timestamp;
+};
+
+const normalizePhotoDataUrls = (value: unknown, fallbackValue: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string").map((entry) => entry.trim()).filter(Boolean);
+  }
+
+  if (typeof fallbackValue === "string" && fallbackValue.trim()) {
+    return [fallbackValue.trim()];
+  }
+
+  return [];
 };
 
 type CommunityCommentDocument = {
@@ -73,6 +87,7 @@ const communityPostConverter: FirestoreDataConverter<CommunityPostDocument> = {
       caption: typeof data.caption === "string" ? data.caption : "",
       progressPhotoDataUrl:
         typeof data.progressPhotoDataUrl === "string" ? data.progressPhotoDataUrl : "",
+      progressPhotoDataUrls: normalizePhotoDataUrls(data.progressPhotoDataUrls, data.progressPhotoDataUrl),
       createdAt: data.createdAt,
     };
   },
@@ -116,16 +131,29 @@ export const createCommunityPost = async (input: {
   authorName: string;
   authorPhotoDataUrl: string;
   caption: string;
-  progressPhotoDataUrl: string;
+  progressPhotoDataUrls: string[];
 }): Promise<void> => {
+  const progressPhotoDataUrls = input.progressPhotoDataUrls.map((entry) => entry.trim()).filter(Boolean);
+
   await addDoc(communityPostsCollection, {
     uid: input.uid,
     authorName: input.authorName,
     authorPhotoDataUrl: input.authorPhotoDataUrl,
     caption: input.caption,
-    progressPhotoDataUrl: input.progressPhotoDataUrl,
+    progressPhotoDataUrl: progressPhotoDataUrls[0] || "",
+    progressPhotoDataUrls,
     createdAt: serverTimestamp(),
   });
+};
+
+export const getCommunityPostPhotoDataUrls = (
+  post: Pick<CommunityPost, "progressPhotoDataUrl" | "progressPhotoDataUrls">,
+): string[] => {
+  if (post.progressPhotoDataUrls.length > 0) {
+    return post.progressPhotoDataUrls;
+  }
+
+  return post.progressPhotoDataUrl.trim() ? [post.progressPhotoDataUrl.trim()] : [];
 };
 
 export const listCommunityPosts = async (maxItems = 30): Promise<CommunityPost[]> => {
@@ -141,6 +169,7 @@ export const listCommunityPosts = async (maxItems = 30): Promise<CommunityPost[]
       authorPhotoDataUrl: data.authorPhotoDataUrl,
       caption: data.caption,
       progressPhotoDataUrl: data.progressPhotoDataUrl,
+      progressPhotoDataUrls: data.progressPhotoDataUrls,
       createdAt: data.createdAt ?? null,
     };
   });
@@ -161,6 +190,7 @@ export const getCommunityPostById = async (postId: string): Promise<CommunityPos
     authorPhotoDataUrl: data.authorPhotoDataUrl,
     caption: data.caption,
     progressPhotoDataUrl: data.progressPhotoDataUrl,
+    progressPhotoDataUrls: data.progressPhotoDataUrls,
     createdAt: data.createdAt ?? null,
   };
 };
@@ -185,6 +215,7 @@ export const subscribeCommunityPosts = (
             authorPhotoDataUrl: data.authorPhotoDataUrl,
             caption: data.caption,
             progressPhotoDataUrl: data.progressPhotoDataUrl,
+            progressPhotoDataUrls: data.progressPhotoDataUrls,
             createdAt: data.createdAt ?? null,
           };
         }),
@@ -213,6 +244,7 @@ export const listCommunityPostsByUser = async (
         authorPhotoDataUrl: data.authorPhotoDataUrl,
         caption: data.caption,
         progressPhotoDataUrl: data.progressPhotoDataUrl,
+        progressPhotoDataUrls: data.progressPhotoDataUrls,
         createdAt: data.createdAt ?? null,
       };
     })
