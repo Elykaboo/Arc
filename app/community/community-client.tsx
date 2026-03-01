@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -12,14 +12,19 @@ import {
   unfollowUser,
   type FollowingUser,
 } from "@/lib/follow-db";
-import { listMemberProfiles, type MemberProfile } from "@/lib/member-db";
+import { subscribeMemberProfiles, type MemberProfile } from "@/lib/member-db";
 import { loadUserProfile } from "@/lib/profile-db";
 import {
+  createCommunityComment,
   createCommunityPost,
+  deleteCommunityComment,
   deleteCommunityPost,
+  getCommunityPostById,
+  listCommunityCommentsForPosts,
   listCommunityPosts,
   listCommunityPostsByUser,
   updateCommunityPostCaption,
+  type CommunityComment,
   type CommunityPost,
 } from "@/lib/community-db";
 
@@ -39,6 +44,21 @@ const formatTimestamp = (value: CommunityPost["createdAt"]): string => {
     }).format(value.toDate());
   } catch {
     return "Recently";
+  }
+};
+
+const formatCommentTimestamp = (value: CommunityComment["createdAt"]): string => {
+  if (!value) return "Just now";
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(value.toDate());
+  } catch {
+    return "Just now";
   }
 };
 
@@ -116,13 +136,6 @@ type CommunityClientProps = {
   description?: string;
 };
 
-type LocalComment = {
-  id: string;
-  author: string;
-  text: string;
-  createdAt: number;
-};
-
 type UserSuggestion = {
   uid: string;
   name: string;
@@ -137,6 +150,11 @@ type SidebarProfileSummary = {
   postCount: number;
   mediaCount: number;
   followerCount: number;
+};
+
+type ResolvedIdentity = {
+  name: string;
+  photo: string;
 };
 
 export default function CommunityClient({
@@ -159,9 +177,10 @@ export default function CommunityClient({
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [likedPostIds, setLikedPostIds] = useState<Record<string, boolean>>({});
-  const [commentsByPost, setCommentsByPost] = useState<Record<string, LocalComment[]>>({});
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [commentDeleteBusyId, setCommentDeleteBusyId] = useState<string | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
   const [menuActionPostId, setMenuActionPostId] = useState<string | null>(null);
@@ -172,6 +191,14 @@ export default function CommunityClient({
   const [followBusyByUid, setFollowBusyByUid] = useState<Record<string, boolean>>({});
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfileSummary | null>(null);
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(false);
+
+  const refreshCommentsForPost = async (postId: string) => {
+    const refreshedComments = await listCommunityCommentsForPosts([postId]);
+    setCommentsByPost((current) => ({
+      ...current,
+      [postId]: refreshedComments[postId] || [],
+    }));
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -286,27 +313,154 @@ export default function CommunityClient({
   }, []);
 
   useEffect(() => {
+    const visiblePostIds = posts.map((post) => post.id);
+    if (visiblePostIds.length === 0) {
+      setCommentsByPost({});
+      return;
+    }
+
     let cancelled = false;
 
-    const loadMemberIndex = async () => {
+    const loadComments = async () => {
       try {
-        const profiles = await listMemberProfiles(4000);
+        const comments = await listCommunityCommentsForPosts(visiblePostIds);
         if (!cancelled) {
-          setMemberProfiles(profiles);
+          setCommentsByPost(comments);
         }
       } catch {
         if (!cancelled) {
-          setMemberProfiles([]);
+          setCommentsByPost({});
         }
       }
     };
 
-    void loadMemberIndex();
+    void loadComments();
 
     return () => {
       cancelled = true;
     };
+  }, [posts]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    const openHashLinkedPost = async () => {
+      const hash = window.location.hash.trim();
+      if (!hash.startsWith("#post-")) return;
+
+      const postId = hash.slice("#post-".length).trim();
+      if (!postId) return;
+
+      const existingPost = posts.find((post) => post.id === postId);
+
+      try {
+        const targetPost = existingPost ?? (await getCommunityPostById(postId));
+        if (cancelled || !targetPost) return;
+
+        if (!existingPost) {
+          setPosts((current) => {
+            const next = current.filter((candidate) => candidate.id !== targetPost.id);
+            next.push(targetPost);
+            next.sort((left, right) => {
+              const leftTime = left.createdAt?.toMillis?.() ?? 0;
+              const rightTime = right.createdAt?.toMillis?.() ?? 0;
+              return rightTime - leftTime;
+            });
+            return next;
+          });
+        }
+
+        const refreshedComments = await listCommunityCommentsForPosts([postId]);
+        if (cancelled) return;
+
+        setCommentsByPost((current) => ({
+          ...current,
+          [postId]: refreshedComments[postId] || [],
+        }));
+
+        setExpandedComments((current) => ({
+          ...current,
+          [postId]: true,
+        }));
+
+        window.requestAnimationFrame(() => {
+          const target = document.getElementById(`post-${postId}`);
+          target?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      } catch {
+        // Ignore broken or stale deep links.
+      }
+    };
+
+    const handleHashChange = () => {
+      void openHashLinkedPost();
+    };
+
+    void openHashLinkedPost();
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [posts]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeMemberProfiles(
+      (profiles) => {
+        setMemberProfiles(profiles);
+      },
+      () => {
+        setMemberProfiles([]);
+      },
+      4000,
+    );
+
+    return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const onProfileUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        username?: string;
+        bio?: string;
+        workoutSplit?: string;
+        photoDataUrl?: string;
+      }>).detail;
+
+      if (!userId || !detail) return;
+
+      const nextName =
+        detail.username?.trim() ||
+        auth.currentUser?.displayName?.trim() ||
+        auth.currentUser?.email?.split("@")[0] ||
+        "Arc User";
+      const nextPhoto = detail.photoDataUrl?.trim() || "";
+
+      setDisplayName(nextName);
+      setProfilePhoto(nextPhoto);
+      setMemberProfiles((current) => {
+        const next = current.filter((profile) => profile.uid !== userId);
+        next.push({
+          uid: userId,
+          username: nextName,
+          bio: detail.bio?.trim() || "",
+          workoutSplit: detail.workoutSplit?.trim() || "",
+          photoDataUrl: nextPhoto,
+        });
+        return next;
+      });
+    };
+
+    window.addEventListener("profile-updated", onProfileUpdated as EventListener);
+    return () => {
+      window.removeEventListener("profile-updated", onProfileUpdated as EventListener);
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) {
@@ -370,21 +524,53 @@ export default function CommunityClient({
     return Boolean(userId && caption.trim().length > 0 && !isSubmitting);
   }, [caption, isSubmitting, userId]);
 
+  const memberProfilesByUid = useMemo(() => {
+    return memberProfiles.reduce<Record<string, MemberProfile>>((accumulator, profile) => {
+      if (!profile.uid) return accumulator;
+      accumulator[profile.uid] = profile;
+      return accumulator;
+    }, {});
+  }, [memberProfiles]);
+
+  const resolveIdentity = useCallback((
+    uid: string | null | undefined,
+    fallbackName: string,
+    fallbackPhoto: string,
+  ): ResolvedIdentity => {
+    const liveProfile = uid ? memberProfilesByUid[uid] : undefined;
+    const resolvedName = liveProfile?.username?.trim() || fallbackName.trim() || "Arc User";
+    const resolvedPhoto = liveProfile?.photoDataUrl?.trim() || fallbackPhoto.trim();
+
+    return {
+      name: resolvedName,
+      photo: resolvedPhoto,
+    };
+  }, [memberProfilesByUid]);
+
   const storyProfiles = useMemo(() => {
+    const currentUserIdentity = resolveIdentity(userId, displayName, profilePhoto);
     const currentUserProfile = {
       uid: userId ?? "",
-      name: displayName,
-      photo: profilePhoto,
+      name: currentUserIdentity.name,
+      photo: currentUserIdentity.photo,
     };
     const followedProfiles = followingUsers
       .filter((followedUser) => followedUser.uid !== userId)
-      .map((followedUser) => ({
-        uid: followedUser.uid,
-        name: followedUser.username || "Arc User",
-        photo: followedUser.photoDataUrl || "",
-      }));
+      .map((followedUser) => {
+        const resolvedIdentity = resolveIdentity(
+          followedUser.uid,
+          followedUser.username || "Arc User",
+          followedUser.photoDataUrl || "",
+        );
+
+        return {
+          uid: followedUser.uid,
+          name: resolvedIdentity.name,
+          photo: resolvedIdentity.photo,
+        };
+      });
     return [currentUserProfile, ...followedProfiles].slice(0, 9);
-  }, [displayName, followingUsers, profilePhoto, userId]);
+  }, [displayName, followingUsers, profilePhoto, resolveIdentity, userId]);
 
   const last7DaysPosts = useMemo(() => {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -491,12 +677,6 @@ export default function CommunityClient({
       setLikedPostIds({});
     }
 
-    try {
-      const commentsRaw = window.localStorage.getItem(`community:comments:${viewerStorageKey}`);
-      setCommentsByPost(commentsRaw ? (JSON.parse(commentsRaw) as Record<string, LocalComment[]>) : {});
-    } catch {
-      setCommentsByPost({});
-    }
   }, [viewerStorageKey]);
 
   useEffect(() => {
@@ -506,14 +686,6 @@ export default function CommunityClient({
       // Ignore persistence failures.
     }
   }, [likedPostIds, viewerStorageKey]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(`community:comments:${viewerStorageKey}`, JSON.stringify(commentsByPost));
-    } catch {
-      // Ignore persistence failures.
-    }
-  }, [commentsByPost, viewerStorageKey]);
 
   useEffect(() => {
     if (!activePostMenuId) return;
@@ -621,6 +793,11 @@ export default function CommunityClient({
 
     try {
       const currentlyFollowing = await isFollowingUser(userId, post.uid);
+      const resolvedIdentity = resolveIdentity(
+        post.uid,
+        post.authorName || "Arc User",
+        post.authorPhotoDataUrl || "",
+      );
       if (currentlyFollowing) {
         await unfollowUser(userId, post.uid);
       } else {
@@ -628,8 +805,8 @@ export default function CommunityClient({
           userId,
           {
             uid: post.uid,
-            username: post.authorName || "Arc User",
-            photoDataUrl: post.authorPhotoDataUrl || "",
+            username: resolvedIdentity.name,
+            photoDataUrl: resolvedIdentity.photo,
           },
           {
             username: displayName,
@@ -652,12 +829,18 @@ export default function CommunityClient({
         const alreadyPresent = current.some((user) => user.uid === post.uid);
         if (alreadyPresent) return current;
 
+        const resolvedIdentity = resolveIdentity(
+          post.uid,
+          post.authorName || "Arc User",
+          post.authorPhotoDataUrl || "",
+        );
+
         return [
           ...current,
           {
             uid: post.uid,
-            username: post.authorName || "Arc User",
-            photoDataUrl: post.authorPhotoDataUrl || "",
+            username: resolvedIdentity.name,
+            photoDataUrl: resolvedIdentity.photo,
           },
         ];
       });
@@ -670,13 +853,19 @@ export default function CommunityClient({
   };
 
   const toggleComments = (postId: string) => {
+    const nextOpen = !expandedComments[postId];
+
     setExpandedComments((current) => ({
       ...current,
-      [postId]: !current[postId],
+      [postId]: nextOpen,
     }));
+
+    if (nextOpen) {
+      void refreshCommentsForPost(postId);
+    }
   };
 
-  const submitComment = (post: CommunityPost) => {
+  const submitComment = async (post: CommunityPost) => {
     if (!userId) {
       setActionStatus("Log in to comment on posts.");
       return;
@@ -685,26 +874,54 @@ export default function CommunityClient({
     const text = commentDrafts[post.id]?.trim() || "";
     if (!text) return;
 
-    const newComment: LocalComment = {
-      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-      author: displayName || "Arc User",
-      text,
-      createdAt: Date.now(),
-    };
+    try {
+      await createCommunityComment({
+        postId: post.id,
+        postOwnerUid: post.uid,
+        uid: userId,
+        authorName: displayName || "Arc User",
+        authorPhotoDataUrl: profilePhoto,
+        text,
+        postCaption: post.caption,
+      });
 
-    setCommentsByPost((current) => ({
-      ...current,
-      [post.id]: [...(current[post.id] || []), newComment],
-    }));
-    setCommentDrafts((current) => ({
-      ...current,
-      [post.id]: "",
-    }));
-    setExpandedComments((current) => ({
-      ...current,
-      [post.id]: true,
-    }));
-    setActionStatus("Comment added.");
+      await refreshCommentsForPost(post.id);
+      setCommentDrafts((current) => ({
+        ...current,
+        [post.id]: "",
+      }));
+      setExpandedComments((current) => ({
+        ...current,
+        [post.id]: true,
+      }));
+      setActionStatus("Comment added.");
+    } catch {
+      setActionStatus("Unable to add comment right now.");
+    }
+  };
+
+  const removeComment = async (postId: string, comment: CommunityComment) => {
+    if (!userId) {
+      setActionStatus("Log in to delete comments.");
+      return;
+    }
+    if (comment.uid !== userId) {
+      setActionStatus("You can only delete your own comments.");
+      return;
+    }
+    if (commentDeleteBusyId) return;
+    if (!window.confirm("Delete this comment?")) return;
+
+    setCommentDeleteBusyId(comment.id);
+    try {
+      await deleteCommunityComment(comment.id);
+      await refreshCommentsForPost(postId);
+      setActionStatus("Comment deleted.");
+    } catch {
+      setActionStatus("Unable to delete comment right now.");
+    } finally {
+      setCommentDeleteBusyId(null);
+    }
   };
 
   const sharePost = async (postId: string) => {
@@ -1182,7 +1399,12 @@ export default function CommunityClient({
       ) : (
         <ul className="space-y-4">
           {filteredPosts.map((post, index) => {
-            const initials = getInitials(post.authorName || "Arc");
+            const resolvedIdentity = resolveIdentity(
+              post.uid,
+              post.authorName || "Arc User",
+              post.authorPhotoDataUrl || "",
+            );
+            const initials = getInitials(resolvedIdentity.name || "Arc");
             const isLiked = Boolean(likedPostIds[post.id]);
             const postComments = commentsByPost[post.id] || [];
             const isCommentsOpen = Boolean(expandedComments[post.id]);
@@ -1204,11 +1426,11 @@ export default function CommunityClient({
                 <div className="flex items-center justify-between gap-3 px-4 py-3.5">
                   <div className="flex min-w-0 items-center gap-3.5">
                     <Link href={`/users/${post.uid}`} className="shrink-0" aria-label="Open user profile">
-                      {post.authorPhotoDataUrl ? (
+                      {resolvedIdentity.photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={post.authorPhotoDataUrl}
-                          alt={`${post.authorName || "User"} avatar`}
+                          src={resolvedIdentity.photo}
+                          alt={`${resolvedIdentity.name || "User"} avatar`}
                           className="h-11 w-11 rounded-full border border-slate-200 object-cover dark:border-slate-700"
                         />
                       ) : (
@@ -1222,7 +1444,7 @@ export default function CommunityClient({
                         href={`/users/${post.uid}`}
                         className="truncate text-base font-bold leading-tight text-slate-900 hover:underline dark:text-slate-100"
                       >
-                        {post.authorName || "Arc User"}
+                        {resolvedIdentity.name || "Arc User"}
                       </Link>
                       <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                         {formatTimestamp(post.createdAt)}
@@ -1305,7 +1527,7 @@ export default function CommunityClient({
 
                 <div className="space-y-2 px-4 py-3">
                   <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-slate-800 dark:text-slate-100">
-                    <span className="mr-1 font-semibold">{post.authorName || "Arc User"}</span>
+                    <span className="mr-1 font-semibold">{resolvedIdentity.name || "Arc User"}</span>
                     {post.caption}
                   </p>
                   <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-200">
@@ -1356,8 +1578,31 @@ export default function CommunityClient({
                       ) : (
                         <ul className="space-y-1">
                           {postComments.map((comment) => (
-                            <li key={comment.id} className="text-xs text-slate-700 dark:text-slate-200">
-                              <span className="font-semibold">{comment.author}</span> {comment.text}
+                            <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                              <div className="flex items-start gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p>
+                                    <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
+                                  </p>
+                                  <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                    {formatCommentTimestamp(comment.createdAt)}
+                                  </p>
+                                </div>
+                                {userId === comment.uid ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      void removeComment(post.id, comment);
+                                    }}
+                                    disabled={commentDeleteBusyId === comment.id}
+                                    className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
+                                    aria-label="Delete comment"
+                                    title="Delete comment"
+                                  >
+                                    {commentDeleteBusyId === comment.id ? "…" : "×"}
+                                  </button>
+                                ) : null}
+                              </div>
                             </li>
                           ))}
                         </ul>
