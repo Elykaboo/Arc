@@ -751,7 +751,7 @@ export default function SiteNav() {
                       onClick={() => setDashboardNavOpen((value) => !value)}
                       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                         isActive
-                          ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]"
+                          ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)] dark:border-orange-300/35 dark:bg-[linear-gradient(135deg,rgba(30,41,59,0.96),rgba(51,65,85,0.92))] dark:text-orange-100 dark:shadow-[0_14px_30px_rgba(2,6,23,0.48)]"
                           : "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100"
                       }`}
                       aria-expanded={dashboardNavOpen}
@@ -785,7 +785,7 @@ export default function SiteNav() {
           {dashboardNavOpen && mobileDashboardItem?.children?.length ? (
             <div
               role="menu"
-              className="absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/20 dark:bg-[linear-gradient(180deg,rgba(67,20,7,0.95),rgba(124,45,18,0.9))]"
+              className="absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/25 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96))] dark:shadow-[0_18px_40px_rgba(2,6,23,0.52)]"
             >
               {mobileDashboardItem.children.map((child) => {
                 const isChildActive = pathname === child.href;
@@ -800,8 +800,8 @@ export default function SiteNav() {
                     role="menuitem"
                     className={`mb-1 block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold transition last:mb-0 ${
                       isChildActive
-                        ? "bg-orange-500 text-white"
-                        : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/10"
+                        ? "bg-orange-500 text-white dark:bg-[linear-gradient(135deg,rgba(234,88,12,0.88),rgba(194,65,12,0.92))] dark:text-white dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.16)]"
+                        : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/8"
                     }`}
                   >
                     {child.label}
