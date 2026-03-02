@@ -422,7 +422,7 @@ export default function SiteNav() {
       ref={menuRef}
       className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
     >
-      <div className="mx-auto grid min-h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2 sm:h-16 sm:gap-3 sm:px-6 sm:py-0">
+      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-6 lg:grid lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:justify-normal lg:py-0">
         <Link
           href="/"
           className="group inline-flex items-center justify-self-start gap-2 font-serif text-3xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
@@ -528,7 +528,7 @@ export default function SiteNav() {
             : null}
         </nav>
 
-        <div className="relative flex items-center justify-self-end gap-1 sm:gap-2">
+        <div className="relative ml-auto flex items-center gap-1 sm:gap-2 lg:justify-self-end">
           {showMemberNav ? (
             <>
               <button
