@@ -131,16 +131,16 @@ export default function VerifyEmailPage() {
 
   return (
     <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md items-center px-6 py-10">
-      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-900">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
           Verify Email
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Check your inbox
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           We sent a verification link to{" "}
-          <span className="font-semibold text-slate-900">{auth.currentUser?.email || emailHint || "your email"}</span>.
+          <span className="font-semibold text-slate-900 dark:text-slate-100">{auth.currentUser?.email || emailHint || "your email"}</span>.
           You need to verify it before entering Arc.
         </p>
 
@@ -158,7 +158,7 @@ export default function VerifyEmailPage() {
             type="button"
             onClick={handleResend}
             disabled={isResending}
-            className="w-full rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
           >
             {isResending ? "Sending..." : "Resend verification email"}
           </button>
@@ -176,14 +176,14 @@ export default function VerifyEmailPage() {
           </p>
         ) : null}
 
-        <div className="mt-6 flex items-center justify-between text-sm text-slate-600">
-          <Link href="/login" className="font-semibold text-slate-900 underline-offset-4 hover:underline">
+        <div className="mt-6 flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
+          <Link href="/login" className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-slate-100">
             Back to login
           </Link>
           <button
             type="button"
             onClick={handleSignOut}
-            className="font-semibold text-slate-900 underline-offset-4 hover:underline"
+            className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-slate-100"
           >
             Sign out
           </button>

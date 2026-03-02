@@ -430,7 +430,7 @@ export default function ProfileClient() {
   if (!isAuthResolved || isLoading) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-10">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
           Loading profile...
         </div>
       </section>
@@ -440,9 +440,9 @@ export default function ProfileClient() {
   if (!userId) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-10">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Profile</h1>
-          <p className="mt-2 text-sm text-slate-600">Sign in to edit your profile details.</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Profile</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Sign in to edit your profile details.</p>
         </div>
       </section>
     );
@@ -451,38 +451,38 @@ export default function ProfileClient() {
   return (
     <section className="mx-auto w-full max-w-4xl px-6 py-10">
       <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Account</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Profile</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Account</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Profile</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           Edit your picture, username, gender, bio, and current workout split.
         </p>
         <Link
           href={`/users/${userId}`}
-          className="mt-3 inline-flex rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+          className="mt-3 inline-flex rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           View public profile
         </Link>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-slate-300 bg-slate-100">
+        <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-slate-300 bg-slate-100 dark:border-slate-600 dark:bg-slate-800">
             {profilePreviewPhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={profilePreviewPhoto} alt="Profile" className="h-full w-full object-cover" />
             ) : (
-              <span className="text-3xl font-semibold text-slate-500">
+              <span className="text-3xl font-semibold text-slate-500 dark:text-slate-300">
                 {profilePreviewName.charAt(0).toUpperCase()}
               </span>
             )}
           </div>
-          <p className="mt-4 text-center text-base font-semibold text-slate-900">{profilePreviewName}</p>
-          <p className="mt-1 text-center text-xs text-slate-500">
+          <p className="mt-4 text-center text-base font-semibold text-slate-900 dark:text-slate-100">{profilePreviewName}</p>
+          <p className="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">
             {profile.workoutSplit.trim() || "No workout split selected"}
           </p>
         </aside>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label htmlFor="profile-photo-upload" className="mb-1 block text-sm font-semibold text-slate-700">

@@ -11,11 +11,11 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   return (
     <main className="mx-auto flex min-h-[60vh] w-full max-w-2xl flex-col items-center justify-center gap-4 px-6 py-16 text-center">
       <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
           Something went wrong
         </p>
-        <h1 className="text-3xl font-bold text-slate-900">We hit an unexpected error.</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">We hit an unexpected error.</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           The issue has been contained. Refresh the page or try again in a moment.
         </p>
       </div>

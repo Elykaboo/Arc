@@ -11,6 +11,7 @@ export default function UserSocializingPage() {
     <CommunityClient
       heading="Home"
       description="Post updates, share progress photos, and celebrate wins with other Arc users."
+      showTrainingSidebar
     />
   );
 }

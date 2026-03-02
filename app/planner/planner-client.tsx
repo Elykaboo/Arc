@@ -531,8 +531,8 @@ export default function PlannerClient() {
   }, [exerciseById, exerciseOptions, plan]);
 
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
-      <header className="overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-amber-100 via-orange-50 to-white p-6 shadow-sm sm:p-8">
+    <main className="page-scene mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
+      <header className="page-card overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-amber-100 via-orange-50 to-white p-6 shadow-sm sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
           Weekly Split Builder
         </p>
@@ -544,7 +544,7 @@ export default function PlannerClient() {
         </p>
       </header>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <section className="page-card rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
             <p className="text-sm font-medium text-slate-600">Planned days</p>

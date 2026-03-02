@@ -86,12 +86,20 @@ const addDays = (date: Date, days: number) => {
 
 type ActivityStatus = "attended" | "missed";
 
+const getStatusLabel = (status: ActivityStatus | null) => {
+  if (status === "attended") return "Attended";
+  if (status === "missed") return "Missed";
+  return "Not logged";
+};
+
 export default function HomeClient() {
   const [isAuthResolved, setIsAuthResolved] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlannerDraft>(emptyDraft);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
   const [activityLog, setActivityLog] = useState<Record<string, ActivityStatus>>({});
+  const [selectedDayName, setSelectedDayName] = useState(weekdays[0]);
+  const [showQuickLog, setShowQuickLog] = useState(true);
 
   const now = useMemo(() => new Date(), []);
   const activityStoragePrefix = `homeActivity:${userId ?? "guest"}:`;
@@ -238,6 +246,35 @@ export default function HomeClient() {
     [recentActivity],
   );
 
+  const plannedDaySummaries = useMemo(
+    () =>
+      weekdays.map((day) => {
+        const items = plan[day].items.filter((item) => item.exerciseId.trim());
+        return {
+          day,
+          items,
+          totalSets: items.reduce((sum, item) => sum + item.sets, 0),
+          isRest: items.length === 0,
+        };
+      }),
+    [plan],
+  );
+
+  useEffect(() => {
+    const hasSelectedDay = plannedDaySummaries.some((entry) => entry.day === selectedDayName);
+    if (!hasSelectedDay) {
+      setSelectedDayName(plannedDaySummaries.find((entry) => !entry.isRest)?.day ?? plannedDaySummaries[0]?.day ?? weekdays[0]);
+    }
+  }, [plannedDaySummaries, selectedDayName]);
+
+  const selectedDaySummary = useMemo(
+    () =>
+      plannedDaySummaries.find((entry) => entry.day === selectedDayName) ??
+      plannedDaySummaries.find((entry) => !entry.isRest) ??
+      plannedDaySummaries[0],
+    [plannedDaySummaries, selectedDayName],
+  );
+
   const currentStreak = useMemo(() => {
     let streak = 0;
     const cursor = new Date(chartEnd);
@@ -287,6 +324,17 @@ export default function HomeClient() {
       })(),
     [activityLog, chartEnd, periodDays],
   );
+
+  const maxWeekdayAttendance = Math.max(...weekdayActivity.map((entry) => entry.attended), 1);
+
+  const readinessScore = Math.min(100, Math.round((totalPlannedDays / 7) * 45 + plannedLast30.rate * 0.55));
+  const consistencyMessage =
+    plannedLast30.rate >= 80
+      ? "Strong rhythm. Keep the current pace."
+      : plannedLast30.rate >= 55
+        ? "Good base. A bit more consistency will compound fast."
+        : "Start small and protect the schedule you can realistically keep.";
+  const todayStatusLabel = getStatusLabel(todayActivity?.status ?? null);
 
   const setActivityStatus = (day: Date, status: ActivityStatus | null) => {
     const iso = formatIsoDate(day);
@@ -556,178 +604,264 @@ export default function HomeClient() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-8 sm:py-12">
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-          Your Training Dashboard
-        </p>
-        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-          Your workout plan and monthly consistency
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base">
-          You already have a workout split, so the Training Dashboard now shows your activity and consistency metrics.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Link
-            href="/planner"
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
-          >
-            Edit weekly plan
-          </Link>
-          <Link
-            href="/workouts"
-            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-          >
-            Browse exercises
-          </Link>
-        </div>
-      </section>
+    <main className="dashboard-shell relative overflow-hidden px-4 py-8 sm:px-8 sm:py-12">
+      <div className="dashboard-grid pointer-events-none absolute inset-0 opacity-50" />
+      <div className="dashboard-glow dashboard-glow--amber pointer-events-none absolute -left-14 top-0 h-52 w-52" />
+      <div className="dashboard-glow dashboard-glow--blue pointer-events-none absolute right-0 top-32 h-72 w-72" />
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-slate-600">Planned days</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">{totalPlannedDays} / 7</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-slate-600">Attended (last 12 months)</p>
-          <p className="mt-1 text-2xl font-bold text-orange-700">{attendedCount}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-slate-600">Missed (last 12 months)</p>
-          <p className="mt-1 text-2xl font-bold text-rose-700">{missedCount}</p>
-        </div>
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-[1.05fr_1fr]">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-bold text-slate-900">Activity overview</h2>
-            <p className="text-xs text-slate-500">Based on the last 12 months</p>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current streak</p>
-              <p className="mt-1 text-2xl font-black text-orange-700">{currentStreak}</p>
-              <p className="text-xs text-slate-500">consecutive attended days</p>
+      <section className="dashboard-panel relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(145deg,rgba(255,247,237,0.9),rgba(255,255,255,0.88))] p-6 shadow-[0_28px_90px_-45px_rgba(15,23,42,0.45)] backdrop-blur dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(30,41,59,0.95),rgba(15,23,42,0.96))] sm:p-8">
+        <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#fb923c,#f97316,#38bdf8)]" />
+        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <div className="dashboard-float inline-flex items-center gap-2 rounded-full border border-orange-200/80 bg-orange-100/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-orange-700 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-200">
+              Your Training Dashboard
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">30-day adherence</p>
-              <p className="mt-1 text-2xl font-black text-slate-900">{plannedLast30.rate}%</p>
-              <p className="text-xs text-slate-500">
-                {plannedLast30.attendedOnPlanned}/{plannedLast30.planned} planned days marked attended
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total sessions</p>
-              <p className="mt-1 text-2xl font-black text-slate-900">{attendedCount}</p>
-              <p className="text-xs text-slate-500">attendance marks in 12 months</p>
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <p className="text-sm font-semibold text-slate-700">Activity by planned weekday</p>
-            {weekdayActivity.map((item) => {
-              const max = Math.max(...weekdayActivity.map((row) => row.attended), 1);
-              const width = Math.max(8, Math.round((item.attended / max) * 100));
-              return (
-                <div
-                  key={item.day}
-                  className="grid grid-cols-[minmax(116px,148px)_1fr_28px] items-center gap-2 text-sm"
-                >
-                  <span className="inline-flex flex-wrap items-center gap-1 text-slate-600">
-                    {item.day}
-                    {item.isToday ? (
-                      <span className="rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
-                        Today
-                      </span>
-                    ) : null}
-                  </span>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                    <div className="h-full rounded-full bg-orange-500" style={{ width: `${width}%` }} />
-                  </div>
-                  <span className="text-right font-semibold text-slate-700">{item.attended}</span>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-xs text-slate-500">Only today can be updated.</p>
-          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="text-xs font-medium text-slate-600">
-              Update today only
-              {todayActivity ? (
-                <span className="ml-1 text-slate-500">
-                  ({todayActivity.day.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })})
-                </span>
-              ) : null}
+            <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight text-slate-900 dark:text-slate-50 sm:text-5xl">
+              Smoother progress tracking that is easier to read and easier to use
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+              See your weekly structure, today&apos;s training status, and consistency trends in one cleaner beginner-friendly view.
             </p>
-            <div className="mt-3 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  if (todayActivity) setActivityStatus(todayActivity.day, "attended");
-                }}
-                disabled={!todayActivity}
-                className={`min-w-[140px] rounded-xl px-5 py-3 text-lg font-bold transition ${
-                  todayActivity?.status === "attended"
-                    ? "bg-orange-500 text-white"
-                    : "border border-orange-300 bg-white text-orange-800 hover:bg-orange-50"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/planner"
+                className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
               >
-                Attended
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (todayActivity) setActivityStatus(todayActivity.day, "missed");
-                }}
-                disabled={!todayActivity}
-                className={`min-w-[140px] rounded-xl px-5 py-3 text-lg font-bold transition ${
-                  todayActivity?.status === "missed"
-                    ? "bg-rose-500 text-white"
-                    : "border border-rose-300 bg-white text-rose-800 hover:bg-rose-50"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                Edit weekly plan
+              </Link>
+              <Link
+                href="/workouts"
+                className="rounded-2xl border border-slate-300 bg-white/80 px-5 py-3 text-sm font-semibold text-slate-900 transition duration-300 hover:-translate-y-0.5 hover:bg-white dark:border-white/15 dark:bg-white/5 dark:text-slate-100 dark:hover:bg-white/10"
               >
-                Missed
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (todayActivity) setActivityStatus(todayActivity.day, null);
-                }}
-                disabled={!todayActivity}
-                className="min-w-[140px] rounded-xl border border-slate-300 bg-white px-5 py-3 text-lg font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                Browse exercises
+              </Link>
+              <Link
+                href="/bmi"
+                className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-semibold text-orange-800 transition duration-300 hover:-translate-y-0.5 hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100 dark:hover:bg-orange-500/15"
               >
-                Clear
-              </button>
+                Open BMI page
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.5rem] border border-white/70 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Plan coverage</p>
+                <p className="mt-2 text-3xl font-black text-slate-900 dark:text-slate-100">{totalPlannedDays} / 7</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">days already mapped out</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/70 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Monthly rhythm</p>
+                <p className="mt-2 text-3xl font-black text-orange-700 dark:text-orange-300">{plannedLast30.rate}%</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">adherence on planned days</p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/70 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Today status</p>
+                <p className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">{todayStatusLabel}</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">quick log available below</p>
+              </div>
             </div>
           </div>
+
+          <aside className="rounded-[1.75rem] border border-orange-200/70 bg-[linear-gradient(160deg,rgba(255,255,255,0.82),rgba(255,237,213,0.82))] p-5 shadow-[0_22px_45px_rgba(249,115,22,0.14)] dark:border-orange-300/20 dark:bg-[linear-gradient(160deg,rgba(67,20,7,0.72),rgba(30,41,59,0.82))]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">
+              Readiness snapshot
+            </p>
+            <div className="mt-4 rounded-[1.5rem] bg-slate-950 p-5 text-white shadow-[0_20px_36px_rgba(15,23,42,0.22)]">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-5xl font-black">{readinessScore}</p>
+                  <p className="mt-2 text-sm text-slate-300">weekly readiness score</p>
+                </div>
+                <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-orange-100">
+                  {currentStreak} day streak
+                </div>
+              </div>
+              <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#fb923c,#f97316,#38bdf8)] transition-[width] duration-700"
+                  style={{ width: `${Math.max(10, readinessScore)}%` }}
+                />
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-300">{consistencyMessage}</p>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-[1.25rem] border border-white/70 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Attended</p>
+                <p className="mt-2 text-2xl font-black text-orange-700 dark:text-orange-300">{attendedCount}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">last 12 months</p>
+              </div>
+              <div className="rounded-[1.25rem] border border-white/70 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Missed</p>
+                <p className="mt-2 text-2xl font-black text-rose-700 dark:text-rose-300">{missedCount}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">last 12 months</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-6 grid max-w-6xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <article className="dashboard-panel rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-5 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.32)] backdrop-blur dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">Activity overview</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Based on the last 12 months of marked activity</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowQuickLog((value) => !value)}
+              className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800 transition duration-300 hover:-translate-y-0.5 hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100 dark:hover:bg-orange-500/15"
+            >
+              {showQuickLog ? "Hide quick log" : "Show quick log"}
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50/90 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/50">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Current streak</p>
+              <p className="mt-2 text-3xl font-black text-orange-700 dark:text-orange-300">{currentStreak}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">consecutive attended days</p>
+            </div>
+            <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50/90 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/50">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Planned check-ins</p>
+              <p className="mt-2 text-3xl font-black text-slate-900 dark:text-slate-100">
+                {plannedLast30.attendedOnPlanned}/{plannedLast30.planned}
+              </p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">completed on planned days</p>
+            </div>
+            <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50/90 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/50">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Total sessions</p>
+              <p className="mt-2 text-3xl font-black text-slate-900 dark:text-slate-100">{attendedCount}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">attendance marks in 12 months</p>
+            </div>
+          </div>
+
+          {showQuickLog ? (
+            <div className="mt-4 rounded-[1.5rem] border border-orange-200/80 bg-[linear-gradient(145deg,rgba(255,247,237,0.82),rgba(255,255,255,0.92))] p-4 shadow-[0_18px_30px_rgba(249,115,22,0.1)] dark:border-orange-300/20 dark:bg-[linear-gradient(145deg,rgba(124,45,18,0.16),rgba(30,41,59,0.72))]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  Update today only
+                  {todayActivity ? (
+                    <span className="ml-1 text-slate-500 dark:text-slate-400">
+                      ({todayActivity.day.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })})
+                    </span>
+                  ) : null}
+                </p>
+                <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-orange-800 dark:bg-white/10 dark:text-orange-100">
+                  Current: {todayStatusLabel}
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (todayActivity) setActivityStatus(todayActivity.day, "attended");
+                  }}
+                  disabled={!todayActivity}
+                  className={`min-w-[140px] rounded-2xl px-5 py-3 text-base font-bold transition duration-300 ${
+                    todayActivity?.status === "attended"
+                      ? "bg-orange-500 text-white shadow-[0_16px_28px_rgba(249,115,22,0.22)]"
+                      : "border border-orange-300 bg-white text-orange-800 hover:-translate-y-0.5 hover:bg-orange-50"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  Attended
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (todayActivity) setActivityStatus(todayActivity.day, "missed");
+                  }}
+                  disabled={!todayActivity}
+                  className={`min-w-[140px] rounded-2xl px-5 py-3 text-base font-bold transition duration-300 ${
+                    todayActivity?.status === "missed"
+                      ? "bg-rose-500 text-white shadow-[0_16px_28px_rgba(244,63,94,0.22)]"
+                      : "border border-rose-300 bg-white text-rose-800 hover:-translate-y-0.5 hover:bg-rose-50"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  Missed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (todayActivity) setActivityStatus(todayActivity.day, null);
+                  }}
+                  disabled={!todayActivity}
+                  className="min-w-[140px] rounded-2xl border border-slate-300 bg-white px-5 py-3 text-base font-bold text-slate-700 transition duration-300 hover:-translate-y-0.5 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-white/5 dark:text-slate-100 dark:hover:bg-white/10"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-5 rounded-[1.6rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(18,26,39,0.98),rgba(25,36,58,0.98))] p-6 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.7)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(22,34,54,0.98))]">
+            <h3 className="text-[1.15rem] font-black text-slate-100 sm:text-xl">Activity by planned weekday</h3>
+            <div className="mt-5 space-y-4">
+              {weekdayActivity.map((item) => {
+                const width = Math.max(8, Math.round((item.attended / maxWeekdayAttendance) * 100));
+                return (
+                  <div
+                    key={item.day}
+                    className="grid grid-cols-[minmax(112px,148px)_1fr_28px] items-center gap-4 text-sm sm:grid-cols-[minmax(132px,168px)_1fr_32px] sm:text-base"
+                  >
+                    <span className="inline-flex flex-wrap items-center gap-2 text-slate-300">
+                      {item.day}
+                      {item.isToday ? (
+                        <span className="rounded-full bg-white/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                          Today
+                        </span>
+                      ) : null}
+                    </span>
+                    <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-[linear-gradient(90deg,#fb923c,#f97316,#38bdf8)] transition-[width] duration-700"
+                        style={{ width: `${width}%` }}
+                      />
+                    </div>
+                    <span className="text-right text-lg font-semibold text-slate-200">{item.attended}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </article>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <article className="dashboard-panel rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-5 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.32)] backdrop-blur dark:border-white/10 dark:bg-white/5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-slate-900">Recent activity</h2>
+            <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">Recent activity</h2>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+              last 4 days
+            </span>
           </div>
-          <ul className="mt-3 space-y-1.5">
-            {recentActivity.map((entry) => (
+          <ul className="mt-4 space-y-2.5">
+            {recentActivity.map((entry, index) => (
               <li key={entry.iso}>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div
+                  className="rounded-[1.25rem] border border-slate-200 bg-slate-50/90 px-3 py-3 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/50"
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <p className="text-xs font-semibold text-slate-900 sm:text-sm">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {entry.day.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
                       </p>
-                      <p className="text-[11px] text-slate-500 sm:text-xs">{entry.planned ? "Planned training day" : "Unplanned day"}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {entry.planned ? "Planned training day" : "Recovery or unplanned day"}
+                      </p>
                     </div>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold sm:text-xs ${
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                         entry.status === "attended"
-                          ? "bg-orange-100 text-orange-800"
+                          ? "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-200"
                           : entry.status === "missed"
-                            ? "bg-rose-100 text-rose-800"
-                            : "bg-slate-200 text-slate-700"
+                            ? "bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-200"
+                            : "bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-300"
                       }`}
                     >
-                      {entry.status === "attended" ? "Attended" : entry.status === "missed" ? "Missed" : "No log"}
+                      {getStatusLabel(entry.status)}
                     </span>
                   </div>
                 </div>
@@ -737,32 +871,89 @@ export default function HomeClient() {
         </article>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xl font-bold text-slate-900">Weekly workout plan</h2>
-          <span className="text-sm font-medium text-slate-600">{totalWorkouts} workouts planned</span>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {weekdays.map((day) => {
-            const items = plan[day].items.filter((item) => item.exerciseId.trim());
-            return (
-              <article key={day} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <h3 className="text-sm font-semibold text-slate-900">{day}</h3>
-                {items.length === 0 ? (
-                  <p className="mt-1 text-xs text-slate-500">Rest day</p>
-                ) : (
-                  <ul className="mt-2 space-y-1 text-xs text-slate-700">
-                    {items.slice(0, 3).map((item) => (
-                      <li key={item.id}>
-                        {item.preferredExerciseName || item.templateLabel || "Workout"} • {item.sets} sets • {item.reps}
-                      </li>
-                    ))}
-                    {items.length > 3 ? <li className="text-slate-500">+{items.length - 3} more</li> : null}
-                  </ul>
-                )}
-              </article>
-            );
-          })}
+      <section className="mx-auto mt-6 max-w-6xl">
+        <div className="dashboard-panel rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-5 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.32)] backdrop-blur dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">Weekly workout plan</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{totalWorkouts} workouts planned this week</p>
+            </div>
+            <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+              Tap a day for details
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {plannedDaySummaries.map((entry) => {
+                const isSelected = entry.day === selectedDaySummary?.day;
+                return (
+                  <button
+                    key={entry.day}
+                    type="button"
+                    onClick={() => setSelectedDayName(entry.day)}
+                    className={`text-left rounded-[1.35rem] border p-4 transition duration-300 ${
+                      isSelected
+                        ? "border-orange-300 bg-[linear-gradient(145deg,rgba(255,247,237,0.92),rgba(255,255,255,0.96))] shadow-[0_18px_34px_rgba(249,115,22,0.14)] dark:border-orange-300/30 dark:bg-[linear-gradient(145deg,rgba(124,45,18,0.18),rgba(30,41,59,0.82))]"
+                        : "border-slate-200 bg-slate-50/85 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{entry.day}</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          {entry.isRest ? "Recovery day" : `${entry.items.length} workout${entry.items.length === 1 ? "" : "s"}`}
+                        </p>
+                      </div>
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${entry.isRest ? "bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-300" : "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-200"}`}>
+                        {entry.isRest ? "Rest" : `${entry.totalSets} sets`}
+                      </span>
+                    </div>
+                    <div className="mt-4 flex items-center gap-1">
+                      {Array.from({ length: Math.min(4, Math.max(entry.items.length, 1)) }, (_, index) => (
+                        <span
+                          key={`${entry.day}-${index}`}
+                          className={`h-2.5 flex-1 rounded-full ${entry.isRest ? "bg-slate-200 dark:bg-white/10" : index < entry.items.length ? "bg-[linear-gradient(90deg,#fb923c,#f97316)]" : "bg-orange-100 dark:bg-orange-500/10"}`}
+                        />
+                      ))}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <article className="rounded-[1.5rem] border border-slate-200 bg-slate-50/90 p-5 dark:border-white/10 dark:bg-slate-900/50">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">Selected day</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">{selectedDaySummary?.day}</h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                {selectedDaySummary?.isRest
+                  ? "Use this day for recovery, walking, mobility, or light stretching."
+                  : `${selectedDaySummary?.items.length ?? 0} planned workout items with ${selectedDaySummary?.totalSets ?? 0} total sets.`}
+              </p>
+
+              {selectedDaySummary?.isRest ? (
+                <div className="mt-5 rounded-[1.25rem] border border-dashed border-slate-300 bg-white/80 p-4 text-sm leading-6 text-slate-600 dark:border-white/15 dark:bg-white/5 dark:text-slate-300">
+                  Recovery still supports progress. If you feel fresh, keep it easy and protect the rest of your week.
+                </div>
+              ) : (
+                <ul className="mt-5 space-y-3">
+                  {selectedDaySummary?.items.map((item) => (
+                    <li
+                      key={item.id}
+                      className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/5"
+                    >
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {item.preferredExerciseName || item.templateLabel || "Workout"}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {item.sets} sets • {item.reps} reps
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          </div>
         </div>
       </section>
     </main>
