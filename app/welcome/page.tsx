@@ -20,12 +20,12 @@ function WelcomePageContent() {
 
   useEffect(() => {
     if (!message) {
-      router.replace("/socializing");
+      router.replace("/");
       return;
     }
 
     const timer = window.setTimeout(() => {
-      router.replace("/socializing");
+      router.replace("/");
     }, DISPLAY_MS);
 
     return () => window.clearTimeout(timer);
