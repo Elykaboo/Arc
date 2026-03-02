@@ -1,37 +1,43 @@
 import type { Metadata } from "next";
-import HomeClient from "./home-client";
+import CommunityClient from "@/app/community/community-client";
 
 export const metadata: Metadata = {
-  title: "Workout Planner App for Weekly Gym Training",
+  title: "Home",
   description:
-    "Arc Workout Planner helps you build workouts, save reusable routines, and organize a clear weekly gym schedule.",
+    "Connect with other Arc users by sharing milestones, progress updates, and training wins.",
   keywords: [
-    "workout planner app",
-    "gym workout planner",
-    "weekly training plan",
-    "strength routine builder",
-    "hypertrophy workout schedule",
-    "fitness planning tool",
+    "fitness community",
+    "training social feed",
+    "workout progress sharing",
+    "gym community app",
+    "fitness milestones",
+    "social fitness platform",
   ],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Arc Workout Planner",
+    title: "Arc Socializing",
     description:
-      "Build workouts, save routines, and map your weekly training plan with Arc.",
+      "Post updates, share progress photos, and stay connected with the Arc community.",
     url: "/",
     siteName: "Arc",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Arc Workout Planner",
+    title: "Arc Socializing",
     description:
-      "Plan your gym week with structured workouts, routines, and scheduling tools.",
+      "Share training progress and connect with other Arc users.",
   },
 };
 
 export default function Home() {
-  return <HomeClient />;
+  return (
+    <CommunityClient
+      heading="Home"
+      description="Post updates, share progress photos, and celebrate wins with other Arc users."
+      showTrainingSidebar
+    />
+  );
 }

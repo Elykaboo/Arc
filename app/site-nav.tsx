@@ -27,13 +27,13 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/socializing", label: "Home", match: "startsWith" },
+  { href: "/", label: "Home" },
   { href: "/community", label: "Community", match: "startsWith" },
   {
     href: "/dashboard-menu",
     label: "Training Dashboard",
     children: [
-      { href: "/", label: "Overview" },
+      { href: "/training-dashboard", label: "Overview" },
       { href: "/bmi", label: "BMI Page" },
     ],
   },
@@ -52,7 +52,7 @@ const isActiveItem = (pathname: string, item: NavItem) => {
   }
 
   if (item.href === "/") {
-    return pathname === "/";
+    return pathname === "/" || pathname === "/socializing" || pathname.startsWith("/socializing/");
   }
 
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -486,7 +486,7 @@ export default function SiteNav() {
                                 type="button"
                                 onClick={() => {
                                   setDashboardNavOpen(false);
-                                  router.push(child.href === "/bmi" ? "/bmi" : "/");
+                                  router.push(child.href);
                                 }}
                                 aria-current={pathname === child.href ? "page" : undefined}
                                 role="menuitem"
@@ -760,7 +760,7 @@ export default function SiteNav() {
                               type="button"
                               onClick={() => {
                                 setDashboardNavOpen(false);
-                                router.push(child.href === "/bmi" ? "/bmi" : "/");
+                                router.push(child.href);
                               }}
                               className={`rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
                                 isChildActive

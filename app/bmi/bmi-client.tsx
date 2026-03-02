@@ -246,7 +246,7 @@ export default function BmiClient() {
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">BMI ranges</h2>
             <Link
-              href="/"
+              href="/training-dashboard"
               className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 transition hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100"
             >
               Back to dashboard

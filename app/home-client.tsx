@@ -377,7 +377,7 @@ export default function HomeClient() {
       name: "Arc Workout Planner",
       description:
         "Arc helps lifters and gym beginners create workouts, save routines, and organize weekly training plans.",
-      url: "/",
+      url: "/training-dashboard",
       mainEntity: {
         "@type": "SoftwareApplication",
         name: "Arc Workout Planner",
