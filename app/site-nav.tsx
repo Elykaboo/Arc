@@ -155,7 +155,7 @@ export default function SiteNav() {
   const [dashboardNavOpen, setDashboardNavOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(getResolvedDarkMode);
 
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -376,6 +376,7 @@ export default function SiteNav() {
   const unreadCount = notifications.filter(
     (item) => item.createdAtMs !== null && item.createdAtMs > lastReadAtMs,
   ).length;
+  const mobileDashboardItem = navItems.find((item) => item.children?.length);
 
   const markAllNotificationsRead = () => {
     if (!currentUserId) return;
@@ -456,8 +457,11 @@ export default function SiteNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
-      <div ref={menuRef} className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
+    <header
+      ref={menuRef}
+      className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
+    >
+      <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
         <Link
           href="/"
           className="group inline-flex justify-self-start items-center gap-2 font-serif text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
@@ -766,7 +770,10 @@ export default function SiteNav() {
       </div>
 
       {showMemberNav ? (
-        <nav aria-label="Mobile Primary" className="border-t border-slate-200 px-4 py-2 lg:hidden dark:border-white/15">
+        <nav
+          aria-label="Mobile Primary"
+          className="relative border-t border-slate-200 px-4 py-2 lg:hidden dark:border-white/15"
+        >
           <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto pb-1">
             {navItems.map((item) => {
               const isActive = isActiveItem(pathname, item);
@@ -789,30 +796,6 @@ export default function SiteNav() {
                         className={`h-3.5 w-3.5 transition-transform duration-300 ${dashboardNavOpen ? "rotate-180" : ""}`}
                       />
                     </button>
-                      {dashboardNavOpen ? (
-                        <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/20 dark:bg-[linear-gradient(180deg,rgba(67,20,7,0.95),rgba(124,45,18,0.9))]">
-                        {item.children.map((child) => {
-                          const isChildActive = pathname === child.href;
-                          return (
-                            <button
-                              key={child.href}
-                              type="button"
-                              onClick={() => {
-                                setDashboardNavOpen(false);
-                                router.push(child.href === "/bmi" ? "/bmi" : "/");
-                              }}
-                              className={`rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
-                                isChildActive
-                                  ? "bg-orange-500 text-white"
-                                  : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/10"
-                              }`}
-                            >
-                              {child.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : null}
                   </div>
                 );
               }
@@ -833,6 +816,35 @@ export default function SiteNav() {
               );
             })}
           </div>
+
+          {dashboardNavOpen && mobileDashboardItem?.children?.length ? (
+            <div
+              role="menu"
+              className="absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/25 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96))] dark:shadow-[0_18px_40px_rgba(2,6,23,0.52)]"
+            >
+              {mobileDashboardItem.children.map((child) => {
+                const isChildActive = pathname === child.href;
+                return (
+                  <button
+                    key={child.href}
+                    type="button"
+                    onClick={() => {
+                      setDashboardNavOpen(false);
+                      router.push(child.href);
+                    }}
+                    role="menuitem"
+                    className={`mb-1 block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold transition last:mb-0 ${
+                      isChildActive
+                        ? "bg-orange-500 text-white dark:bg-[linear-gradient(135deg,rgba(234,88,12,0.88),rgba(194,65,12,0.92))] dark:text-white dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.16)]"
+                        : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/8"
+                    }`}
+                  >
+                    {child.label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </nav>
       ) : null}
     </header>
