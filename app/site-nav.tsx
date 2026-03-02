@@ -27,13 +27,13 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/", label: "Home" },
+  { href: "/socializing", label: "Home", match: "startsWith" },
   { href: "/community", label: "Community", match: "startsWith" },
   {
     href: "/dashboard-menu",
     label: "Training Dashboard",
     children: [
-      { href: "/training-dashboard", label: "Overview" },
+      { href: "/", label: "Overview" },
       { href: "/bmi", label: "BMI Page" },
     ],
   },
@@ -52,7 +52,7 @@ const isActiveItem = (pathname: string, item: NavItem) => {
   }
 
   if (item.href === "/") {
-    return pathname === "/" || pathname === "/socializing" || pathname.startsWith("/socializing/");
+    return pathname === "/";
   }
 
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -695,9 +695,13 @@ export default function SiteNav() {
                   <button
                     type="button"
                     onClick={async () => {
+                      const params = new URLSearchParams({
+                        mode: "signed-out",
+                        name: profileName,
+                      });
                       await signOut(auth);
                       setMenuOpen(false);
-                      router.push("/");
+                      router.push(`/welcome?${params.toString()}`);
                     }}
                     className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                     role="menuitem"

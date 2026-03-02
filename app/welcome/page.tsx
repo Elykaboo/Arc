@@ -16,7 +16,13 @@ function WelcomePageContent() {
       ? `Welcome to Arc, ${safeName}!`
       : mode === "returning"
         ? `Welcome back ${safeName}!`
+        : mode === "signed-out"
+          ? `You are logged out, ${safeName}.`
         : null;
+  const subtitle =
+    mode === "signed-out"
+      ? "Your session has ended safely. Come back any time to continue planning and sharing progress."
+      : "Your training space is ready. Syncing your dashboard, planner, and community feed.";
 
   useEffect(() => {
     if (!message) {
@@ -24,12 +30,13 @@ function WelcomePageContent() {
       return;
     }
 
+    const destination = mode === "signed-out" ? "/" : "/socializing";
     const timer = window.setTimeout(() => {
-      router.replace("/");
+      router.replace(destination);
     }, DISPLAY_MS);
 
     return () => window.clearTimeout(timer);
-  }, [message, router]);
+  }, [message, mode, router]);
 
   if (!message) {
     return null;
@@ -45,7 +52,7 @@ function WelcomePageContent() {
       <div className="welcome-screen__panel">
         <div className="welcome-screen__topline">
           <p className="welcome-screen__eyebrow">Arc Training Club</p>
-          <div className="welcome-screen__status">Initializing</div>
+          <div className="welcome-screen__status">{mode === "signed-out" ? "Signing out" : "Initializing"}</div>
         </div>
         <div className="welcome-screen__brandmark" aria-hidden="true">
           <span className="welcome-screen__brand-ring welcome-screen__brand-ring--outer" />
@@ -53,13 +60,11 @@ function WelcomePageContent() {
           <span className="welcome-screen__brand-core">A</span>
         </div>
         <h1 className="welcome-screen__title">{message}</h1>
-        <p className="welcome-screen__subtitle">
-          Your training space is ready. Syncing your dashboard, planner, and community feed.
-        </p>
+        <p className="welcome-screen__subtitle">{subtitle}</p>
         <div className="welcome-screen__highlights" aria-hidden="true">
-          <div className="welcome-screen__chip">Profile loaded</div>
-          <div className="welcome-screen__chip">Planner synced</div>
-          <div className="welcome-screen__chip">Community ready</div>
+          <div className="welcome-screen__chip">{mode === "signed-out" ? "Session cleared" : "Profile loaded"}</div>
+          <div className="welcome-screen__chip">{mode === "signed-out" ? "Data preserved" : "Planner synced"}</div>
+          <div className="welcome-screen__chip">{mode === "signed-out" ? "Ready to return" : "Community ready"}</div>
         </div>
         <div className="welcome-screen__meter-shell">
           <div className="welcome-screen__meter" aria-hidden="true">

@@ -18,7 +18,7 @@ export default function LoginPage() {
       if (!user) return;
 
       if (user.emailVerified) {
-        router.replace("/");
+        router.replace("/socializing");
         return;
       }
 
