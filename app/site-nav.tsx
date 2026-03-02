@@ -125,6 +125,18 @@ function ChevronDownIcon({ className }: { className?: string }) {
   );
 }
 
+const getResolvedDarkMode = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const storedTheme = window.localStorage.getItem("theme");
+  if (storedTheme === "dark") return true;
+  if (storedTheme === "light") return false;
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+};
+
 export default function SiteNav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -141,14 +153,9 @@ export default function SiteNav() {
   const [notificationDeletingId, setNotificationDeletingId] = useState("");
   const [lastReadAtMs, setLastReadAtMs] = useState(0);
   const [dashboardNavOpen, setDashboardNavOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof document === "undefined") {
-      return false;
-    }
-    return document.documentElement.classList.contains("dark");
-  });
+  const [isDarkMode, setIsDarkMode] = useState(getResolvedDarkMode);
 
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -325,11 +332,43 @@ export default function SiteNav() {
     setDashboardNavOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const syncTheme = () => {
+      const resolvedDarkMode = getResolvedDarkMode();
+      document.documentElement.classList.toggle("dark", resolvedDarkMode);
+      setIsDarkMode(resolvedDarkMode);
+    };
+
+    syncTheme();
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemThemeChange = () => {
+      if (!window.localStorage.getItem("theme")) {
+        syncTheme();
+      }
+    };
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "theme") {
+        syncTheme();
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleSystemThemeChange);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleSystemThemeChange);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   const toggleTheme = () => {
-    const nextIsDark = !isDarkMode;
-    document.documentElement.classList.toggle("dark", nextIsDark);
-    window.localStorage.setItem("theme", nextIsDark ? "dark" : "light");
-    setIsDarkMode(nextIsDark);
+    setIsDarkMode((currentValue) => {
+      const nextIsDark = !currentValue;
+      document.documentElement.classList.toggle("dark", nextIsDark);
+      window.localStorage.setItem("theme", nextIsDark ? "dark" : "light");
+      return nextIsDark;
+    });
   };
 
   const initials = getInitials(profileName);
