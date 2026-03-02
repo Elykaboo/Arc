@@ -18,8 +18,8 @@ export default function RoutinesClient() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-6 px-6 py-10">
-      <header className="space-y-2">
+    <main className="page-scene mx-auto w-full max-w-6xl space-y-6 px-6 py-10">
+      <header className="page-card space-y-2 rounded-[1.75rem] border border-slate-200/80 bg-white/80 p-6 shadow-[0_20px_50px_-36px_rgba(15,23,42,0.3)] backdrop-blur">
         <h1 className="text-3xl font-bold text-slate-900">Routine Templates</h1>
         <p className="max-w-3xl text-slate-600">
           Popular split templates: PPL, PPL x UL, UL x PPL, Arnold, Full Body, Upper/Lower, Bro,
@@ -27,7 +27,7 @@ export default function RoutinesClient() {
         </p>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="page-card grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {routineTemplates.map((template) => (
           <article
             key={template.id}

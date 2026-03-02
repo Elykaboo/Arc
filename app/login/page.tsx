@@ -65,14 +65,14 @@ export default function LoginPage() {
 
   return (
     <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md items-center px-6 py-10">
-      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-900">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
           Welcome Back
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Login
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           Sign in to manage your workouts, routines, and weekly planner.
         </p>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="login-email"
-              className="mb-1 block text-sm font-semibold text-slate-700"
+              className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200"
             >
               Email
             </label>
@@ -92,7 +92,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               placeholder="you@example.com"
             />
           </div>
@@ -101,13 +101,13 @@ export default function LoginPage() {
             <div className="mb-1 flex items-center justify-between">
               <label
                 htmlFor="login-password"
-                className="block text-sm font-semibold text-slate-700"
+                className="block text-sm font-semibold text-slate-700 dark:text-slate-200"
               >
                 Password
               </label>
               <Link
                 href="#"
-                className="text-xs font-semibold text-slate-500 hover:text-slate-700"
+                className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
               >
                 Forgot password?
               </Link>
@@ -120,7 +120,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               placeholder="Enter your password"
             />
           </div>
@@ -140,11 +140,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-slate-600">
+        <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-300">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-semibold text-slate-900 underline-offset-4 hover:underline"
+            className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-slate-100"
           >
             Create one
           </Link>

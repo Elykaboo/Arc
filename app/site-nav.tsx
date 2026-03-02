@@ -20,18 +20,33 @@ type NavItem = {
   href: string;
   label: string;
   match?: "exact" | "startsWith";
+  children?: Array<{
+    href: string;
+    label: string;
+  }>;
 };
 
 const navItems: NavItem[] = [
   { href: "/socializing", label: "Home", match: "startsWith" },
   { href: "/community", label: "Community", match: "startsWith" },
-  { href: "/", label: "Training Dashboard", match: "exact" },
+  {
+    href: "/dashboard-menu",
+    label: "Training Dashboard",
+    children: [
+      { href: "/", label: "Overview" },
+      { href: "/bmi", label: "BMI Page" },
+    ],
+  },
   { href: "/workouts", label: "Workouts", match: "startsWith" },
   { href: "/planner", label: "Planner", match: "startsWith" },
   { href: "/routines", label: "Routines", match: "startsWith" },
 ];
 
 const isActiveItem = (pathname: string, item: NavItem) => {
+  if (item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`))) {
+    return true;
+  }
+
   if (item.match === "exact") {
     return pathname === item.href;
   }
@@ -102,6 +117,14 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <IconBase className={className}>
+      <path d="m6.5 9 5.5 6 5.5-6" />
+    </IconBase>
+  );
+}
+
 export default function SiteNav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -117,6 +140,7 @@ export default function SiteNav() {
   const [notificationsClearing, setNotificationsClearing] = useState(false);
   const [notificationDeletingId, setNotificationDeletingId] = useState("");
   const [lastReadAtMs, setLastReadAtMs] = useState(0);
+  const [dashboardNavOpen, setDashboardNavOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof document === "undefined") {
       return false;
@@ -276,6 +300,7 @@ export default function SiteNav() {
       if (!menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
         setNotificationsOpen(false);
+        setDashboardNavOpen(false);
       }
     };
 
@@ -283,6 +308,7 @@ export default function SiteNav() {
       if (event.key === "Escape") {
         setMenuOpen(false);
         setNotificationsOpen(false);
+        setDashboardNavOpen(false);
       }
     };
 
@@ -294,6 +320,10 @@ export default function SiteNav() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
+
+  useEffect(() => {
+    setDashboardNavOpen(false);
+  }, [pathname]);
 
   const toggleTheme = () => {
     const nextIsDark = !isDarkMode;
@@ -388,7 +418,7 @@ export default function SiteNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
-      <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
+      <div ref={menuRef} className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
         <Link
           href="/"
           className="group inline-flex justify-self-start items-center gap-2 font-serif text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
@@ -416,6 +446,66 @@ export default function SiteNav() {
             ? navItems.map((item) => {
                 const isActive = isActiveItem(pathname, item);
 
+                if (item.children?.length) {
+                  return (
+                    <div key={item.href} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setDashboardNavOpen((value) => !value)}
+                        aria-haspopup="menu"
+                        aria-expanded={dashboardNavOpen}
+                        aria-label="Toggle training dashboard menu"
+                        className={`relative z-20 flex items-center rounded-xl transition ${
+                          isActive
+                            ? "bg-[linear-gradient(135deg,#c2410c,#9a3412)] text-white shadow-[0_14px_32px_rgba(154,52,18,0.28)] dark:bg-[linear-gradient(135deg,#ea580c,#c2410c)] dark:text-white"
+                            : "border border-orange-200/80 bg-orange-50/85 text-orange-900 hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100 dark:hover:bg-orange-500/15"
+                        }`}
+                      >
+                        <span className="rounded-l-xl px-3 py-2 text-sm font-semibold">
+                          {item.label}
+                        </span>
+                        <span
+                          className={`rounded-r-xl px-2 py-2 ${isActive ? "text-white" : "text-orange-700 dark:text-orange-200"}`}
+                        >
+                          <ChevronDownIcon
+                            className={`h-4 w-4 transition-transform duration-300 ${dashboardNavOpen ? "rotate-180" : ""}`}
+                          />
+                        </span>
+                      </button>
+
+                      {dashboardNavOpen ? (
+                        <div
+                          role="menu"
+                          className="absolute inset-x-0 top-full z-10 -mt-2 overflow-hidden rounded-b-xl border border-orange-300/80 border-t-0 bg-[linear-gradient(180deg,#fed7aa_0%,#fdba74_100%)] px-1.5 pb-1.5 pt-4 text-slate-900 shadow-[0_18px_40px_rgba(194,65,12,0.22)] dark:border-orange-300/30 dark:bg-[linear-gradient(180deg,rgba(154,52,18,0.98),rgba(124,45,18,0.92))] dark:text-orange-50"
+                        >
+                          {item.children.map((child) => {
+                            const isChildActive = pathname === child.href;
+                            return (
+                              <button
+                                key={child.href}
+                                type="button"
+                                onClick={() => {
+                                  setDashboardNavOpen(false);
+                                  router.push(child.href === "/bmi" ? "/bmi" : "/");
+                                }}
+                                aria-current={pathname === child.href ? "page" : undefined}
+                                role="menuitem"
+                                className={`relative z-10 mb-1 block w-full rounded-lg px-4 py-3 text-left text-sm font-semibold transition last:mb-0 ${
+                                  isChildActive
+                                    ? "bg-[linear-gradient(135deg,#c2410c,#9a3412)] text-white shadow-[0_10px_22px_rgba(154,52,18,0.24)]"
+                                    : "text-orange-950 hover:bg-white/45 dark:text-orange-50 dark:hover:bg-white/10"
+                                }`}
+                              >
+                                {child.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -434,7 +524,7 @@ export default function SiteNav() {
             : null}
         </nav>
 
-        <div className="relative flex justify-self-end items-center gap-2" ref={menuRef}>
+        <div className="relative flex justify-self-end items-center gap-2">
           {showMemberNav ? (
             <>
               <button
@@ -442,6 +532,7 @@ export default function SiteNav() {
                 onClick={() => {
                   setNotificationsOpen((value) => !value);
                   setMenuOpen(false);
+                  setDashboardNavOpen(false);
                 }}
                 className="relative inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
                 aria-label="Open notifications"
@@ -561,6 +652,7 @@ export default function SiteNav() {
                 onClick={() => {
                   setMenuOpen((value) => !value);
                   setNotificationsOpen(false);
+                  setDashboardNavOpen(false);
                 }}
                 className="flex items-center gap-2 rounded-full border border-slate-300 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                 aria-haspopup="menu"
@@ -639,6 +731,52 @@ export default function SiteNav() {
           <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto pb-1">
             {navItems.map((item) => {
               const isActive = isActiveItem(pathname, item);
+
+              if (item.children?.length) {
+                return (
+                  <div key={item.href} className="min-w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setDashboardNavOpen((value) => !value)}
+                      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                        isActive
+                          ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]"
+                          : "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100"
+                      }`}
+                      aria-expanded={dashboardNavOpen}
+                    >
+                      {item.label}
+                      <ChevronDownIcon
+                        className={`h-3.5 w-3.5 transition-transform duration-300 ${dashboardNavOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                      {dashboardNavOpen ? (
+                        <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/20 dark:bg-[linear-gradient(180deg,rgba(67,20,7,0.95),rgba(124,45,18,0.9))]">
+                        {item.children.map((child) => {
+                          const isChildActive = pathname === child.href;
+                          return (
+                            <button
+                              key={child.href}
+                              type="button"
+                              onClick={() => {
+                                setDashboardNavOpen(false);
+                                router.push(child.href === "/bmi" ? "/bmi" : "/");
+                              }}
+                              className={`rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
+                                isChildActive
+                                  ? "bg-orange-500 text-white"
+                                  : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/10"
+                              }`}
+                            >
+                              {child.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              }
 
               return (
                 <Link

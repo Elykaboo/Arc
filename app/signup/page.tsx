@@ -89,14 +89,14 @@ export default function SignupPage() {
 
   return (
     <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-md items-center px-6 py-10">
-      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-900">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
           Join Arc
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Sign Up
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           Create your account, verify your email, and then start building your training plan.
         </p>
 
@@ -104,7 +104,7 @@ export default function SignupPage() {
           <div>
             <label
               htmlFor="signup-username"
-              className="mb-1 block text-sm font-semibold text-slate-700"
+              className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200"
             >
               Username
             </label>
@@ -116,7 +116,7 @@ export default function SignupPage() {
               required
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               placeholder="janeathlete"
             />
           </div>
@@ -124,7 +124,7 @@ export default function SignupPage() {
           <div>
             <label
               htmlFor="signup-email"
-              className="mb-1 block text-sm font-semibold text-slate-700"
+              className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200"
             >
               Email
             </label>
@@ -136,7 +136,7 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               placeholder="you@example.com"
             />
           </div>
@@ -144,7 +144,7 @@ export default function SignupPage() {
           <div>
             <label
               htmlFor="signup-password"
-              className="mb-1 block text-sm font-semibold text-slate-700"
+              className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200"
             >
               Password
             </label>
@@ -156,7 +156,7 @@ export default function SignupPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               placeholder="Create a strong password"
             />
           </div>
@@ -176,11 +176,11 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-slate-600">
+        <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-300">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-semibold text-slate-900 underline-offset-4 hover:underline"
+            className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-slate-100"
           >
             Login
           </Link>

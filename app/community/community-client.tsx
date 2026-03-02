@@ -14,6 +14,7 @@ import {
 } from "@/lib/follow-db";
 import { subscribeMemberProfiles, type MemberProfile } from "@/lib/member-db";
 import { loadUserProfile } from "@/lib/profile-db";
+import { weekdays } from "@/lib/routine-templates";
 import {
   createCommunityComment,
   createCommunityPost,
@@ -265,6 +266,7 @@ const createPhotoDraft = async (file: File): Promise<PhotoDraft> => {
 type CommunityClientProps = {
   heading?: string;
   description?: string;
+  showTrainingSidebar?: boolean;
 };
 
 type UserSuggestion = {
@@ -291,6 +293,7 @@ type ResolvedIdentity = {
 export default function CommunityClient({
   heading = "Community",
   description = "Share progress photos, milestones, and small wins with everyone training on Arc.",
+  showTrainingSidebar = false,
 }: CommunityClientProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Guest");
@@ -327,6 +330,7 @@ export default function CommunityClient({
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfileSummary | null>(null);
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(false);
   const [brokenAvatarKeys, setBrokenAvatarKeys] = useState<Record<string, boolean>>({});
+  const [activityLog, setActivityLog] = useState<Record<string, "attended" | "missed">>({});
   const cropDragStateRef = useRef<{
     pointerId: number;
     startX: number;
@@ -344,6 +348,38 @@ export default function CommunityClient({
       [postId]: refreshedComments[postId] || [],
     }));
   };
+
+  useEffect(() => {
+    if (!showTrainingSidebar || typeof window === "undefined") {
+      setActivityLog({});
+      return;
+    }
+
+    const storagePrefix = `homeActivity:${userId ?? "guest"}:`;
+    const merged: Record<string, "attended" | "missed"> = {};
+
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index);
+      if (!key || !key.startsWith(storagePrefix)) continue;
+
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") continue;
+        for (const [iso, status] of Object.entries(parsed)) {
+          if ((status === "attended" || status === "missed") && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+            merged[iso] = status;
+          }
+        }
+      } catch {
+        // Ignore malformed local activity records.
+      }
+    }
+
+    setActivityLog(merged);
+  }, [showTrainingSidebar, userId]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -867,6 +903,38 @@ export default function CommunityClient({
     const withPhoto = posts.filter((post) => getCommunityPostPhotoDataUrls(post).length > 0).length;
     return Math.round((withPhoto / posts.length) * 100);
   }, [posts]);
+
+  const sidebarWeekdayActivity = useMemo(() => {
+    if (!showTrainingSidebar) return [];
+
+    const currentDayIndex = new Date().getDay();
+    const todayDay = weekdays.find((day, index) => ((index + 1) % 7) === currentDayIndex) ?? weekdays[0];
+    const orderedDays = [...weekdays.filter((day) => day !== todayDay), todayDay];
+    const start = new Date();
+    start.setDate(start.getDate() - 364);
+    const end = new Date();
+
+    return orderedDays.map((day) => {
+      const dayIndex = (weekdays.indexOf(day) + 1) % 7;
+      let attended = 0;
+      const cursor = new Date(start);
+
+      while (cursor <= end) {
+        const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
+        if (cursor.getDay() === dayIndex && activityLog[iso] === "attended") {
+          attended += 1;
+        }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      return { day, attended, isToday: day === todayDay };
+    });
+  }, [activityLog, showTrainingSidebar]);
+
+  const maxSidebarWeekdayAttendance = useMemo(
+    () => Math.max(...sidebarWeekdayActivity.map((row) => row.attended), 1),
+    [sidebarWeekdayActivity],
+  );
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
@@ -1411,6 +1479,39 @@ export default function CommunityClient({
               )}
             </div>
           </section>
+
+          {showTrainingSidebar ? (
+            <section className="mt-4 overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(18,26,39,0.98),rgba(25,36,58,0.98))] p-4 text-white shadow-[0_24px_60px_-35px_rgba(15,23,42,0.7)] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(22,34,54,0.98))]">
+              <h2 className="text-lg font-black text-slate-100">Activity by planned weekday</h2>
+              <div className="mt-4 space-y-3">
+                {sidebarWeekdayActivity.map((item) => {
+                  const width = Math.max(8, Math.round((item.attended / maxSidebarWeekdayAttendance) * 100));
+                  return (
+                    <div
+                      key={item.day}
+                      className="grid grid-cols-[minmax(88px,108px)_1fr_22px] items-center gap-2 text-sm"
+                    >
+                      <span className="inline-flex flex-wrap items-center gap-1 text-slate-300">
+                        {item.day}
+                        {item.isToday ? (
+                          <span className="rounded-full bg-white/12 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                            Today
+                          </span>
+                        ) : null}
+                      </span>
+                      <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-[linear-gradient(90deg,#fb923c,#f97316,#38bdf8)] transition-[width] duration-700"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
+                      <span className="text-right font-semibold text-slate-200">{item.attended}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
         </aside>
 
         <div className="mt-4 lg:col-start-2 lg:mt-0">
