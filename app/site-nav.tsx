@@ -337,6 +337,7 @@ export default function SiteNav() {
   const unreadCount = notifications.filter(
     (item) => item.createdAtMs !== null && item.createdAtMs > lastReadAtMs,
   ).length;
+  const mobileDashboardItem = navItems.find((item) => item.children?.length);
 
   const markAllNotificationsRead = () => {
     if (!currentUserId) return;
@@ -417,20 +418,23 @@ export default function SiteNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
-      <div ref={menuRef} className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
+    <header
+      ref={menuRef}
+      className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
+    >
+      <div className="mx-auto grid min-h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2 sm:h-16 sm:gap-3 sm:px-6 sm:py-0">
         <Link
           href="/"
-          className="group inline-flex justify-self-start items-center gap-2 font-serif text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
+          className="group inline-flex items-center justify-self-start gap-2 font-serif text-3xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
         >
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-400/10 shadow-[0_0_14px_rgba(34,211,238,0.18)] sm:h-8 sm:w-8 dark:border-cyan-200/45 dark:bg-cyan-300/10 dark:shadow-[0_0_18px_rgba(34,211,238,0.28)]">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-400/10 shadow-[0_0_14px_rgba(34,211,238,0.18)] sm:h-8 sm:w-8 dark:border-cyan-200/45 dark:bg-cyan-300/10 dark:shadow-[0_0_18px_rgba(34,211,238,0.28)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
-              className="h-4 w-4 text-cyan-700 dark:text-cyan-200"
+              className="h-3.5 w-3.5 text-cyan-700 sm:h-4 sm:w-4 dark:text-cyan-200"
               aria-hidden="true"
             >
               <path d="M8 10v4M10 9v6M14 9v6M16 10v4" />
@@ -524,7 +528,7 @@ export default function SiteNav() {
             : null}
         </nav>
 
-        <div className="relative flex justify-self-end items-center gap-2">
+        <div className="relative flex items-center justify-self-end gap-1 sm:gap-2">
           {showMemberNav ? (
             <>
               <button
@@ -534,13 +538,13 @@ export default function SiteNav() {
                   setMenuOpen(false);
                   setDashboardNavOpen(false);
                 }}
-                className="relative inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white px-0 text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-auto sm:gap-2 sm:px-3 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
                 aria-label="Open notifications"
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
               >
                 <BellIcon className="h-5 w-5" />
-                <span className="text-sm font-semibold">Notifications</span>
+                <span className="hidden text-sm font-semibold sm:inline">Notifications</span>
                 {unreadCount > 0 ? (
                   <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -551,7 +555,7 @@ export default function SiteNav() {
               {notificationsOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
+                  className="absolute right-0 top-full z-50 mt-3 w-[min(20rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md sm:w-80 dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 >
                   <div className="mb-1 flex items-center justify-between rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/70">
                     <div>
@@ -638,7 +642,7 @@ export default function SiteNav() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-10 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             title={isDarkMode ? "Light mode" : "Dark mode"}
           >
@@ -654,7 +658,7 @@ export default function SiteNav() {
                   setNotificationsOpen(false);
                   setDashboardNavOpen(false);
                 }}
-                className="flex items-center gap-2 rounded-full border border-slate-300 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                className="flex items-center gap-1 rounded-full border border-slate-300 bg-white py-1 pl-1 pr-1.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 sm:gap-2 sm:py-1.5 sm:pl-1.5 sm:pr-3 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 aria-label="Open account menu"
@@ -664,7 +668,7 @@ export default function SiteNav() {
                   <img
                     src={profilePhoto}
                     alt={`${profileName} profile`}
-                    className="h-7 w-7 rounded-full border border-slate-300 object-cover dark:border-white/35"
+                    className="h-7 w-7 rounded-full border border-slate-300 object-cover sm:h-7 sm:w-7 dark:border-white/35"
                   />
                 ) : (
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-white/90 dark:text-slate-900">
@@ -672,13 +676,13 @@ export default function SiteNav() {
                   </span>
                 )}
                 <span className="hidden max-w-[120px] truncate sm:inline">{profileName}</span>
-                <UserIcon className="h-4 w-4 text-slate-600 dark:text-white/80" />
+                <UserIcon className="hidden h-4 w-4 text-slate-600 sm:block dark:text-white/80" />
               </button>
 
               {menuOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
+                  className="absolute right-0 top-full z-50 mt-3 w-[min(14rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md sm:w-56 dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 >
                   <div className="mb-1 rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/70">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{profileName}</p>
@@ -715,13 +719,13 @@ export default function SiteNav() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-semibold text-slate-800 transition hover:bg-slate-100 sm:px-3 sm:text-sm dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
               >
                 Login
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                className="rounded-lg bg-slate-900 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 sm:px-3 sm:text-sm dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
               >
                 Sign Up
               </Link>
@@ -731,7 +735,10 @@ export default function SiteNav() {
       </div>
 
       {showMemberNav ? (
-        <nav aria-label="Mobile Primary" className="border-t border-slate-200 px-4 py-2 lg:hidden dark:border-white/15">
+        <nav
+          aria-label="Mobile Primary"
+          className="relative border-t border-slate-200 px-4 py-2 lg:hidden dark:border-white/15"
+        >
           <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto pb-1">
             {navItems.map((item) => {
               const isActive = isActiveItem(pathname, item);
@@ -754,30 +761,6 @@ export default function SiteNav() {
                         className={`h-3.5 w-3.5 transition-transform duration-300 ${dashboardNavOpen ? "rotate-180" : ""}`}
                       />
                     </button>
-                      {dashboardNavOpen ? (
-                        <div className="mt-2 flex flex-col gap-1 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/20 dark:bg-[linear-gradient(180deg,rgba(67,20,7,0.95),rgba(124,45,18,0.9))]">
-                        {item.children.map((child) => {
-                          const isChildActive = pathname === child.href;
-                          return (
-                            <button
-                              key={child.href}
-                              type="button"
-                              onClick={() => {
-                                setDashboardNavOpen(false);
-                                router.push(child.href);
-                              }}
-                              className={`rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
-                                isChildActive
-                                  ? "bg-orange-500 text-white"
-                                  : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/10"
-                              }`}
-                            >
-                              {child.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : null}
                   </div>
                 );
               }
@@ -798,6 +781,35 @@ export default function SiteNav() {
               );
             })}
           </div>
+
+          {dashboardNavOpen && mobileDashboardItem?.children?.length ? (
+            <div
+              role="menu"
+              className="absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/20 dark:bg-[linear-gradient(180deg,rgba(67,20,7,0.95),rgba(124,45,18,0.9))]"
+            >
+              {mobileDashboardItem.children.map((child) => {
+                const isChildActive = pathname === child.href;
+                return (
+                  <button
+                    key={child.href}
+                    type="button"
+                    onClick={() => {
+                      setDashboardNavOpen(false);
+                      router.push(child.href);
+                    }}
+                    role="menuitem"
+                    className={`mb-1 block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold transition last:mb-0 ${
+                      isChildActive
+                        ? "bg-orange-500 text-white"
+                        : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/10"
+                    }`}
+                  >
+                    {child.label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </nav>
       ) : null}
     </header>
