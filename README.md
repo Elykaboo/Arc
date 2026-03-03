@@ -6,6 +6,8 @@ A Next.js workout planner with local API routes and a reusable RapidAPI Exercise
 
 - Workout library at `/workouts` with search/filtering and detail pages
 - Weekly planner at `/planner` with sets/reps editing and local draft persistence
+- Nutrition onboarding at `/onboarding`
+- Nutrition dashboard at `/nutrition`
 - Print-friendly weekly view at `/print/weekly`
 - Local API endpoints under `app/api/v1`:
   - `GET /api/v1/liveness`
@@ -53,13 +55,24 @@ RAPIDAPI_KEY="..."
 RAPIDAPI_HOST="edb-with-videos-and-images-by-ascendapi.p.rapidapi.com"
 EXERCISE_API_BASE_URL="https://edb-with-videos-and-images-by-ascendapi.p.rapidapi.com"
 EXERCISE_API_VERSION="/api/v1"
+
+FIREBASE_SERVICE_ACCOUNT_JSON="..."
+FIREBASE_SERVICE_ACCOUNT_PATH=""
+
+USDA_API_KEY="..."
+USDA_API_BASE_URL="https://api.nal.usda.gov/fdc/v1"
+
+GEMINI_API_KEY="..."
+GEMINI_MODEL="gemini-2.0-flash"
 ```
 
 Notes:
 - `NEXT_PUBLIC_SITE_URL` should be your production Vercel URL or custom domain so metadata uses the correct base URL.
 - Firebase web app variables are required for login, signup, profile, planner sync, and community features.
 - `RAPIDAPI_KEY` is recommended for the exercise API routes. Without it, the app falls back to a public exercise dataset when the RapidAPI source is unavailable.
-- `FIREBASE_SERVICE_ACCOUNT_JSON` is only needed if you plan to run `npm run backfill:members` in a server environment.
+- `FIREBASE_SERVICE_ACCOUNT_JSON` or `FIREBASE_SERVICE_ACCOUNT_PATH` is required for authenticated server API routes that verify Firebase ID tokens.
+- `USDA_API_KEY` powers food search and USDA-backed macro validation.
+- `GEMINI_API_KEY` is optional. Without it, the app still generates deterministic USDA/local meal plans.
 - The production build uses `webpack` instead of Turbopack for more reliable deployment builds.
 
 ## Firebase auth setup

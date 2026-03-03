@@ -29,6 +29,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { href: "/socializing", label: "Home", match: "startsWith" },
   { href: "/community", label: "Community", match: "startsWith" },
+  { href: "/nutrition", label: "Nutrition", match: "startsWith" },
   {
     href: "/dashboard-menu",
     label: "Training Dashboard",
@@ -177,7 +178,14 @@ export default function SiteNav() {
         const syncedProfile: UserProfile = {
           username:
             storedProfile?.username?.trim() || user.displayName?.trim() || user.email?.split("@")[0] || "Arc User",
-          gender: storedProfile?.gender ?? "",
+          sex: storedProfile?.sex ?? "",
+          age: storedProfile?.age ?? null,
+          heightCm: storedProfile?.heightCm ?? null,
+          weightKg: storedProfile?.weightKg ?? null,
+          activityLevel: storedProfile?.activityLevel ?? "",
+          nutritionGoal: storedProfile?.nutritionGoal ?? "",
+          dailyCalorieOverride: storedProfile?.dailyCalorieOverride ?? null,
+          mealsPerDay: storedProfile?.mealsPerDay ?? null,
           bio: storedProfile?.bio ?? "",
           workoutSplit: storedProfile?.workoutSplit ?? "",
           photoDataUrl: storedProfile?.photoDataUrl?.trim() || user.photoURL?.trim() || "",

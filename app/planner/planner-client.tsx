@@ -405,7 +405,14 @@ export default function PlannerClient() {
             auth.currentUser?.displayName?.trim() ||
             auth.currentUser?.email?.split("@")[0] ||
             "Arc User",
-          gender: existingProfile?.gender ?? "",
+          sex: existingProfile?.sex ?? "",
+          age: existingProfile?.age ?? null,
+          heightCm: existingProfile?.heightCm ?? null,
+          weightKg: existingProfile?.weightKg ?? null,
+          activityLevel: existingProfile?.activityLevel ?? "",
+          nutritionGoal: existingProfile?.nutritionGoal ?? "",
+          dailyCalorieOverride: existingProfile?.dailyCalorieOverride ?? null,
+          mealsPerDay: existingProfile?.mealsPerDay ?? null,
           bio: existingProfile?.bio ?? "",
           workoutSplit: currentSplit,
           photoDataUrl:

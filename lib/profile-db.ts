@@ -17,7 +17,14 @@ import { db } from "@/lib/firebase";
 
 export type UserProfile = {
   username: string;
-  gender: string;
+  sex: "male" | "female" | "other" | "";
+  age: number | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active" | "";
+  nutritionGoal: "lose" | "maintain" | "gain" | "";
+  dailyCalorieOverride: number | null;
+  mealsPerDay: number | null;
   bio: string;
   workoutSplit: string;
   photoDataUrl: string;
@@ -43,7 +50,30 @@ const profileConverter: FirestoreDataConverter<UserProfileDocument> = {
     const data = snapshot.data();
     return {
       username: typeof data.username === "string" ? data.username : "",
-      gender: typeof data.gender === "string" ? data.gender : "",
+      sex:
+        data.sex === "male" || data.sex === "female" || data.sex === "other"
+          ? data.sex
+          : "",
+      age: typeof data.age === "number" ? data.age : null,
+      heightCm: typeof data.heightCm === "number" ? data.heightCm : null,
+      weightKg: typeof data.weightKg === "number" ? data.weightKg : null,
+      activityLevel:
+        data.activityLevel === "sedentary" ||
+        data.activityLevel === "light" ||
+        data.activityLevel === "moderate" ||
+        data.activityLevel === "active" ||
+        data.activityLevel === "very_active"
+          ? data.activityLevel
+          : "",
+      nutritionGoal:
+        data.nutritionGoal === "lose" ||
+        data.nutritionGoal === "maintain" ||
+        data.nutritionGoal === "gain"
+          ? data.nutritionGoal
+          : "",
+      dailyCalorieOverride:
+        typeof data.dailyCalorieOverride === "number" ? data.dailyCalorieOverride : null,
+      mealsPerDay: typeof data.mealsPerDay === "number" ? data.mealsPerDay : null,
       bio: typeof data.bio === "string" ? data.bio : "",
       workoutSplit: typeof data.workoutSplit === "string" ? data.workoutSplit : "",
       photoDataUrl:
@@ -91,7 +121,14 @@ export const loadUserProfile = async (uid: string): Promise<UserProfile | null> 
   const data = snapshot.data();
   return {
     username: data.username,
-    gender: data.gender,
+    sex: data.sex,
+    age: data.age,
+    heightCm: data.heightCm,
+    weightKg: data.weightKg,
+    activityLevel: data.activityLevel,
+    nutritionGoal: data.nutritionGoal,
+    dailyCalorieOverride: data.dailyCalorieOverride,
+    mealsPerDay: data.mealsPerDay,
     bio: data.bio,
     workoutSplit: data.workoutSplit,
     photoDataUrl: data.photoDataUrl,

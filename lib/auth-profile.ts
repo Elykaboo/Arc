@@ -5,7 +5,14 @@ import { saveUserProfile, type UserProfile } from "@/lib/profile-db";
 
 export const buildStarterProfile = (user: Pick<User, "displayName" | "email">): UserProfile => ({
   username: user.displayName?.trim() || user.email?.split("@")[0]?.trim() || "Athlete",
-  gender: "",
+  sex: "",
+  age: null,
+  heightCm: null,
+  weightKg: null,
+  activityLevel: "",
+  nutritionGoal: "",
+  dailyCalorieOverride: null,
+  mealsPerDay: null,
   bio: "",
   workoutSplit: "",
   photoDataUrl: "",
