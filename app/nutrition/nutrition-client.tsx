@@ -19,6 +19,7 @@ export default function NutritionClient() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       void (async () => {
         if (!user) {
+          setIsLoading(false);
           router.replace("/login");
           return;
         }
@@ -31,12 +32,20 @@ export default function NutritionClient() {
           });
 
           if (response.status === 404) {
+            setIsLoading(false);
             router.replace("/onboarding");
             return;
           }
 
+          if (response.status === 401) {
+            setIsLoading(false);
+            router.replace("/login");
+            return;
+          }
+
           if (!response.ok) {
-            throw new Error("Unable to load your nutrition plan.");
+            const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
+            throw new Error(errorData?.message || "Unable to load your nutrition plan.");
           }
 
           const data = (await response.json()) as { plan: ActiveNutritionPlan };
@@ -89,7 +98,35 @@ export default function NutritionClient() {
   }
 
   if (!plan) {
-    return null;
+    return (
+      <section className="mx-auto w-full max-w-4xl px-6 py-10">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+            Nutrition
+          </p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            Nutrition plan unavailable
+          </h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            {status || "Arc could not load your nutrition plan right now."}
+          </p>
+          <div className="mt-5 flex gap-3">
+            <Link
+              href="/onboarding"
+              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Go to onboarding
+            </Link>
+            <Link
+              href="/profile"
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Edit profile
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
