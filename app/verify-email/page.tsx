@@ -7,17 +7,7 @@ import { FirebaseError } from "firebase/app";
 import { onAuthStateChanged, reload, sendEmailVerification, signOut, type User } from "firebase/auth";
 import { initializeVerifiedUserProfile } from "@/lib/auth-profile";
 import { auth } from "@/lib/firebase";
-
-const resolveDisplayName = (user: Pick<User, "displayName" | "email">) =>
-  user.displayName?.trim() || user.email?.split("@")[0]?.trim() || "Athlete";
-
-const buildWelcomeRoute = (user: Pick<User, "displayName" | "email">, mode: "new" | "returning") => {
-  const params = new URLSearchParams({
-    mode,
-    name: resolveDisplayName(user),
-  });
-  return `/welcome?${params.toString()}`;
-};
+import { resolvePostAuthRoute } from "@/lib/post-auth-route";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -43,7 +33,17 @@ export default function VerifyEmailPage() {
       console.error("Verified user profile initialization failed.", err);
     }
 
-    router.replace(buildWelcomeRoute(user, mode));
+    if (mode === "new") {
+      router.replace("/onboarding");
+      return;
+    }
+
+    const route = await resolvePostAuthRoute({
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+    });
+    router.replace(route);
   }, [mode, router]);
 
   useEffect(() => {

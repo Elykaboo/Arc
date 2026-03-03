@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { resolvePostAuthRoute } from "@/lib/post-auth-route";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,17 +18,24 @@ export default function LoginPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) return;
 
-      if (user.emailVerified) {
-        router.replace("/");
-        return;
-      }
+      void (async () => {
+        if (user.emailVerified) {
+          const route = await resolvePostAuthRoute({
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+          });
+          router.replace(route);
+          return;
+        }
 
-      const params = new URLSearchParams({
-        email: user.email || "",
-        mode: "returning",
-        name: user.displayName?.trim() || user.email?.split("@")[0]?.trim() || "Athlete",
-      });
-      router.replace(`/verify-email?${params.toString()}`);
+        const params = new URLSearchParams({
+          email: user.email || "",
+          mode: "returning",
+          name: user.displayName?.trim() || user.email?.split("@")[0]?.trim() || "Athlete",
+        });
+        router.replace(`/verify-email?${params.toString()}`);
+      })();
     });
 
     return unsubscribe;
@@ -55,7 +63,12 @@ export default function LoginPage() {
         return;
       }
 
-      router.push(`/welcome?mode=returning&name=${encodeURIComponent(resolvedUsername)}`);
+      const route = await resolvePostAuthRoute({
+        uid: credential.user.uid,
+        displayName: credential.user.displayName,
+        email: credential.user.email,
+      });
+      router.push(route);
     } catch {
       setError("Unable to log in. Check your email/password and try again.");
     } finally {

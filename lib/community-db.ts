@@ -169,7 +169,7 @@ export const listCommunityPosts = async (maxItems = 30): Promise<CommunityPost[]
       authorPhotoDataUrl: data.authorPhotoDataUrl,
       caption: data.caption,
       progressPhotoDataUrl: data.progressPhotoDataUrl,
-      progressPhotoDataUrls: data.progressPhotoDataUrls,
+      progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
       createdAt: data.createdAt ?? null,
     };
   });
@@ -190,7 +190,7 @@ export const getCommunityPostById = async (postId: string): Promise<CommunityPos
     authorPhotoDataUrl: data.authorPhotoDataUrl,
     caption: data.caption,
     progressPhotoDataUrl: data.progressPhotoDataUrl,
-    progressPhotoDataUrls: data.progressPhotoDataUrls,
+    progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
     createdAt: data.createdAt ?? null,
   };
 };
@@ -215,7 +215,7 @@ export const subscribeCommunityPosts = (
             authorPhotoDataUrl: data.authorPhotoDataUrl,
             caption: data.caption,
             progressPhotoDataUrl: data.progressPhotoDataUrl,
-            progressPhotoDataUrls: data.progressPhotoDataUrls,
+            progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
             createdAt: data.createdAt ?? null,
           };
         }),
@@ -244,7 +244,7 @@ export const listCommunityPostsByUser = async (
         authorPhotoDataUrl: data.authorPhotoDataUrl,
         caption: data.caption,
         progressPhotoDataUrl: data.progressPhotoDataUrl,
-        progressPhotoDataUrls: data.progressPhotoDataUrls,
+        progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
         createdAt: data.createdAt ?? null,
       };
     })

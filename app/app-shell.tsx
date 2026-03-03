@@ -4,6 +4,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { auth } from "@/lib/firebase";
+import { loadUserProfile } from "@/lib/profile-db";
+import { isNutritionProfileComplete } from "@/lib/nutrition-profile";
 import SiteNav from "./site-nav";
 
 type AppShellProps = {
@@ -26,18 +28,40 @@ function AuthGate({ children }: AppShellProps) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && !user.emailVerified && pathname !== "/verify-email") {
-        router.replace(verificationRoute(user));
-        return;
-      }
+      void (async () => {
+        if (user && !user.emailVerified && pathname !== "/verify-email") {
+          router.replace(verificationRoute(user));
+          return;
+        }
 
-      if (!user && pathname === "/verify-email") {
-        router.replace("/login");
-        return;
-      }
+        if (!user && pathname === "/verify-email") {
+          router.replace("/login");
+          return;
+        }
 
-      setCanRenderChildren(true);
-      setIsReady(true);
+        if (user?.emailVerified) {
+          const profile = await loadUserProfile(user.uid).catch(() => null);
+          const isComplete = profile ? isNutritionProfileComplete(profile) : false;
+          const isAllowedPreOnboarding =
+            pathname === "/onboarding" ||
+            pathname === "/verify-email" ||
+            pathname === "/login" ||
+            pathname === "/signup";
+
+          if (!isComplete && !isAllowedPreOnboarding) {
+            router.replace("/onboarding");
+            return;
+          }
+
+          if (isComplete && pathname === "/onboarding") {
+            router.replace("/nutrition");
+            return;
+          }
+        }
+
+        setCanRenderChildren(true);
+        setIsReady(true);
+      })();
     });
 
     return unsubscribe;
@@ -52,7 +76,7 @@ function AuthGate({ children }: AppShellProps) {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
-  const showSiteNav = pathname !== "/welcome" && pathname !== "/verify-email";
+  const showSiteNav = pathname !== "/welcome" && pathname !== "/verify-email" && pathname !== "/onboarding";
   const [transitionVisible, setTransitionVisible] = useState(false);
   const [contentPhase, setContentPhase] = useState<"idle" | "entering">("idle");
   const hideTransitionTimeoutRef = useRef<number | null>(null);
