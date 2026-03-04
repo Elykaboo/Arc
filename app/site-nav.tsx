@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect, useRef, useState } from "react";
+import { syncSessionCookie } from "@/lib/client-session";
 import { auth } from "@/lib/firebase";
-import { saveMemberProfile } from "@/lib/member-db";
 import {
   clearUserNotifications,
   deleteUserNotification,
@@ -13,8 +13,7 @@ import {
   subscribeUserNotifications,
   type UserNotification,
 } from "@/lib/notification-db";
-import { savePublicUserProfile } from "@/lib/public-profile-db";
-import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
+import { loadUserProfile, type UserProfile } from "@/lib/profile-db";
 
 type NavItem = {
   href: string;
@@ -175,35 +174,12 @@ export default function SiteNav() {
 
       try {
         const storedProfile = await loadUserProfile(user.uid);
-        const syncedProfile: UserProfile = {
-          username:
-            storedProfile?.username?.trim() || user.displayName?.trim() || user.email?.split("@")[0] || "Arc User",
-          sex: storedProfile?.sex ?? "",
-          age: storedProfile?.age ?? null,
-          heightCm: storedProfile?.heightCm ?? null,
-          weightKg: storedProfile?.weightKg ?? null,
-          activityLevel: storedProfile?.activityLevel ?? "",
-          nutritionGoal: storedProfile?.nutritionGoal ?? "",
-          dailyCalorieOverride: storedProfile?.dailyCalorieOverride ?? null,
-          mealsPerDay: storedProfile?.mealsPerDay ?? null,
-          bio: storedProfile?.bio ?? "",
-          workoutSplit: storedProfile?.workoutSplit ?? "",
-          photoDataUrl: storedProfile?.photoDataUrl?.trim() || user.photoURL?.trim() || "",
-        };
 
         if (storedProfile?.username?.trim()) {
           setProfileName(storedProfile.username.trim());
         }
         if (storedProfile?.photoDataUrl?.trim()) {
           setProfilePhoto(storedProfile.photoDataUrl.trim());
-        }
-
-        try {
-          await saveUserProfile(user.uid, syncedProfile);
-          await saveMemberProfile(user.uid, syncedProfile);
-          await savePublicUserProfile(user.uid, syncedProfile);
-        } catch {
-          // Keep navigation responsive even if profile sync fails.
         }
       } catch {
         // Use auth fallback values when profile read fails.
@@ -227,6 +203,10 @@ export default function SiteNav() {
   useEffect(() => {
     if (!currentUserId) {
       setNotifications([]);
+      setNotificationsLoading(false);
+      return;
+    }
+    if (!notificationsOpen) {
       setNotificationsLoading(false);
       return;
     }
@@ -289,7 +269,7 @@ export default function SiteNav() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       unsubscribe();
     };
-  }, [currentUserId]);
+  }, [currentUserId, notificationsOpen]);
 
   useEffect(() => {
     const handleProfileUpdated = (event: Event) => {
@@ -469,19 +449,19 @@ export default function SiteNav() {
       ref={menuRef}
       className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
     >
-      <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-6 lg:grid lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:justify-normal lg:py-0">
         <Link
           href="/"
-          className="group inline-flex justify-self-start items-center gap-2 font-serif text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
+          className="group inline-flex items-center justify-self-start gap-2 font-serif text-3xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
         >
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-400/10 shadow-[0_0_14px_rgba(34,211,238,0.18)] sm:h-8 sm:w-8 dark:border-cyan-200/45 dark:bg-cyan-300/10 dark:shadow-[0_0_18px_rgba(34,211,238,0.28)]">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-400/10 shadow-[0_0_14px_rgba(34,211,238,0.18)] sm:h-8 sm:w-8 dark:border-cyan-200/45 dark:bg-cyan-300/10 dark:shadow-[0_0_18px_rgba(34,211,238,0.28)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
-              className="h-4 w-4 text-cyan-700 dark:text-cyan-200"
+              className="h-3.5 w-3.5 text-cyan-700 sm:h-4 sm:w-4 dark:text-cyan-200"
               aria-hidden="true"
             >
               <path d="M8 10v4M10 9v6M14 9v6M16 10v4" />
@@ -537,7 +517,7 @@ export default function SiteNav() {
                                 type="button"
                                 onClick={() => {
                                   setDashboardNavOpen(false);
-                                  router.push(child.href === "/bmi" ? "/bmi" : "/");
+                                  router.push(child.href);
                                 }}
                                 aria-current={pathname === child.href ? "page" : undefined}
                                 role="menuitem"
@@ -575,7 +555,7 @@ export default function SiteNav() {
             : null}
         </nav>
 
-        <div className="relative flex justify-self-end items-center gap-2">
+        <div className="relative ml-auto flex items-center gap-1 sm:gap-2 lg:justify-self-end">
           {showMemberNav ? (
             <>
               <button
@@ -585,13 +565,13 @@ export default function SiteNav() {
                   setMenuOpen(false);
                   setDashboardNavOpen(false);
                 }}
-                className="relative inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white px-0 text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-auto sm:gap-2 sm:px-3 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
                 aria-label="Open notifications"
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
               >
                 <BellIcon className="h-5 w-5" />
-                <span className="text-sm font-semibold">Notifications</span>
+                <span className="hidden text-sm font-semibold sm:inline">Notifications</span>
                 {unreadCount > 0 ? (
                   <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -602,7 +582,7 @@ export default function SiteNav() {
               {notificationsOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
+                  className="absolute right-0 top-full z-50 mt-3 w-[min(20rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md sm:w-80 dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 >
                   <div className="mb-1 flex items-center justify-between rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/70">
                     <div>
@@ -689,7 +669,7 @@ export default function SiteNav() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-10 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             title={isDarkMode ? "Light mode" : "Dark mode"}
           >
@@ -705,7 +685,7 @@ export default function SiteNav() {
                   setNotificationsOpen(false);
                   setDashboardNavOpen(false);
                 }}
-                className="flex items-center gap-2 rounded-full border border-slate-300 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                className="flex items-center gap-1 rounded-full border border-slate-300 bg-white py-1 pl-1 pr-1.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 sm:gap-2 sm:py-1.5 sm:pl-1.5 sm:pr-3 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 aria-label="Open account menu"
@@ -715,7 +695,7 @@ export default function SiteNav() {
                   <img
                     src={profilePhoto}
                     alt={`${profileName} profile`}
-                    className="h-7 w-7 rounded-full border border-slate-300 object-cover dark:border-white/35"
+                    className="h-7 w-7 rounded-full border border-slate-300 object-cover sm:h-7 sm:w-7 dark:border-white/35"
                   />
                 ) : (
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-white/90 dark:text-slate-900">
@@ -723,13 +703,13 @@ export default function SiteNav() {
                   </span>
                 )}
                 <span className="hidden max-w-[120px] truncate sm:inline">{profileName}</span>
-                <UserIcon className="h-4 w-4 text-slate-600 dark:text-white/80" />
+                <UserIcon className="hidden h-4 w-4 text-slate-600 sm:block dark:text-white/80" />
               </button>
 
               {menuOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
+                  className="absolute right-0 top-full z-50 mt-3 w-[min(14rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md sm:w-56 dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 >
                   <div className="mb-1 rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/70">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{profileName}</p>
@@ -746,9 +726,14 @@ export default function SiteNav() {
                   <button
                     type="button"
                     onClick={async () => {
+                      const params = new URLSearchParams({
+                        mode: "signed-out",
+                        name: profileName,
+                      });
+                      await syncSessionCookie(null).catch(() => undefined);
                       await signOut(auth);
                       setMenuOpen(false);
-                      router.push("/");
+                      router.push(`/welcome?${params.toString()}`);
                     }}
                     className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                     role="menuitem"
@@ -762,13 +747,13 @@ export default function SiteNav() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-semibold text-slate-800 transition hover:bg-slate-100 sm:px-3 sm:text-sm dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
               >
                 Login
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                className="rounded-lg bg-slate-900 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 sm:px-3 sm:text-sm dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
               >
                 Sign Up
               </Link>
@@ -794,7 +779,7 @@ export default function SiteNav() {
                       onClick={() => setDashboardNavOpen((value) => !value)}
                       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                         isActive
-                          ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]"
+                          ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)] dark:border-orange-300/35 dark:bg-[linear-gradient(135deg,rgba(30,41,59,0.96),rgba(51,65,85,0.92))] dark:text-orange-100 dark:shadow-[0_14px_30px_rgba(2,6,23,0.48)]"
                           : "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100"
                       }`}
                       aria-expanded={dashboardNavOpen}
