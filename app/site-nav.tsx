@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect, useRef, useState } from "react";
+import { syncSessionCookie } from "@/lib/client-session";
 import { auth } from "@/lib/firebase";
-import { saveMemberProfile } from "@/lib/member-db";
 import {
   clearUserNotifications,
   deleteUserNotification,
@@ -13,8 +13,7 @@ import {
   subscribeUserNotifications,
   type UserNotification,
 } from "@/lib/notification-db";
-import { savePublicUserProfile } from "@/lib/public-profile-db";
-import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
+import { loadUserProfile, type UserProfile } from "@/lib/profile-db";
 
 type NavItem = {
   href: string;
@@ -175,35 +174,12 @@ export default function SiteNav() {
 
       try {
         const storedProfile = await loadUserProfile(user.uid);
-        const syncedProfile: UserProfile = {
-          username:
-            storedProfile?.username?.trim() || user.displayName?.trim() || user.email?.split("@")[0] || "Arc User",
-          sex: storedProfile?.sex ?? "",
-          age: storedProfile?.age ?? null,
-          heightCm: storedProfile?.heightCm ?? null,
-          weightKg: storedProfile?.weightKg ?? null,
-          activityLevel: storedProfile?.activityLevel ?? "",
-          nutritionGoal: storedProfile?.nutritionGoal ?? "",
-          dailyCalorieOverride: storedProfile?.dailyCalorieOverride ?? null,
-          mealsPerDay: storedProfile?.mealsPerDay ?? null,
-          bio: storedProfile?.bio ?? "",
-          workoutSplit: storedProfile?.workoutSplit ?? "",
-          photoDataUrl: storedProfile?.photoDataUrl?.trim() || user.photoURL?.trim() || "",
-        };
 
         if (storedProfile?.username?.trim()) {
           setProfileName(storedProfile.username.trim());
         }
         if (storedProfile?.photoDataUrl?.trim()) {
           setProfilePhoto(storedProfile.photoDataUrl.trim());
-        }
-
-        try {
-          await saveUserProfile(user.uid, syncedProfile);
-          await saveMemberProfile(user.uid, syncedProfile);
-          await savePublicUserProfile(user.uid, syncedProfile);
-        } catch {
-          // Keep navigation responsive even if profile sync fails.
         }
       } catch {
         // Use auth fallback values when profile read fails.
@@ -227,6 +203,10 @@ export default function SiteNav() {
   useEffect(() => {
     if (!currentUserId) {
       setNotifications([]);
+      setNotificationsLoading(false);
+      return;
+    }
+    if (!notificationsOpen) {
       setNotificationsLoading(false);
       return;
     }
@@ -289,7 +269,7 @@ export default function SiteNav() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       unsubscribe();
     };
-  }, [currentUserId]);
+  }, [currentUserId, notificationsOpen]);
 
   useEffect(() => {
     const handleProfileUpdated = (event: Event) => {
@@ -750,6 +730,7 @@ export default function SiteNav() {
                         mode: "signed-out",
                         name: profileName,
                       });
+                      await syncSessionCookie(null).catch(() => undefined);
                       await signOut(auth);
                       setMenuOpen(false);
                       router.push(`/welcome?${params.toString()}`);
