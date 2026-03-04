@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ArcSplashLoader from "./arc-splash-loader";
-import AuthSessionSync from "./auth-session-sync";
+import AppShell from "./app-shell";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -76,8 +76,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ArcSplashLoader />
-        <AuthSessionSync />
-        {children}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
