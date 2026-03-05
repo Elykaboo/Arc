@@ -315,12 +315,15 @@ export const deleteCommunityPost = async (postId: string): Promise<void> => {
     query(communityCommentsCollection, where("postId", "==", postId), limit(500)),
   );
 
-  await Promise.all(commentsSnapshot.docs.map((commentDocument) => deleteDoc(commentDocument.ref)));
-
   const likesSnapshot = await getDocs(
     query(communityLikesCollection, where("postId", "==", postId), limit(1000)),
   );
-  await Promise.all(likesSnapshot.docs.map((likeDocument) => deleteDoc(likeDocument.ref)));
+
+  // Keep post deletion reliable even if some child cleanup operations fail on older rulesets.
+  await Promise.allSettled([
+    ...commentsSnapshot.docs.map((commentDocument) => deleteDoc(commentDocument.ref)),
+    ...likesSnapshot.docs.map((likeDocument) => deleteDoc(likeDocument.ref)),
+  ]);
 
   const postRef = doc(db, "communityPosts", postId);
   await deleteDoc(postRef);
