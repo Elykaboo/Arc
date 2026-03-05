@@ -122,3 +122,202 @@ export type MealRefinementSuggestion = {
     }>;
   }>;
 };
+
+export type NutritionLibraryItemType = "usda" | "custom_food" | "recipe" | "saved_meal" | "planned_food";
+
+export type NutritionLogDate = string;
+
+export type MealSlotConfig = {
+  id: string;
+  label: string;
+  position: number;
+};
+
+export type MealSetup = {
+  uid: string;
+  slots: MealSlotConfig[];
+  updatedAt?: string;
+};
+
+export type CustomFood = {
+  id: string;
+  uid: string;
+  name: string;
+  brandName: string | null;
+  servingLabel: string;
+  servingAmount: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  category: FoodCategory;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RecipeIngredient = {
+  itemType: Exclude<NutritionLibraryItemType, "planned_food">;
+  itemId: string;
+  nameSnapshot: string;
+  servingLabelSnapshot: string;
+  quantity: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+};
+
+export type Recipe = {
+  id: string;
+  uid: string;
+  name: string;
+  servings: number;
+  ingredients: RecipeIngredient[];
+  totals: MacroTargets;
+  perServing: MacroTargets;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SavedMealItem = {
+  itemType: Exclude<NutritionLibraryItemType, "planned_food">;
+  sourceId: string | null;
+  name: string;
+  servingLabel: string;
+  quantity: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+};
+
+export type SavedMeal = {
+  id: string;
+  uid: string;
+  name: string;
+  slotSuggestionId: string | null;
+  slotSuggestionLabel: string | null;
+  items: SavedMealItem[];
+  totals: MacroTargets;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type LoggedFoodEntry = {
+  id: string;
+  entryType: NutritionLibraryItemType;
+  sourceId: string | null;
+  name: string;
+  servingLabel: string;
+  quantity: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  mealSlotId: string;
+  mealSlotLabelSnapshot: string;
+  loggedAt: string;
+  createdFromPlan: boolean;
+};
+
+export type LoggedMeal = {
+  slotId: string;
+  slotLabel: string;
+  entries: LoggedFoodEntry[];
+  totals: MacroTargets;
+};
+
+export type DailyNutritionLog = {
+  date: NutritionLogDate;
+  uid: string;
+  targetSnapshot: MacroTargets;
+  mealSetupSnapshot: MealSlotConfig[];
+  meals: LoggedMeal[];
+  totals: MacroTargets;
+  remaining: MacroTargets;
+  updatedAt?: string;
+};
+
+export type NutritionSearchResult = {
+  id: string;
+  itemType: NutritionLibraryItemType;
+  sourceId: string | null;
+  name: string;
+  subtitle: string;
+  servingLabel: string;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  brandName?: string;
+  slotSuggestionId?: string | null;
+  slotSuggestionLabel?: string | null;
+};
+
+export type NutritionPlanSuggestion = {
+  slot: MealSlot;
+  label: string;
+  foods: NutritionSearchResult[];
+};
+
+export type NutritionDashboardResponse = {
+  date: NutritionLogDate;
+  targets: MacroTargets;
+  totals: MacroTargets;
+  remaining: MacroTargets;
+  mealSetup: MealSetup;
+  meals: LoggedMeal[];
+  recentItems: NutritionSearchResult[];
+  frequentItems: NutritionSearchResult[];
+  myFoodsCount: number;
+  myRecipesCount: number;
+  myMealsCount: number;
+  planSuggestions: NutritionPlanSuggestion[];
+  plan: ActiveNutritionPlan | null;
+};
+
+export type CreateCustomFoodRequest = {
+  name: string;
+  brandName?: string | null;
+  servingLabel: string;
+  servingAmount: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  category: FoodCategory;
+};
+
+export type CreateRecipeRequest = {
+  name: string;
+  servings: number;
+  ingredients: RecipeIngredient[];
+};
+
+export type CreateSavedMealRequest = {
+  name: string;
+  slotSuggestionId?: string | null;
+  slotSuggestionLabel?: string | null;
+  items: SavedMealItem[];
+};
+
+export type CreateLogEntryRequest = {
+  mealSlotId: string;
+  mealSlotLabel?: string;
+  entryType: NutritionLibraryItemType;
+  sourceId?: string | null;
+  quantity?: number;
+  name?: string;
+  servingLabel?: string;
+  calories?: number;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
+  createdFromPlan?: boolean;
+};
+
+export type UpdateLogEntryRequest = {
+  quantity?: number;
+  mealSlotId?: string;
+  mealSlotLabel?: string;
+};

@@ -66,6 +66,11 @@ const getInitials = (name: string) => {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 };
 
+const buildLogoutRoute = (name: string) => {
+  const safeName = name.trim() || "Athlete";
+  return `/welcome?mode=offboarding&name=${encodeURIComponent(safeName)}`;
+};
+
 function IconBase({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <svg
@@ -746,9 +751,10 @@ export default function SiteNav() {
                   <button
                     type="button"
                     onClick={async () => {
+                      const logoutRoute = buildLogoutRoute(profileName);
                       await signOut(auth);
                       setMenuOpen(false);
-                      router.push("/");
+                      router.push(logoutRoute);
                     }}
                     className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                     role="menuitem"

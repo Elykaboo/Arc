@@ -15,6 +15,7 @@ import type {
   CreateNutritionPlanRequest,
   FoodCatalogItem,
   MealRefinementSuggestion,
+  MealTag,
   MealPlanFood,
   NutritionProfileSnapshot,
   PlannedMeal,
@@ -88,35 +89,56 @@ const toProfileSnapshot = (profile: UserProfile): NutritionProfileSnapshot => ({
 const rebuildMealsFromSuggestion = (
   suggestion: MealRefinementSuggestion,
   candidates: FoodCatalogItem[],
+  baseMeals: PlannedMeal[],
 ): PlannedMeal[] | null => {
   const candidateMap = new Map(candidates.map((item) => [item.foodId, item]));
+  const expectedSlots = new Set(baseMeals.map((meal) => meal.slot));
+  const expectedLabels = new Map(baseMeals.map((meal) => [meal.slot, meal.label]));
+  const mealTagForSlot = (slot: PlannedMeal["slot"]): MealTag =>
+    slot === "breakfast" || slot === "lunch" || slot === "dinner" ? slot : "snack";
+  const seenSlots = new Set<PlannedMeal["slot"]>();
+  const normalizeQuantity = (raw: number) => {
+    if (!Number.isFinite(raw) || raw <= 0) return 0;
+    const rounded = Math.round(raw * 4) / 4;
+    return Math.max(0.25, Math.min(4, rounded));
+  };
 
   const toMealFood = (itemId: string, quantity: number): MealPlanFood | null => {
     const item = candidateMap.get(itemId);
-    if (!item || !Number.isFinite(quantity) || quantity <= 0) return null;
+    const safeQuantity = normalizeQuantity(quantity);
+    if (!item || safeQuantity <= 0) return null;
 
     return {
       source: item.source,
       foodId: item.foodId,
       name: item.name,
       servingLabel: item.servingLabel,
-      quantity,
-      calories: Math.round(item.calories * quantity),
-      proteinGrams: Math.round(item.proteinGrams * quantity),
-      carbsGrams: Math.round(item.carbsGrams * quantity),
-      fatGrams: Math.round(item.fatGrams * quantity),
+      quantity: safeQuantity,
+      calories: Math.round(item.calories * safeQuantity),
+      proteinGrams: Math.round(item.proteinGrams * safeQuantity),
+      carbsGrams: Math.round(item.carbsGrams * safeQuantity),
+      fatGrams: Math.round(item.fatGrams * safeQuantity),
     };
   };
 
   const meals = suggestion.meals.map((meal) => {
+    if (!expectedSlots.has(meal.slot) || seenSlots.has(meal.slot)) return null;
+    seenSlots.add(meal.slot);
+    const allowedTag = mealTagForSlot(meal.slot);
+
     const foods = meal.items
+      .slice(0, 6)
+      .filter((item) => {
+        const candidate = candidateMap.get(item.foodId);
+        return Boolean(candidate && candidate.mealTags.includes(allowedTag));
+      })
       .map((item) => toMealFood(item.foodId, item.quantity))
       .filter((item): item is MealPlanFood => Boolean(item));
     if (foods.length === 0) return null;
 
     return {
       slot: meal.slot,
-      label: meal.label?.trim() || "Meal",
+      label: meal.label?.trim() || expectedLabels.get(meal.slot) || "Meal",
       foods,
       totals: {
         calories: foods.reduce((sum, item) => sum + item.calories, 0),
@@ -127,8 +149,38 @@ const rebuildMealsFromSuggestion = (
     };
   });
 
-  if (meals.some((meal) => !meal)) return null;
+  if (meals.some((meal) => !meal) || seenSlots.size !== expectedSlots.size) return null;
   return meals as PlannedMeal[];
+};
+
+const computeTotals = (meals: PlannedMeal[]) => ({
+  calories: meals.reduce((sum, meal) => sum + meal.totals.calories, 0),
+  proteinGrams: meals.reduce((sum, meal) => sum + meal.totals.proteinGrams, 0),
+  carbsGrams: meals.reduce((sum, meal) => sum + meal.totals.carbsGrams, 0),
+  fatGrams: meals.reduce((sum, meal) => sum + meal.totals.fatGrams, 0),
+});
+
+const relativeMacroError = (
+  actual: { calories: number; proteinGrams: number; carbsGrams: number; fatGrams: number },
+  target: { calories: number; proteinGrams: number; carbsGrams: number; fatGrams: number },
+) => {
+  const metrics: Array<keyof typeof target> = ["calories", "proteinGrams", "carbsGrams", "fatGrams"];
+  return metrics.reduce((sum, metric) => {
+    const denominator = Math.max(target[metric], 1);
+    return sum + Math.abs(actual[metric] - target[metric]) / denominator;
+  }, 0);
+};
+
+const exceedsTargetCaps = (
+  actual: { calories: number; proteinGrams: number; carbsGrams: number; fatGrams: number },
+  target: { calories: number; proteinGrams: number; carbsGrams: number; fatGrams: number },
+) => {
+  return (
+    actual.calories > Math.max(1, target.calories) * 1.01 ||
+    actual.proteinGrams > Math.max(1, target.proteinGrams) * 1.02 ||
+    actual.carbsGrams > Math.max(1, target.carbsGrams) * 1.02 ||
+    actual.fatGrams > Math.max(1, target.fatGrams) * 1.02
+  );
 };
 
 const maybeRefinePlan = async (
@@ -137,17 +189,38 @@ const maybeRefinePlan = async (
 ): Promise<ActiveNutritionPlan> => {
   try {
     const suggestion = await refineMealPlanWithGemini({
+      profile: plan.profileSnapshot,
+      nutritionGoal: plan.nutritionGoal,
+      mealsPerDay: plan.mealsPerDay,
       targets: plan.targets,
       meals: plan.meals,
       candidates,
     });
     if (!suggestion) return plan;
 
-    const refinedMeals = rebuildMealsFromSuggestion(suggestion, candidates);
+    const refinedMeals = rebuildMealsFromSuggestion(suggestion, candidates, plan.meals);
     if (!refinedMeals || refinedMeals.length !== plan.meals.length) {
       return {
         ...plan,
         warnings: [...plan.warnings, "AI refinement returned unsupported meals; using base plan."],
+      };
+    }
+
+    const baseTotals = computeTotals(plan.meals);
+    const refinedTotals = computeTotals(refinedMeals);
+    if (exceedsTargetCaps(refinedTotals, plan.targets)) {
+      return {
+        ...plan,
+        warnings: [...plan.warnings, "AI refinement exceeded your macro/calorie caps; using base plan."],
+      };
+    }
+
+    const baseError = relativeMacroError(baseTotals, plan.targets);
+    const refinedError = relativeMacroError(refinedTotals, plan.targets);
+    if (refinedError > baseError * 1.12) {
+      return {
+        ...plan,
+        warnings: [...plan.warnings, "AI refinement drifted from your targets; using base plan."],
       };
     }
 
@@ -191,6 +264,7 @@ export const createOrUpdateNutritionPlan = async (
     dailyCalorieOverride: mergedProfile.dailyCalorieOverride,
     mealsPerDay: mergedProfile.mealsPerDay || 3,
     catalog,
+    varietySeed: Date.now(),
   });
   const finalPlan = await maybeRefinePlan(basePlan, catalog);
   await saveActiveNutritionPlan(uid, finalPlan);
@@ -219,6 +293,7 @@ export const regenerateNutritionPlan = async (uid: string): Promise<ActiveNutrit
     dailyCalorieOverride: profile.dailyCalorieOverride,
     mealsPerDay: profile.mealsPerDay || 3,
     catalog,
+    varietySeed: Date.now(),
   });
   const finalPlan = await maybeRefinePlan(basePlan, catalog);
   await saveActiveNutritionPlan(uid, finalPlan);

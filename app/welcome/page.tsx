@@ -16,7 +16,13 @@ function WelcomePageContent() {
       ? `Welcome to Arc, ${safeName}!`
       : mode === "returning"
         ? `Welcome back ${safeName}!`
+        : mode === "offboarding"
+          ? `You're signed out, ${safeName}.`
         : null;
+  const subtitle =
+    mode === "offboarding"
+      ? "Your session has ended safely. Come back anytime to continue your training."
+      : "Your training space is ready. Syncing your dashboard, planner, and community feed.";
 
   useEffect(() => {
     if (!message) {
@@ -53,9 +59,7 @@ function WelcomePageContent() {
           <span className="welcome-screen__brand-core">A</span>
         </div>
         <h1 className="welcome-screen__title">{message}</h1>
-        <p className="welcome-screen__subtitle">
-          Your training space is ready. Syncing your dashboard, planner, and community feed.
-        </p>
+        <p className="welcome-screen__subtitle">{subtitle}</p>
         <div className="welcome-screen__highlights" aria-hidden="true">
           <div className="welcome-screen__chip">Profile loaded</div>
           <div className="welcome-screen__chip">Planner synced</div>

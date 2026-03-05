@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
 import { getAuthHeaders } from "@/lib/authenticated-fetch";
@@ -119,6 +119,18 @@ const dataUrlStringBytes = (dataUrl: string): number => {
   return dataUrl.length;
 };
 
+const nutritionPayloadKeyFromProfile = (value: UserProfile) =>
+  JSON.stringify({
+    sex: value.sex,
+    age: value.age,
+    heightCm: value.heightCm,
+    weightKg: value.weightKg,
+    activityLevel: value.activityLevel,
+    nutritionGoal: value.nutritionGoal,
+    dailyCalorieOverride: value.dailyCalorieOverride,
+    mealsPerDay: value.mealsPerDay,
+  });
+
 const resizeImageToDataUrl = async (file: File): Promise<string> => {
   const originalDataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -182,11 +194,14 @@ export default function ProfileClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingNutrition, setIsUpdatingNutrition] = useState(false);
+  const [isAutoSyncingNutrition, setIsAutoSyncingNutrition] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [currentSplitName, setCurrentSplitName] = useState("");
   const [currentSplitExercises, setCurrentSplitExercises] = useState<string[]>([]);
   const [isSplitLoading, setIsSplitLoading] = useState(true);
+  const hasHydratedProfileRef = useRef(false);
+  const lastAutoSyncedNutritionKeyRef = useRef<string>("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -247,11 +262,15 @@ export default function ProfileClient() {
           photoDataUrl: storedProfile?.photoDataUrl || authProfile.photoDataUrl,
         };
         setProfile(resolvedProfile);
+        hasHydratedProfileRef.current = true;
+        lastAutoSyncedNutritionKeyRef.current = nutritionPayloadKeyFromProfile(resolvedProfile);
         void saveMemberProfile(userId, resolvedProfile);
         void savePublicUserProfile(userId, resolvedProfile);
       } catch {
         if (cancelled) return;
         setProfile(authProfile);
+        hasHydratedProfileRef.current = true;
+        lastAutoSyncedNutritionKeyRef.current = nutritionPayloadKeyFromProfile(authProfile);
         setStatus({
           type: "error",
           message: "Could not load your profile details right now.",
@@ -365,6 +384,51 @@ export default function ProfileClient() {
   }, [profile.photoDataUrl]);
   const displayedSplitName = currentSplitName || profile.workoutSplit.trim();
 
+  const nutritionPayload = useMemo(
+    () => ({
+      sex: profile.sex,
+      age: profile.age,
+      heightCm: profile.heightCm,
+      weightKg: profile.weightKg,
+      activityLevel: profile.activityLevel,
+      nutritionGoal: profile.nutritionGoal,
+      dailyCalorieOverride: profile.dailyCalorieOverride,
+      mealsPerDay: profile.mealsPerDay,
+    }),
+    [
+      profile.sex,
+      profile.age,
+      profile.heightCm,
+      profile.weightKg,
+      profile.activityLevel,
+      profile.nutritionGoal,
+      profile.dailyCalorieOverride,
+      profile.mealsPerDay,
+    ],
+  );
+  const nutritionPayloadKey = useMemo(() => JSON.stringify(nutritionPayload), [nutritionPayload]);
+  const isNutritionSetupComplete = useMemo(
+    () =>
+      isNutritionProfileComplete({
+        sex: nutritionPayload.sex,
+        age: nutritionPayload.age,
+        heightCm: nutritionPayload.heightCm,
+        weightKg: nutritionPayload.weightKg,
+        activityLevel: nutritionPayload.activityLevel,
+        nutritionGoal: nutritionPayload.nutritionGoal,
+        mealsPerDay: nutritionPayload.mealsPerDay,
+      }),
+    [
+      nutritionPayload.sex,
+      nutritionPayload.age,
+      nutritionPayload.heightCm,
+      nutritionPayload.weightKg,
+      nutritionPayload.activityLevel,
+      nutritionPayload.nutritionGoal,
+      nutritionPayload.mealsPerDay,
+    ],
+  );
+
   const updateField = <K extends keyof UserProfile>(key: K, value: UserProfile[K]) => {
     setProfile((previous) => ({ ...previous, [key]: value }));
   };
@@ -450,11 +514,40 @@ export default function ProfileClient() {
       broadcastProfileUpdated(normalizedProfile);
 
       const hasMirrorFailure = mirrorWrites.some((result) => result.status === "rejected");
+      let nutritionSyncMessage = "";
+      if (isNutritionProfileComplete(normalizedProfile)) {
+        try {
+          const headers = await getAuthHeaders();
+          const response = await fetch("/api/v1/nutrition/plan", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              sex: normalizedProfile.sex,
+              age: normalizedProfile.age,
+              heightCm: normalizedProfile.heightCm,
+              weightKg: normalizedProfile.weightKg,
+              activityLevel: normalizedProfile.activityLevel,
+              nutritionGoal: normalizedProfile.nutritionGoal,
+              dailyCalorieOverride: normalizedProfile.dailyCalorieOverride,
+              mealsPerDay: normalizedProfile.mealsPerDay,
+            }),
+          });
+          if (response.ok) {
+            nutritionSyncMessage = " Nutrition plan synced.";
+          } else {
+            const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
+            nutritionSyncMessage = ` Profile saved, but nutrition sync failed: ${errorData?.message || "try updating nutrition plan manually."}`;
+          }
+        } catch {
+          nutritionSyncMessage = " Profile saved, but nutrition sync failed: try updating nutrition plan manually.";
+        }
+      }
+
       setStatus({
         type: "success",
         message: hasMirrorFailure
-          ? "Profile saved. Some public sync updates may take another save to fully appear."
-          : "Profile updated.",
+          ? `Profile saved. Some public sync updates may take another save to fully appear.${nutritionSyncMessage}`
+          : `Profile updated.${nutritionSyncMessage}`,
       });
     } catch {
       setStatus({
@@ -506,6 +599,55 @@ export default function ProfileClient() {
       setIsUpdatingNutrition(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAuthResolved || !userId || isLoading) return;
+    if (!isNutritionSetupComplete) return;
+
+    if (!hasHydratedProfileRef.current) {
+      return;
+    }
+
+    if (nutritionPayloadKey === lastAutoSyncedNutritionKeyRef.current) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void (async () => {
+        try {
+          setIsAutoSyncingNutrition(true);
+          const headers = await getAuthHeaders();
+          const response = await fetch("/api/v1/nutrition/plan", {
+            method: "POST",
+            headers,
+            body: nutritionPayloadKey,
+          });
+          if (!response.ok) {
+            const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
+            throw new Error(errorData?.message || "Unable to auto-sync nutrition plan.");
+          }
+          lastAutoSyncedNutritionKeyRef.current = nutritionPayloadKey;
+        } catch (error) {
+          setStatus({
+            type: "error",
+            message: error instanceof Error ? error.message : "Unable to auto-sync nutrition plan.",
+          });
+        } finally {
+          setIsAutoSyncingNutrition(false);
+        }
+      })();
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    isAuthResolved,
+    isLoading,
+    isNutritionSetupComplete,
+    nutritionPayloadKey,
+    userId,
+  ]);
 
   if (!isAuthResolved || isLoading) {
     return (
@@ -855,7 +997,7 @@ export default function ProfileClient() {
             <button
               type="button"
               onClick={handleNutritionUpdate}
-              disabled={isUpdatingNutrition}
+              disabled={isUpdatingNutrition || isAutoSyncingNutrition}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isUpdatingNutrition ? "Updating nutrition..." : "Update nutrition plan"}
