@@ -90,6 +90,11 @@ export const calculateMacroTargets = ({
 };
 
 const mealSlotDistributions: Record<number, Array<{ slot: MealSlot; ratio: number }>> = {
+  1: [{ slot: "dinner", ratio: 1 }],
+  2: [
+    { slot: "lunch", ratio: 0.45 },
+    { slot: "dinner", ratio: 0.55 },
+  ],
   3: [
     { slot: "breakfast", ratio: 0.25 },
     { slot: "lunch", ratio: 0.35 },
@@ -108,6 +113,23 @@ const mealSlotDistributions: Record<number, Array<{ slot: MealSlot; ratio: numbe
     { slot: "snack1", ratio: 0.15 },
     { slot: "snack2", ratio: 0.15 },
   ],
+  6: [
+    { slot: "breakfast", ratio: 0.18 },
+    { slot: "lunch", ratio: 0.22 },
+    { slot: "dinner", ratio: 0.22 },
+    { slot: "snack1", ratio: 0.12 },
+    { slot: "snack2", ratio: 0.13 },
+    { slot: "snack3", ratio: 0.13 },
+  ],
+  7: [
+    { slot: "breakfast", ratio: 0.16 },
+    { slot: "lunch", ratio: 0.2 },
+    { slot: "dinner", ratio: 0.2 },
+    { slot: "snack1", ratio: 0.11 },
+    { slot: "snack2", ratio: 0.11 },
+    { slot: "snack3", ratio: 0.11 },
+    { slot: "snack4", ratio: 0.11 },
+  ],
 };
 
 const mealLabelBySlot: Record<MealSlot, string> = {
@@ -116,6 +138,8 @@ const mealLabelBySlot: Record<MealSlot, string> = {
   dinner: "Dinner",
   snack1: "Snack",
   snack2: "Snack 2",
+  snack3: "Snack 3",
+  snack4: "Snack 4",
 };
 
 const totalMacros = (foods: MealPlanFood[]): MacroTargets => ({

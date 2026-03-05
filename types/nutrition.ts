@@ -6,7 +6,7 @@ export type NutritionGoal = "lose" | "maintain" | "gain";
 
 export type GoalMode = "preset" | "manual";
 
-export type MealSlot = "breakfast" | "lunch" | "dinner" | "snack1" | "snack2";
+export type MealSlot = "breakfast" | "lunch" | "dinner" | "snack1" | "snack2" | "snack3" | "snack4";
 
 export type MacroTargets = {
   calories: number;

@@ -933,8 +933,8 @@ export default function NutritionClient() {
             <Link href="/onboarding" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
               Go to onboarding
             </Link>
-            <Link href="/profile" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">
-              Edit profile
+            <Link href="/nutrition/setup" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">
+              Open nutrition setup
             </Link>
           </div>
         </div>
@@ -1382,7 +1382,7 @@ export default function NutritionClient() {
                       ? "Adding recommendations..."
                       : `Add all recommendations (${recommendedFoodsCount})`}
                   </button>
-                  <Link href="/profile" className="rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                  <Link href="/nutrition/setup" className="rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                     Edit inputs
                   </Link>
                 </div>

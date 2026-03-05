@@ -25,7 +25,7 @@ export const nutritionFieldValidators = {
     value === "very_active",
   nutritionGoal: (value: unknown) => value === "lose" || value === "maintain" || value === "gain",
   mealsPerDay: (value: unknown) =>
-    typeof value === "number" && Number.isInteger(value) && value >= 3 && value <= 5,
+    typeof value === "number" && Number.isInteger(value) && value >= 2 && value <= 7,
   dailyCalorieOverride: (value: unknown) =>
     value == null ||
     (typeof value === "number" && Number.isFinite(value) && value >= 1200 && value <= 5000),
