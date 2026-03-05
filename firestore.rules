@@ -59,7 +59,14 @@ service cloud.firestore {
       allow update: if request.auth != null
         && resource.data.uid == request.auth.uid
         && request.resource.data.uid == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null
+        && (
+          resource.data.uid == request.auth.uid
+          || (
+            resource.data.postId is string
+            && get(/databases/$(database)/documents/communityPosts/$(resource.data.postId)).data.uid == request.auth.uid
+          )
+        );
     }
 
     match /publicProfiles/{userId} {
