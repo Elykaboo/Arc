@@ -28,7 +28,7 @@ import type {
 } from "@/types/nutrition";
 
 type LibraryTab = "foods" | "recipes" | "meals" | "plan";
-type PanelMode = "search" | "food" | "recipe" | "saveMeal" | "setup" | null;
+type PanelMode = "search" | "food" | "recipe" | "saveMeal" | "setup" | "mobilePlan" | null;
 
 type FoodFormState = {
   id?: string;
@@ -948,36 +948,36 @@ export default function NutritionClient() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.26em] text-sky-700">Nutrition Workspace</p>
-            <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900 sm:text-5xl">
               Daily logging built around your own meal structure.
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+            <p className="mt-3 hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block sm:text-base">
               Track meals, recipes, and macros in one place. Arc keeps the plan in view, but your day stays in your control.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-600">
-              <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+            <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-slate-600 sm:mt-5 sm:flex sm:flex-wrap sm:gap-3">
+              <span className="min-w-0 rounded-2xl bg-white px-3 py-2 shadow-sm sm:rounded-full sm:px-4">
                 Goal: <span className="font-semibold text-slate-900">{inferGoalLabel(dashboard.plan?.nutritionGoal ?? null)}</span>
               </span>
-              <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              <span className="min-w-0 rounded-2xl bg-white px-3 py-2 shadow-sm sm:rounded-full sm:px-4">
                 Date: <span className="font-semibold text-slate-900">{dashboard.date === todayKey ? "Today" : dashboard.date}</span>
               </span>
-              <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              <span className="min-w-0 rounded-2xl bg-white px-3 py-2 shadow-sm sm:rounded-full sm:px-4">
                 Meal setup: <span className="font-semibold text-slate-900">{formatSlotCount(mealSetup.slots.length)}</span>
               </span>
-              <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              <span className="min-w-0 rounded-2xl bg-white px-3 py-2 shadow-sm sm:rounded-full sm:px-4">
                 Logged today: <span className="font-semibold text-slate-900">{totalLoggedItems} items</span>
               </span>
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:w-[360px]">
+          <div className="grid gap-2 sm:grid-cols-2 xl:w-[360px]">
             <button
               type="button"
               onClick={() => openSearch(selectedSlotId ?? mealSetup.slots[0]?.id)}
               className="rounded-[1.5rem] border border-sky-200 bg-sky-50 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-sky-100"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Quick Add</p>
-              <p className="mt-1 text-lg font-bold text-slate-900">Add to {selectedSlotLabel}</p>
+              <p className="mt-1 text-base font-bold text-slate-900 sm:text-lg">Add to {selectedSlotLabel}</p>
             </button>
             <button
               type="button"
@@ -987,7 +987,7 @@ export default function NutritionClient() {
               className="rounded-[1.5rem] border border-orange-200 bg-orange-50 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-orange-100"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">Build</p>
-              <p className="mt-1 text-lg font-bold text-slate-900">Create Recipe</p>
+              <p className="mt-1 text-base font-bold text-slate-900 sm:text-lg">Create Recipe</p>
             </button>
             <button
               type="button"
@@ -997,7 +997,7 @@ export default function NutritionClient() {
               className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Library</p>
-              <p className="mt-1 text-lg font-bold text-slate-900">Create Food</p>
+              <p className="mt-1 text-base font-bold text-slate-900 sm:text-lg">Create Food</p>
             </button>
             <button
               type="button"
@@ -1008,12 +1008,20 @@ export default function NutritionClient() {
               className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Layout</p>
-              <p className="mt-1 text-lg font-bold text-slate-900">Edit Meal Setup</p>
+              <p className="mt-1 text-base font-bold text-slate-900 sm:text-lg">Edit Meal Setup</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPanelMode("mobilePlan")}
+              className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-100 sm:hidden"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Gemini</p>
+              <p className="mt-1 text-base font-bold text-slate-900">View Generated Plan</p>
             </button>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
+        <div className="mt-8 hidden gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)] md:grid">
           <div className="rounded-[1.8rem] border border-slate-200 bg-white/85 p-4 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -1099,7 +1107,7 @@ export default function NutritionClient() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:mt-8 md:grid-cols-2 md:gap-4 xl:grid-cols-4">
           {[
             { label: "Calories", consumed: dashboard.totals.calories, remaining: dashboard.remaining.calories, target: dashboard.targets.calories, progress: calorieProgress },
             { label: "Protein", consumed: dashboard.totals.proteinGrams, remaining: dashboard.remaining.proteinGrams, target: dashboard.targets.proteinGrams, progress: proteinProgress },
@@ -1109,7 +1117,7 @@ export default function NutritionClient() {
             <article
               key={metric.label}
               className={classNames(
-                "page-card rounded-[1.75rem] border p-5 shadow-sm",
+                "page-card rounded-[1.4rem] border p-4 shadow-sm sm:rounded-[1.75rem] sm:p-5",
                 index === 0
                   ? "border-orange-200 bg-[linear-gradient(180deg,#fff7ed,#ffffff)]"
                   : "border-slate-200 bg-white/90",
@@ -1121,7 +1129,7 @@ export default function NutritionClient() {
                   {formatPercent(metric.progress)}
                 </span>
               </div>
-              <p className="mt-3 text-4xl font-black tracking-tight text-slate-900">{Math.round(metric.consumed)}</p>
+              <p className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:mt-3 sm:text-4xl">{Math.round(metric.consumed)}</p>
               <p className="mt-1 text-sm text-slate-500">
                 Target {Math.round(metric.target)}{metric.label === "Calories" ? "" : "g"}
               </p>
@@ -1134,7 +1142,7 @@ export default function NutritionClient() {
                   style={{ width: `${metric.progress}%` }}
                 />
               </div>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-xs text-slate-500 sm:text-sm">
                 {metric.label === "Calories" ? `${Math.round(metric.remaining)} remaining` : `${Math.round(metric.remaining)}g remaining`}
               </p>
             </article>
@@ -1183,11 +1191,11 @@ export default function NutritionClient() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
                   <button
                     type="button"
                     onClick={() => openSearch(meal.slotId)}
-                    className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    className="w-full rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
                   >
                     Add item
                   </button>
@@ -1195,7 +1203,7 @@ export default function NutritionClient() {
                     type="button"
                     onClick={() => openSaveMealFromSlot(meal.slotId)}
                     disabled={meal.entries.length === 0}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
                     Save as meal
                   </button>
@@ -1205,11 +1213,11 @@ export default function NutritionClient() {
                   <div className="mt-5 rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/80 p-5">
                     <p className="text-sm font-semibold text-slate-700">No items logged yet.</p>
                     <p className="mt-1 text-sm text-slate-500">Add food, a recipe, or one of your saved meals to start tracking this slot.</p>
-                    <div className="mt-4 flex flex-wrap gap-3">
+                    <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
                       <button
                         type="button"
                         onClick={() => openSearch(meal.slotId)}
-                        className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        className="w-full rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
                       >
                         Search foods
                       </button>
@@ -1219,7 +1227,7 @@ export default function NutritionClient() {
                           setActiveSlotId(meal.slotId);
                           openFoodCreator(meal.slotId);
                         }}
-                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-white"
+                        className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-white sm:w-auto"
                       >
                         Create food
                       </button>
@@ -1248,7 +1256,7 @@ export default function NutritionClient() {
                             </div>
                           </div>
 
-                          <div className="grid gap-2 sm:grid-cols-[90px_1fr_auto]">
+                          <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-[90px_1fr_auto]">
                             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                               Qty
                               <input
@@ -1282,7 +1290,7 @@ export default function NutritionClient() {
                             <button
                               type="button"
                               onClick={() => void handleDeleteEntry(entry.id)}
-                              className="self-end rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                              className="col-span-2 w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 md:col-span-1 md:self-end md:w-auto"
                             >
                               Delete
                             </button>
@@ -1296,7 +1304,7 @@ export default function NutritionClient() {
             ))}
           </div>
 
-          <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+          <aside className="hidden space-y-4 lg:block xl:sticky xl:top-24 xl:self-start">
             <div className="rounded-[1.9rem] border border-slate-200 bg-white/90 p-5 shadow-sm">
               <div className="flex flex-wrap gap-2">
                 {[
@@ -2032,6 +2040,74 @@ export default function NutritionClient() {
                 Save meal setup
               </button>
             </div>
+          </div>
+        </NutritionOverlayCard>
+      ) : null}
+
+      {panelMode === "mobilePlan" ? (
+        <NutritionOverlayCard
+          title="Gemini Meal Plan"
+          description="Generated recommendations based on your nutrition setup."
+          onClose={closeOverlay}
+          size="wide"
+        >
+          <div className="space-y-4">
+            <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
+              <button
+                type="button"
+                disabled={!dashboard.plan || isBusy}
+                onClick={() => void refreshPlanSuggestions()}
+                className="w-full rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              >
+                {isBusy ? "Refreshing..." : "Refresh plan"}
+              </button>
+              <button
+                type="button"
+                disabled={!dashboard.plan || recommendedFoodsCount === 0 || isBusy}
+                onClick={() => void addAllPlanSuggestions()}
+                className="w-full rounded-full bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              >
+                {addingItemId === "bulk-plan"
+                  ? "Adding recommendations..."
+                  : `Add all recommendations (${recommendedFoodsCount})`}
+              </button>
+              <Link
+                href="/nutrition/setup"
+                className="block w-full rounded-full border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+              >
+                Edit inputs
+              </Link>
+            </div>
+
+            {dashboard.plan ? (
+              <div className="space-y-3">
+                {dashboard.planSuggestions.map((suggestion) => (
+                  <div key={suggestion.slot} className="rounded-[1.3rem] border border-orange-200 bg-orange-50/80 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">{suggestion.label}</p>
+                    <div className="mt-2 space-y-2">
+                      {suggestion.foods.map((food) => (
+                        <button
+                          key={`${suggestion.slot}-${food.id}`}
+                          type="button"
+                          onClick={() => void handleAddSearchResult(food, true, selectedSlotId ?? mealSetup.slots[0]?.id)}
+                          className="flex w-full items-center justify-between rounded-2xl bg-white px-3 py-3 text-left transition hover:bg-orange-100"
+                        >
+                          <div className="min-w-0">
+                            <p className="break-words font-semibold text-slate-900">{food.name}</p>
+                            <p className="text-sm text-slate-500">{food.servingLabel}</p>
+                          </div>
+                          <span className="ml-3 shrink-0 text-sm font-semibold text-slate-700">{formatCalories(food.calories)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-[1.2rem] border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
+                No generated meal plan yet. Complete your nutrition setup to generate recommendations.
+              </p>
+            )}
           </div>
         </NutritionOverlayCard>
       ) : null}
