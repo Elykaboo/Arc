@@ -8,7 +8,6 @@ import {
   getDocs,
   limit,
   onSnapshot,
-  orderBy,
   query,
   serverTimestamp,
   type FirestoreDataConverter,
@@ -17,7 +16,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export type NotificationType = "follow" | "comment";
+export type NotificationType = "follow" | "comment" | "like";
 
 export type UserNotification = {
   id: string;
@@ -50,8 +49,12 @@ const notificationConverter: FirestoreDataConverter<UserNotificationDocument> = 
   },
   fromFirestore(snapshot) {
     const data = snapshot.data();
+    const type: NotificationType =
+      data.type === "comment" || data.type === "like" || data.type === "follow"
+        ? data.type
+        : "follow";
     return {
-      type: data.type === "comment" ? "comment" : "follow",
+      type,
       recipientUid: typeof data.recipientUid === "string" ? data.recipientUid : "",
       actorUid: typeof data.actorUid === "string" ? data.actorUid : "",
       actorName: typeof data.actorName === "string" ? data.actorName : "",
@@ -83,6 +86,13 @@ const mapNotification = (
   createdAtMs: data.createdAt?.toMillis?.() ?? null,
 });
 
+const sortNotificationsByNewest = (items: UserNotification[]): UserNotification[] =>
+  [...items].sort((left, right) => {
+    const leftTime = left.createdAtMs ?? 0;
+    const rightTime = right.createdAtMs ?? 0;
+    return rightTime - leftTime;
+  });
+
 export const createUserNotification = async (input: {
   type: NotificationType;
   recipientUid: string;
@@ -110,11 +120,10 @@ export const listUserNotifications = async (
   uid: string,
   maxItems = 50,
 ): Promise<UserNotification[]> => {
-  const snapshot = await getDocs(
-    query(notificationsCollection(uid), orderBy("createdAt", "desc"), limit(maxItems)),
+  const snapshot = await getDocs(query(notificationsCollection(uid), limit(maxItems)));
+  return sortNotificationsByNewest(
+    snapshot.docs.map((document) => mapNotification(document.id, document.data())),
   );
-
-  return snapshot.docs.map((document) => mapNotification(document.id, document.data()));
 };
 
 export const subscribeUserNotifications = (
@@ -123,16 +132,16 @@ export const subscribeUserNotifications = (
   onError?: (error: Error) => void,
   maxItems = 50,
 ): Unsubscribe => {
-  const notificationsQuery = query(
-    notificationsCollection(uid),
-    orderBy("createdAt", "desc"),
-    limit(maxItems),
-  );
+  const notificationsQuery = query(notificationsCollection(uid), limit(maxItems));
 
   return onSnapshot(
     notificationsQuery,
     (snapshot) => {
-      onData(snapshot.docs.map((document) => mapNotification(document.id, document.data())));
+      onData(
+        sortNotificationsByNewest(
+          snapshot.docs.map((document) => mapNotification(document.id, document.data())),
+        ),
+      );
     },
     (error) => {
       onError?.(error);
