@@ -17,17 +17,23 @@ import { loadUserProfile } from "@/lib/profile-db";
 import { weekdays } from "@/lib/routine-templates";
 import {
   createCommunityComment,
+  getCommunityLikeSummaryForPost,
   createCommunityPost,
   deleteCommunityComment,
   deleteCommunityPost,
   getCommunityPostById,
   getCommunityPostPhotoDataUrls,
+  likeCommunityPost,
   listCommunityCommentCountsForPosts,
   listCommunityCommentsForPosts,
+  listCommunityLikeSummariesForPosts,
+  listCommunityLikesForPost,
   listCommunityPosts,
   listCommunityPostsByUser,
+  unlikeCommunityPost,
   updateCommunityPostCaption,
   type CommunityComment,
+  type CommunityLike,
   type CommunityPost,
 } from "@/lib/community-db";
 
@@ -317,6 +323,11 @@ export default function CommunityClient({
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [likedPostIds, setLikedPostIds] = useState<Record<string, boolean>>({});
+  const [likeCountsByPost, setLikeCountsByPost] = useState<Record<string, number>>({});
+  const [likesByPost, setLikesByPost] = useState<Record<string, CommunityLike[]>>({});
+  const [likesLoadingByPost, setLikesLoadingByPost] = useState<Record<string, boolean>>({});
+  const [likesOverlayPostId, setLikesOverlayPostId] = useState<string | null>(null);
+  const [likeBusyPostId, setLikeBusyPostId] = useState<string | null>(null);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentCountsByPost, setCommentCountsByPost] = useState<Record<string, number>>({});
   const [commentsLoadingByPost, setCommentsLoadingByPost] = useState<Record<string, boolean>>({});
@@ -543,6 +554,42 @@ export default function CommunityClient({
 
   useEffect(() => {
     const visiblePostIds = new Set(posts.map((post) => post.id));
+    setLikeCountsByPost((current) => {
+      const next: Record<string, number> = {};
+      for (const [postId, count] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = count;
+        }
+      }
+      return next;
+    });
+    setLikedPostIds((current) => {
+      const next: Record<string, boolean> = {};
+      for (const [postId, liked] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = liked;
+        }
+      }
+      return next;
+    });
+    setLikesByPost((current) => {
+      const next: Record<string, CommunityLike[]> = {};
+      for (const [postId, likes] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = likes;
+        }
+      }
+      return next;
+    });
+    setLikesLoadingByPost((current) => {
+      const next: Record<string, boolean> = {};
+      for (const [postId, loading] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = loading;
+        }
+      }
+      return next;
+    });
     setCommentsByPost((current) => {
       const next: Record<string, CommunityComment[]> = {};
       for (const [postId, comments] of Object.entries(current)) {
@@ -1074,26 +1121,39 @@ export default function CommunityClient({
   }, [followingByUid, searchableUsers, userId]);
   const composerCharacterCount = caption.trim().length;
   const visibleFeedCount = normalizedSearch ? filteredPosts.length : posts.length;
-
-  const viewerStorageKey = userId ?? "guest";
+  const overlayPost = likesOverlayPostId ? posts.find((post) => post.id === likesOverlayPostId) ?? null : null;
+  const overlayLikes = likesOverlayPostId ? likesByPost[likesOverlayPostId] || [] : [];
+  const overlayLikesLoading = likesOverlayPostId ? Boolean(likesLoadingByPost[likesOverlayPostId]) : false;
+  const overlayLikeCount = likesOverlayPostId ? (likeCountsByPost[likesOverlayPostId] ?? overlayLikes.length) : 0;
 
   useEffect(() => {
-    try {
-      const likesRaw = window.localStorage.getItem(`community:likes:${viewerStorageKey}`);
-      setLikedPostIds(likesRaw ? (JSON.parse(likesRaw) as Record<string, boolean>) : {});
-    } catch {
+    const visiblePostIds = posts.map((post) => post.id);
+    if (visiblePostIds.length === 0) {
+      setLikeCountsByPost({});
       setLikedPostIds({});
+      return;
     }
 
-  }, [viewerStorageKey]);
+    let cancelled = false;
+    const loadLikeSummaries = async () => {
+      try {
+        const summary = await listCommunityLikeSummariesForPosts(visiblePostIds, userId);
+        if (cancelled) return;
+        setLikeCountsByPost(summary.counts);
+        setLikedPostIds(summary.likedByViewer);
+      } catch {
+        if (cancelled) return;
+        setLikeCountsByPost({});
+        setLikedPostIds({});
+      }
+    };
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(`community:likes:${viewerStorageKey}`, JSON.stringify(likedPostIds));
-    } catch {
-      // Ignore persistence failures.
-    }
-  }, [likedPostIds, viewerStorageKey]);
+    void loadLikeSummaries();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [posts, userId]);
 
   useEffect(() => {
     if (!activePostMenuId) return;
@@ -1186,17 +1246,90 @@ export default function CommunityClient({
     }
   };
 
-  const toggleLike = (postId: string) => {
+  const refreshLikeSummaryForPost = useCallback(async (postId: string) => {
+    const summary = await getCommunityLikeSummaryForPost(postId, userId);
+    setLikeCountsByPost((current) => ({ ...current, [postId]: summary.count }));
+    setLikedPostIds((current) => ({ ...current, [postId]: summary.viewerLiked }));
+  }, [userId]);
+
+  const toggleLike = async (post: CommunityPost) => {
     if (!userId) {
       setActionStatus("Log in to like posts.");
       return;
     }
+    if (likeBusyPostId) return;
 
-    setLikedPostIds((current) => ({
-      ...current,
-      [postId]: !current[postId],
-    }));
+    const postId = post.id;
+    const currentlyLiked = Boolean(likedPostIds[postId]);
+    const previousCount = likeCountsByPost[postId] ?? 0;
+    const optimisticCount = Math.max(0, (likeCountsByPost[postId] ?? 0) + (currentlyLiked ? -1 : 1));
+
+    setLikeBusyPostId(postId);
     setActionStatus(null);
+    setLikedPostIds((current) => ({ ...current, [postId]: !currentlyLiked }));
+    setLikeCountsByPost((current) => ({ ...current, [postId]: optimisticCount }));
+
+    try {
+      if (currentlyLiked) {
+        await unlikeCommunityPost(postId, userId);
+        setLikesByPost((current) => {
+          const likes = current[postId];
+          if (!likes) return current;
+          return {
+            ...current,
+            [postId]: likes.filter((like) => like.uid !== userId),
+          };
+        });
+      } else {
+        await likeCommunityPost({
+          postId,
+          uid: userId,
+          authorName: displayName || "Arc User",
+          authorPhotoDataUrl: profilePhoto || "",
+        });
+        setLikesByPost((current) => {
+          const likes = current[postId];
+          if (!likes) return current;
+          const next = likes.filter((like) => like.uid !== userId);
+          return {
+            ...current,
+            [postId]: [
+              {
+                id: `${postId}__${userId}`,
+                postId,
+                uid: userId,
+                authorName: displayName || "Arc User",
+                authorPhotoDataUrl: profilePhoto || "",
+                createdAt: null,
+              },
+              ...next,
+            ],
+          };
+        });
+      }
+      // Refresh server-derived count/state without rolling back successful writes.
+      void refreshLikeSummaryForPost(postId);
+    } catch {
+      setLikedPostIds((current) => ({ ...current, [postId]: currentlyLiked }));
+      setLikeCountsByPost((current) => ({ ...current, [postId]: previousCount }));
+      setActionStatus("Unable to update like right now.");
+    } finally {
+      setLikeBusyPostId(null);
+    }
+  };
+
+  const openLikesOverlay = async (postId: string) => {
+    setLikesOverlayPostId(postId);
+    if (likesByPost[postId] || likesLoadingByPost[postId]) return;
+    setLikesLoadingByPost((current) => ({ ...current, [postId]: true }));
+    try {
+      const likes = await listCommunityLikesForPost(postId);
+      setLikesByPost((current) => ({ ...current, [postId]: likes }));
+    } catch {
+      setActionStatus("Unable to load likes right now.");
+    } finally {
+      setLikesLoadingByPost((current) => ({ ...current, [postId]: false }));
+    }
   };
 
   const toggleFollow = async (post: CommunityPost) => {
@@ -2074,6 +2207,7 @@ export default function CommunityClient({
                   const postPhotos = getCommunityPostPhotoDataUrls(post);
                   const initials = getInitials(resolvedIdentity.name || "Arc");
                   const isLiked = Boolean(likedPostIds[post.id]);
+                  const postLikeCount = likeCountsByPost[post.id] ?? 0;
                   const hasLoadedComments = Object.prototype.hasOwnProperty.call(commentsByPost, post.id);
                   const isCommentsLoading = Boolean(commentsLoadingByPost[post.id]);
                   const postComments = commentsByPost[post.id] || [];
@@ -2206,16 +2340,30 @@ export default function CommunityClient({
                     <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-200">
                       <button
                         type="button"
-                        onClick={() => toggleLike(post.id)}
+                        onClick={() => {
+                          void toggleLike(post);
+                        }}
+                        disabled={likeBusyPostId === post.id}
                         className={`flex h-9 w-9 items-center justify-center rounded-full border text-lg transition ${
                           isLiked
                             ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
                             : "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                        }`}
+                        } disabled:cursor-not-allowed disabled:opacity-60`}
                         aria-label={isLiked ? "Unlike post" : "Like post"}
                         title={isLiked ? "Unlike" : "Like"}
                       >
                         {"🔥"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void openLikesOverlay(post.id);
+                        }}
+                        className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                        aria-label="View likes"
+                        title="View likes"
+                      >
+                        {postLikeCount} like{postLikeCount === 1 ? "" : "s"}
                       </button>
                       <button
                         type="button"
@@ -2428,7 +2576,7 @@ export default function CommunityClient({
                                 {post.caption}
                               </p>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {isLiked ? "You liked this post" : "Tap fire to like"} · {postCommentCount} comments
+                                {isLiked ? "You liked this post" : "Tap fire to like"} · {postLikeCount} likes · {postCommentCount} comments
                               </p>
                             </div>
                             {showCommentsPanel ? <div className="flex-1 px-4 pb-4">{commentsPanel}</div> : null}
@@ -2444,7 +2592,7 @@ export default function CommunityClient({
                             </p>
                             {postActions}
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                              {isLiked ? "You liked this post" : "Tap fire to like"} · {postCommentCount} comments
+                              {isLiked ? "You liked this post" : "Tap fire to like"} · {postLikeCount} likes · {postCommentCount} comments
                             </p>
                             {showCommentsPanel ? commentsPanel : null}
                           </div>
@@ -2575,6 +2723,69 @@ export default function CommunityClient({
           </section>
         </aside>
       </div>
+
+      {likesOverlayPostId ? (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <button
+            type="button"
+            onClick={() => setLikesOverlayPostId(null)}
+            className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
+            aria-label="Close likes overlay"
+          />
+          <div className="relative z-[121] w-full max-w-md rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_28px_80px_rgba(15,23,42,0.35)] dark:border-slate-700 dark:bg-slate-900">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                  Likes
+                </p>
+                <h3 className="mt-1 text-lg font-bold text-slate-900 dark:text-slate-100">
+                  {overlayLikeCount} like{overlayLikeCount === 1 ? "" : "s"}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {overlayPost ? `Post by ${overlayPost.authorName || "Arc User"}` : "Post likes"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLikesOverlayPostId(null)}
+                className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+
+            {overlayLikesLoading ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">Loading likes...</p>
+            ) : overlayLikes.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                No likes yet.
+              </p>
+            ) : (
+              <ul className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                {overlayLikes.map((like) => (
+                  <li key={like.id} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                    {like.authorPhotoDataUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={like.authorPhotoDataUrl}
+                        alt={`${like.authorName || "Arc User"} avatar`}
+                        className="h-9 w-9 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                      />
+                    ) : (
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-900">
+                        {getInitials(like.authorName || "Arc User")}
+                      </span>
+                    )}
+                    <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {like.authorName || "Arc User"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

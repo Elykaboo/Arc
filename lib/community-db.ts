@@ -11,6 +11,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
   type FirestoreDataConverter,
@@ -39,6 +40,15 @@ export type CommunityComment = {
   authorName: string;
   authorPhotoDataUrl: string;
   text: string;
+  createdAt: Timestamp | null;
+};
+
+export type CommunityLike = {
+  id: string;
+  postId: string;
+  uid: string;
+  authorName: string;
+  authorPhotoDataUrl: string;
   createdAt: Timestamp | null;
 };
 
@@ -71,6 +81,14 @@ type CommunityCommentDocument = {
   authorName: string;
   authorPhotoDataUrl: string;
   text: string;
+  createdAt?: Timestamp;
+};
+
+type CommunityLikeDocument = {
+  postId: string;
+  uid: string;
+  authorName: string;
+  authorPhotoDataUrl: string;
   createdAt?: Timestamp;
 };
 
@@ -112,6 +130,21 @@ const communityCommentsCollection = collection(db, "communityComments").withConv
     };
   },
 } satisfies FirestoreDataConverter<CommunityCommentDocument>);
+const communityLikesCollection = collection(db, "communityLikes").withConverter({
+  toFirestore(value: CommunityLikeDocument) {
+    return value;
+  },
+  fromFirestore(snapshot) {
+    const data = snapshot.data();
+    return {
+      postId: typeof data.postId === "string" ? data.postId : "",
+      uid: typeof data.uid === "string" ? data.uid : "",
+      authorName: typeof data.authorName === "string" ? data.authorName : "",
+      authorPhotoDataUrl: typeof data.authorPhotoDataUrl === "string" ? data.authorPhotoDataUrl : "",
+      createdAt: data.createdAt,
+    };
+  },
+} satisfies FirestoreDataConverter<CommunityLikeDocument>);
 
 const mapCommunityComment = (
   documentId: string,
@@ -126,6 +159,21 @@ const mapCommunityComment = (
   text: data.text,
   createdAt: data.createdAt ?? null,
 });
+
+const mapCommunityLike = (
+  documentId: string,
+  data: CommunityLikeDocument,
+): CommunityLike => ({
+  id: documentId,
+  postId: data.postId,
+  uid: data.uid,
+  authorName: data.authorName,
+  authorPhotoDataUrl: data.authorPhotoDataUrl,
+  createdAt: data.createdAt ?? null,
+});
+
+const buildCommunityLikeId = (postId: string, uid: string): string =>
+  `${encodeURIComponent(postId.trim())}__${encodeURIComponent(uid.trim())}`;
 
 export const createCommunityPost = async (input: {
   uid: string;
@@ -269,8 +317,122 @@ export const deleteCommunityPost = async (postId: string): Promise<void> => {
 
   await Promise.all(commentsSnapshot.docs.map((commentDocument) => deleteDoc(commentDocument.ref)));
 
+  const likesSnapshot = await getDocs(
+    query(communityLikesCollection, where("postId", "==", postId), limit(1000)),
+  );
+  await Promise.all(likesSnapshot.docs.map((likeDocument) => deleteDoc(likeDocument.ref)));
+
   const postRef = doc(db, "communityPosts", postId);
   await deleteDoc(postRef);
+};
+
+export const likeCommunityPost = async (input: {
+  postId: string;
+  uid: string;
+  authorName: string;
+  authorPhotoDataUrl: string;
+}): Promise<void> => {
+  const postId = input.postId.trim();
+  const uid = input.uid.trim();
+  if (!postId || !uid) return;
+
+  const likeId = buildCommunityLikeId(postId, uid);
+  const likeRef = doc(communityLikesCollection, likeId);
+
+  await setDoc(likeRef, {
+    postId,
+    uid,
+    authorName: input.authorName.trim() || "Arc User",
+    authorPhotoDataUrl: input.authorPhotoDataUrl.trim(),
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const unlikeCommunityPost = async (postId: string, uid: string): Promise<void> => {
+  const cleanedPostId = postId.trim();
+  const cleanedUid = uid.trim();
+  if (!cleanedPostId || !cleanedUid) return;
+
+  const likeId = buildCommunityLikeId(cleanedPostId, cleanedUid);
+  await deleteDoc(doc(db, "communityLikes", likeId));
+};
+
+export const getCommunityLikeSummaryForPost = async (
+  postId: string,
+  viewerUid?: string | null,
+): Promise<{ count: number; viewerLiked: boolean }> => {
+  const cleanedPostId = postId.trim();
+  if (!cleanedPostId) return { count: 0, viewerLiked: false };
+
+  const countSnapshot = await getCountFromServer(
+    query(communityLikesCollection, where("postId", "==", cleanedPostId)),
+  );
+  const count = countSnapshot.data().count;
+
+  if (!viewerUid?.trim()) {
+    return { count, viewerLiked: false };
+  }
+
+  const likeId = buildCommunityLikeId(cleanedPostId, viewerUid);
+  const viewerLikeSnapshot = await getDoc(doc(db, "communityLikes", likeId));
+  return { count, viewerLiked: viewerLikeSnapshot.exists() };
+};
+
+export const listCommunityLikeSummariesForPosts = async (
+  postIds: string[],
+  viewerUid?: string | null,
+): Promise<{ counts: Record<string, number>; likedByViewer: Record<string, boolean> }> => {
+  const cleanedPostIds = Array.from(new Set(postIds.map((postId) => postId.trim()).filter(Boolean)));
+  if (cleanedPostIds.length === 0) return { counts: {}, likedByViewer: {} };
+
+  const countRows = await Promise.all(
+    cleanedPostIds.map(async (postId) => {
+      const countSnapshot = await getCountFromServer(
+        query(communityLikesCollection, where("postId", "==", postId)),
+      );
+      return [postId, countSnapshot.data().count] as const;
+    }),
+  );
+
+  const counts = Object.fromEntries(countRows);
+  const likedByViewer: Record<string, boolean> = {};
+
+  if (viewerUid?.trim()) {
+    const viewerRows = await Promise.all(
+      cleanedPostIds.map(async (postId) => {
+        const likeId = buildCommunityLikeId(postId, viewerUid);
+        const snapshot = await getDoc(doc(db, "communityLikes", likeId));
+        return [postId, snapshot.exists()] as const;
+      }),
+    );
+    for (const [postId, liked] of viewerRows) {
+      likedByViewer[postId] = liked;
+    }
+  }
+
+  return { counts, likedByViewer };
+};
+
+export const listCommunityLikesForPost = async (
+  postId: string,
+  maxItems = 80,
+): Promise<CommunityLike[]> => {
+  const cleanedPostId = postId.trim();
+  if (!cleanedPostId) return [];
+
+  const likesQuery = query(
+    communityLikesCollection,
+    where("postId", "==", cleanedPostId),
+    limit(Math.max(1, maxItems)),
+  );
+  const snapshot = await getDocs(likesQuery);
+  return snapshot.docs
+    .map((docSnapshot) => mapCommunityLike(docSnapshot.id, docSnapshot.data()))
+    .sort((left, right) => {
+      const leftTime = left.createdAt?.toMillis?.() ?? 0;
+      const rightTime = right.createdAt?.toMillis?.() ?? 0;
+      return rightTime - leftTime;
+    });
 };
 
 export const deleteCommunityComment = async (commentId: string): Promise<void> => {
