@@ -173,15 +173,15 @@ export default function SiteNav() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsAuthResolved(true);
-      setIsAuthenticated(Boolean(user?.emailVerified));
-      setCurrentUserId(user?.emailVerified ? user.uid : "");
+      setIsAuthenticated(Boolean(user));
+      setCurrentUserId(user?.uid ?? "");
 
       const fallbackName = user?.email?.split("@")[0] || "Guest";
       const resolvedName = user?.displayName?.trim() || fallbackName;
       setProfileName(resolvedName);
       setProfilePhoto(user?.photoURL || "");
 
-      if (!user?.uid || !user.emailVerified) {
+      if (!user?.uid) {
         return;
       }
 
@@ -271,7 +271,8 @@ export default function SiteNav() {
         setNotifications(items);
         setNotificationsLoading(false);
       },
-      () => {
+      (error) => {
+        console.error("Notification subscription error", error);
         // Keep refreshing when the snapshot channel is blocked or stale.
         void refreshNotifications();
       },
@@ -416,7 +417,7 @@ export default function SiteNav() {
   };
 
   const buildNotificationHref = (notification: UserNotification) => {
-    if (notification.type === "comment" && notification.postId) {
+    if ((notification.type === "comment" || notification.type === "like") && notification.postId) {
       return `/socializing#post-${notification.postId}`;
     }
 
@@ -433,6 +434,9 @@ export default function SiteNav() {
     if (notification.type === "comment") {
       return `${actorName} commented on your post.`;
     }
+    if (notification.type === "like") {
+      return `${actorName} liked your post.`;
+    }
 
     return `${actorName} followed you.`;
   };
@@ -447,6 +451,12 @@ export default function SiteNav() {
       const postCaption = notification.postCaption.trim();
       if (postCaption) {
         return `On: ${postCaption.length > 72 ? `${postCaption.slice(0, 69)}...` : postCaption}`;
+      }
+    }
+    if (notification.type === "like") {
+      const postCaption = notification.postCaption.trim();
+      if (postCaption) {
+        return `Post: ${postCaption.length > 72 ? `${postCaption.slice(0, 69)}...` : postCaption}`;
       }
     }
 

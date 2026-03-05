@@ -13,6 +13,7 @@ import {
   type FollowingUser,
 } from "@/lib/follow-db";
 import { subscribeMemberProfiles, type MemberProfile } from "@/lib/member-db";
+import { createUserNotification } from "@/lib/notification-db";
 import { loadUserProfile } from "@/lib/profile-db";
 import { weekdays } from "@/lib/routine-templates";
 import {
@@ -1287,6 +1288,21 @@ export default function CommunityClient({
           authorName: displayName || "Arc User",
           authorPhotoDataUrl: profilePhoto || "",
         });
+        if (post.uid && post.uid !== userId) {
+          try {
+            await createUserNotification({
+              type: "like",
+              recipientUid: post.uid,
+              actorUid: userId,
+              actorName: displayName || "Arc User",
+              actorPhotoDataUrl: profilePhoto || "",
+              postId,
+              postCaption: post.caption || "",
+            });
+          } catch (error) {
+            console.error("Failed to create like notification", error);
+          }
+        }
         setLikesByPost((current) => {
           const likes = current[postId];
           if (!likes) return current;
