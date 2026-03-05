@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -311,6 +312,24 @@ export const listCommunityCommentsForPosts = async (
       }),
     ]),
   );
+};
+
+export const listCommunityCommentCountsForPosts = async (
+  postIds: string[],
+): Promise<Record<string, number>> => {
+  const cleanedPostIds = Array.from(new Set(postIds.map((postId) => postId.trim()).filter(Boolean)));
+  if (cleanedPostIds.length === 0) return {};
+
+  const counts = await Promise.all(
+    cleanedPostIds.map(async (postId) => {
+      const countSnapshot = await getCountFromServer(
+        query(communityCommentsCollection, where("postId", "==", postId)),
+      );
+      return [postId, countSnapshot.data().count] as const;
+    }),
+  );
+
+  return Object.fromEntries(counts);
 };
 
 export const createCommunityComment = async (input: {

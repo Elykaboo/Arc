@@ -54,7 +54,7 @@ function AuthGate({ children }: AppShellProps) {
           }
 
           if (isComplete && pathname === "/onboarding") {
-            router.replace("/nutrition");
+            router.replace("/socializing");
             return;
           }
         }
