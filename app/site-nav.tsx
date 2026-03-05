@@ -29,7 +29,14 @@ type NavItem = {
 const navItems: NavItem[] = [
   { href: "/socializing", label: "Home", match: "startsWith" },
   { href: "/community", label: "Community", match: "startsWith" },
-  { href: "/nutrition", label: "Nutrition", match: "startsWith" },
+  {
+    href: "/nutrition-menu",
+    label: "Nutrition",
+    children: [
+      { href: "/nutrition", label: "Tracker" },
+      { href: "/nutrition/setup", label: "Setup" },
+    ],
+  },
   {
     href: "/dashboard-menu",
     label: "Training Dashboard",
@@ -64,6 +71,11 @@ const getInitials = (name: string) => {
   if (parts.length === 0) return "G";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+};
+
+const buildLogoutRoute = (name: string) => {
+  const safeName = name.trim() || "Athlete";
+  return `/welcome?mode=offboarding&name=${encodeURIComponent(safeName)}`;
 };
 
 function IconBase({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -153,7 +165,7 @@ export default function SiteNav() {
   const [notificationsClearing, setNotificationsClearing] = useState(false);
   const [notificationDeletingId, setNotificationDeletingId] = useState("");
   const [lastReadAtMs, setLastReadAtMs] = useState(0);
-  const [dashboardNavOpen, setDashboardNavOpen] = useState(false);
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(getResolvedDarkMode);
 
   const menuRef = useRef<HTMLElement>(null);
@@ -315,7 +327,7 @@ export default function SiteNav() {
       if (!menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
         setNotificationsOpen(false);
-        setDashboardNavOpen(false);
+        setOpenSubmenu(null);
       }
     };
 
@@ -323,7 +335,7 @@ export default function SiteNav() {
       if (event.key === "Escape") {
         setMenuOpen(false);
         setNotificationsOpen(false);
-        setDashboardNavOpen(false);
+        setOpenSubmenu(null);
       }
     };
 
@@ -337,7 +349,7 @@ export default function SiteNav() {
   }, []);
 
   useEffect(() => {
-    setDashboardNavOpen(false);
+    setOpenSubmenu(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -384,7 +396,8 @@ export default function SiteNav() {
   const unreadCount = notifications.filter(
     (item) => item.createdAtMs !== null && item.createdAtMs > lastReadAtMs,
   ).length;
-  const mobileDashboardItem = navItems.find((item) => item.children?.length);
+  const mobileOpenSubmenuItem =
+    navItems.find((item) => item.children?.length && item.href === openSubmenu) ?? null;
 
   const markAllNotificationsRead = () => {
     if (!currentUserId) return;
@@ -469,19 +482,19 @@ export default function SiteNav() {
       ref={menuRef}
       className="sticky top-0 z-50 border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_60%,#eef2f7_100%)] text-slate-900 shadow-[0_10px_28px_rgba(15,23,42,0.12)] print:hidden dark:border-slate-700/70 dark:bg-[linear-gradient(180deg,#031029_0%,#041737_62%,#072041_100%)] dark:text-slate-100 dark:shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
     >
-      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-6 lg:grid lg:h-16 lg:grid-cols-[1fr_auto_1fr] lg:justify-normal lg:py-0">
+      <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6">
         <Link
           href="/"
-          className="group inline-flex items-center justify-self-start gap-2 font-serif text-3xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
+          className="group inline-flex justify-self-start items-center gap-2 font-serif text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl dark:text-white"
         >
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-400/10 shadow-[0_0_14px_rgba(34,211,238,0.18)] sm:h-8 sm:w-8 dark:border-cyan-200/45 dark:bg-cyan-300/10 dark:shadow-[0_0_18px_rgba(34,211,238,0.28)]">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-400/10 shadow-[0_0_14px_rgba(34,211,238,0.18)] sm:h-8 sm:w-8 dark:border-cyan-200/45 dark:bg-cyan-300/10 dark:shadow-[0_0_18px_rgba(34,211,238,0.28)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
-              className="h-3.5 w-3.5 text-cyan-700 sm:h-4 sm:w-4 dark:text-cyan-200"
+              className="h-4 w-4 text-cyan-700 dark:text-cyan-200"
               aria-hidden="true"
             >
               <path d="M8 10v4M10 9v6M14 9v6M16 10v4" />
@@ -498,36 +511,52 @@ export default function SiteNav() {
                 const isActive = isActiveItem(pathname, item);
 
                 if (item.children?.length) {
+                  const isOpen = openSubmenu === item.href;
+                  const isTrainingMenu = item.href === "/dashboard-menu";
                   return (
                     <div key={item.href} className="relative">
                       <button
                         type="button"
-                        onClick={() => setDashboardNavOpen((value) => !value)}
+                        onClick={() => setOpenSubmenu((value) => (value === item.href ? null : item.href))}
                         aria-haspopup="menu"
-                        aria-expanded={dashboardNavOpen}
-                        aria-label="Toggle training dashboard menu"
+                        aria-expanded={isOpen}
+                        aria-label={`Toggle ${item.label} menu`}
                         className={`relative z-20 flex items-center rounded-xl transition ${
-                          isActive
-                            ? "bg-[linear-gradient(135deg,#c2410c,#9a3412)] text-white shadow-[0_14px_32px_rgba(154,52,18,0.28)] dark:bg-[linear-gradient(135deg,#ea580c,#c2410c)] dark:text-white"
-                            : "border border-orange-200/80 bg-orange-50/85 text-orange-900 hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100 dark:hover:bg-orange-500/15"
+                          isTrainingMenu
+                            ? isActive
+                              ? "bg-[linear-gradient(135deg,#c2410c,#9a3412)] text-white shadow-[0_14px_32px_rgba(154,52,18,0.28)] dark:bg-[linear-gradient(135deg,#ea580c,#c2410c)] dark:text-white"
+                              : "border border-orange-200/80 bg-orange-50/85 text-orange-900 hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100 dark:hover:bg-orange-500/15"
+                            : isActive
+                              ? "bg-slate-900 text-white shadow-[inset_0_0_0_1px_rgba(15,23,42,0.18)] dark:bg-white/18 dark:text-white dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)]"
+                              : "border border-slate-300/80 bg-white/90 text-slate-700 hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
                         }`}
                       >
                         <span className="rounded-l-xl px-3 py-2 text-sm font-semibold">
                           {item.label}
                         </span>
                         <span
-                          className={`rounded-r-xl px-2 py-2 ${isActive ? "text-white" : "text-orange-700 dark:text-orange-200"}`}
+                          className={`rounded-r-xl px-2 py-2 ${
+                            isActive
+                              ? "text-white"
+                              : isTrainingMenu
+                                ? "text-orange-700 dark:text-orange-200"
+                                : "text-slate-600 dark:text-slate-200"
+                          }`}
                         >
                           <ChevronDownIcon
-                            className={`h-4 w-4 transition-transform duration-300 ${dashboardNavOpen ? "rotate-180" : ""}`}
+                            className={`h-4 w-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                           />
                         </span>
                       </button>
 
-                      {dashboardNavOpen ? (
+                      {isOpen ? (
                         <div
                           role="menu"
-                          className="absolute inset-x-0 top-full z-10 -mt-2 overflow-hidden rounded-b-xl border border-orange-300/80 border-t-0 bg-[linear-gradient(180deg,#fed7aa_0%,#fdba74_100%)] px-1.5 pb-1.5 pt-4 text-slate-900 shadow-[0_18px_40px_rgba(194,65,12,0.22)] dark:border-orange-300/30 dark:bg-[linear-gradient(180deg,rgba(154,52,18,0.98),rgba(124,45,18,0.92))] dark:text-orange-50"
+                          className={`absolute inset-x-0 top-full z-10 -mt-2 overflow-hidden rounded-b-xl border border-t-0 px-1.5 pb-1.5 pt-4 ${
+                            isTrainingMenu
+                              ? "border-orange-300/80 bg-[linear-gradient(180deg,#fed7aa_0%,#fdba74_100%)] text-slate-900 shadow-[0_18px_40px_rgba(194,65,12,0.22)] dark:border-orange-300/30 dark:bg-[linear-gradient(180deg,rgba(154,52,18,0.98),rgba(124,45,18,0.92))] dark:text-orange-50"
+                              : "border-slate-300/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] text-slate-900 shadow-[0_18px_40px_rgba(15,23,42,0.16)] dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(15,23,42,0.92))] dark:text-slate-100"
+                          }`}
                         >
                           {item.children.map((child) => {
                             const isChildActive = pathname === child.href;
@@ -536,15 +565,19 @@ export default function SiteNav() {
                                 key={child.href}
                                 type="button"
                                 onClick={() => {
-                                  setDashboardNavOpen(false);
+                                  setOpenSubmenu(null);
                                   router.push(child.href);
                                 }}
                                 aria-current={pathname === child.href ? "page" : undefined}
                                 role="menuitem"
                                 className={`relative z-10 mb-1 block w-full rounded-lg px-4 py-3 text-left text-sm font-semibold transition last:mb-0 ${
                                   isChildActive
-                                    ? "bg-[linear-gradient(135deg,#c2410c,#9a3412)] text-white shadow-[0_10px_22px_rgba(154,52,18,0.24)]"
-                                    : "text-orange-950 hover:bg-white/45 dark:text-orange-50 dark:hover:bg-white/10"
+                                    ? isTrainingMenu
+                                      ? "bg-[linear-gradient(135deg,#c2410c,#9a3412)] text-white shadow-[0_10px_22px_rgba(154,52,18,0.24)]"
+                                      : "bg-slate-900 text-white shadow-[0_10px_22px_rgba(15,23,42,0.2)] dark:bg-white/20 dark:text-white"
+                                    : isTrainingMenu
+                                      ? "text-orange-950 hover:bg-white/45 dark:text-orange-50 dark:hover:bg-white/10"
+                                      : "text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-white/10"
                                 }`}
                               >
                                 {child.label}
@@ -575,7 +608,7 @@ export default function SiteNav() {
             : null}
         </nav>
 
-        <div className="relative ml-auto flex items-center gap-1 sm:gap-2 lg:justify-self-end">
+        <div className="relative flex justify-self-end items-center gap-2">
           {showMemberNav ? (
             <>
               <button
@@ -583,15 +616,15 @@ export default function SiteNav() {
                 onClick={() => {
                   setNotificationsOpen((value) => !value);
                   setMenuOpen(false);
-                  setDashboardNavOpen(false);
+                  setOpenSubmenu(null);
                 }}
-                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white px-0 text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-auto sm:gap-2 sm:px-3 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+                className="relative inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-3 text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
                 aria-label="Open notifications"
                 aria-haspopup="menu"
                 aria-expanded={notificationsOpen}
               >
                 <BellIcon className="h-5 w-5" />
-                <span className="hidden text-sm font-semibold sm:inline">Notifications</span>
+                <span className="text-sm font-semibold">Notifications</span>
                 {unreadCount > 0 ? (
                   <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -602,7 +635,7 @@ export default function SiteNav() {
               {notificationsOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-3 w-[min(20rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md sm:w-80 dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
+                  className="absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 >
                   <div className="mb-1 flex items-center justify-between rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/70">
                     <div>
@@ -689,7 +722,7 @@ export default function SiteNav() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-10 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20"
             aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             title={isDarkMode ? "Light mode" : "Dark mode"}
           >
@@ -703,9 +736,9 @@ export default function SiteNav() {
                 onClick={() => {
                   setMenuOpen((value) => !value);
                   setNotificationsOpen(false);
-                  setDashboardNavOpen(false);
+                  setOpenSubmenu(null);
                 }}
-                className="flex items-center gap-1 rounded-full border border-slate-300 bg-white py-1 pl-1 pr-1.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 sm:gap-2 sm:py-1.5 sm:pl-1.5 sm:pr-3 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                className="flex items-center gap-2 rounded-full border border-slate-300 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
                 aria-label="Open account menu"
@@ -715,7 +748,7 @@ export default function SiteNav() {
                   <img
                     src={profilePhoto}
                     alt={`${profileName} profile`}
-                    className="h-7 w-7 rounded-full border border-slate-300 object-cover sm:h-7 sm:w-7 dark:border-white/35"
+                    className="h-7 w-7 rounded-full border border-slate-300 object-cover dark:border-white/35"
                   />
                 ) : (
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-white/90 dark:text-slate-900">
@@ -723,13 +756,13 @@ export default function SiteNav() {
                   </span>
                 )}
                 <span className="hidden max-w-[120px] truncate sm:inline">{profileName}</span>
-                <UserIcon className="hidden h-4 w-4 text-slate-600 sm:block dark:text-white/80" />
+                <UserIcon className="h-4 w-4 text-slate-600 dark:text-white/80" />
               </button>
 
               {menuOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-3 w-[min(14rem,calc(100vw-1rem))] overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md sm:w-56 dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
+                  className="absolute right-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(248,250,252,0.95))] p-1.5 text-slate-900 shadow-[0_16px_40px_rgba(2,6,23,0.22)] backdrop-blur-md dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.97),rgba(15,23,42,0.92))] dark:text-slate-100 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)]"
                 >
                   <div className="mb-1 rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/70">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{profileName}</p>
@@ -746,13 +779,10 @@ export default function SiteNav() {
                   <button
                     type="button"
                     onClick={async () => {
-                      const params = new URLSearchParams({
-                        mode: "signed-out",
-                        name: profileName,
-                      });
+                      const logoutRoute = buildLogoutRoute(profileName);
                       await signOut(auth);
                       setMenuOpen(false);
-                      router.push(`/welcome?${params.toString()}`);
+                      router.push(logoutRoute);
                     }}
                     className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                     role="menuitem"
@@ -766,13 +796,13 @@ export default function SiteNav() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs font-semibold text-slate-800 transition hover:bg-slate-100 sm:px-3 sm:text-sm dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-white/25 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
               >
                 Login
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-slate-900 px-2.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 sm:px-3 sm:text-sm dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
               >
                 Sign Up
               </Link>
@@ -791,21 +821,27 @@ export default function SiteNav() {
               const isActive = isActiveItem(pathname, item);
 
               if (item.children?.length) {
+                const isOpen = openSubmenu === item.href;
+                const isTrainingMenu = item.href === "/dashboard-menu";
                 return (
                   <div key={item.href} className="min-w-fit">
                     <button
                       type="button"
-                      onClick={() => setDashboardNavOpen((value) => !value)}
+                      onClick={() => setOpenSubmenu((value) => (value === item.href ? null : item.href))}
                       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                         isActive
-                          ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)] dark:border-orange-300/35 dark:bg-[linear-gradient(135deg,rgba(30,41,59,0.96),rgba(51,65,85,0.92))] dark:text-orange-100 dark:shadow-[0_14px_30px_rgba(2,6,23,0.48)]"
-                          : "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100"
+                          ? isTrainingMenu
+                            ? "border-orange-400 bg-orange-500 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]"
+                            : "border-slate-700 bg-slate-900 text-white dark:border-white/20 dark:bg-white/20 dark:text-white"
+                          : isTrainingMenu
+                            ? "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-300/20 dark:bg-orange-500/10 dark:text-orange-100"
+                            : "border-slate-200 bg-slate-100 text-slate-700 dark:border-white/20 dark:bg-white/10 dark:text-slate-200"
                       }`}
-                      aria-expanded={dashboardNavOpen}
+                      aria-expanded={isOpen}
                     >
                       {item.label}
                       <ChevronDownIcon
-                        className={`h-3.5 w-3.5 transition-transform duration-300 ${dashboardNavOpen ? "rotate-180" : ""}`}
+                        className={`h-3.5 w-3.5 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                       />
                     </button>
                   </div>
@@ -829,26 +865,34 @@ export default function SiteNav() {
             })}
           </div>
 
-          {dashboardNavOpen && mobileDashboardItem?.children?.length ? (
+          {mobileOpenSubmenuItem?.children?.length ? (
             <div
               role="menu"
-              className="absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] p-2 shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/25 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96))] dark:shadow-[0_18px_40px_rgba(2,6,23,0.52)]"
+              className={`absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border p-2 dark:shadow-[0_18px_40px_rgba(2,6,23,0.52)] ${
+                mobileOpenSubmenuItem.href === "/dashboard-menu"
+                  ? "border-orange-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffedd5_100%)] shadow-[0_14px_34px_rgba(249,115,22,0.18)] dark:border-orange-300/25 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96))]"
+                  : "border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_14px_34px_rgba(15,23,42,0.12)] dark:border-white/20 dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96))]"
+              }`}
             >
-              {mobileDashboardItem.children.map((child) => {
+              {mobileOpenSubmenuItem.children.map((child) => {
                 const isChildActive = pathname === child.href;
                 return (
                   <button
                     key={child.href}
                     type="button"
                     onClick={() => {
-                      setDashboardNavOpen(false);
+                      setOpenSubmenu(null);
                       router.push(child.href);
                     }}
                     role="menuitem"
                     className={`mb-1 block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold transition last:mb-0 ${
                       isChildActive
-                        ? "bg-orange-500 text-white dark:bg-[linear-gradient(135deg,rgba(234,88,12,0.88),rgba(194,65,12,0.92))] dark:text-white dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.16)]"
-                        : "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/8"
+                        ? mobileOpenSubmenuItem.href === "/dashboard-menu"
+                          ? "bg-orange-500 text-white dark:bg-[linear-gradient(135deg,rgba(234,88,12,0.88),rgba(194,65,12,0.92))] dark:text-white dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.16)]"
+                          : "bg-slate-900 text-white dark:bg-white/20 dark:text-white"
+                        : mobileOpenSubmenuItem.href === "/dashboard-menu"
+                          ? "text-orange-900 hover:bg-white/70 dark:text-orange-50 dark:hover:bg-white/8"
+                          : "text-slate-800 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-white/8"
                     }`}
                   >
                     {child.label}

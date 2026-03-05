@@ -3,10 +3,8 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, updateProfile } from "firebase/auth";
-import { getAuthHeaders } from "@/lib/authenticated-fetch";
 import { auth } from "@/lib/firebase";
 import { saveMemberProfile } from "@/lib/member-db";
-import { isNutritionProfileComplete } from "@/lib/nutrition-profile";
 import { loadPlannerDraft } from "@/lib/planner-db";
 import { loadUserProfile, saveUserProfile, type UserProfile } from "@/lib/profile-db";
 import { savePublicUserProfile } from "@/lib/public-profile-db";
@@ -102,14 +100,6 @@ const buildFallbackUsername = (email: string | null | undefined): string => {
   return email.split("@")[0] || "";
 };
 
-const parseOptionalNumber = (value: string): number | null => {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed)) return null;
-  return Math.round(parsed);
-};
-
 const dataUrlToBytes = (dataUrl: string): number => {
   const payload = dataUrl.split(",")[1] || "";
   return Math.ceil((payload.length * 3) / 4);
@@ -181,7 +171,6 @@ export default function ProfileClient() {
   const [isAuthResolved, setIsAuthResolved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUpdatingNutrition, setIsUpdatingNutrition] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [currentSplitName, setCurrentSplitName] = useState("");
@@ -466,47 +455,6 @@ export default function ProfileClient() {
     }
   };
 
-  const handleNutritionUpdate = async () => {
-    setStatus(null);
-
-    try {
-      const headers = await getAuthHeaders();
-      setIsUpdatingNutrition(true);
-
-      const response = await fetch("/api/v1/nutrition/plan", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          sex: profile.sex,
-          age: profile.age,
-          heightCm: profile.heightCm,
-          weightKg: profile.weightKg,
-          activityLevel: profile.activityLevel,
-          nutritionGoal: profile.nutritionGoal,
-          dailyCalorieOverride: profile.dailyCalorieOverride,
-          mealsPerDay: profile.mealsPerDay,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(errorData?.message || "Unable to update nutrition plan.");
-      }
-
-      setStatus({
-        type: "success",
-        message: "Nutrition plan updated. Review it in Nutrition.",
-      });
-    } catch (error) {
-      setStatus({
-        type: "error",
-        message: error instanceof Error ? error.message : "Unable to update nutrition plan.",
-      });
-    } finally {
-      setIsUpdatingNutrition(false);
-    }
-  };
-
   if (!isAuthResolved || isLoading) {
     return (
       <section className="mx-auto w-full max-w-4xl px-6 py-10">
@@ -534,7 +482,7 @@ export default function ProfileClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Account</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Profile</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Edit your public profile details and the nutrition inputs Arc uses for calories, macros, and meal suggestions.
+          Edit your public profile details. Nutrition setup now has a dedicated page.
         </p>
         <Link
           href={`/users/${userId}`}
@@ -690,146 +638,16 @@ export default function ProfileClient() {
             </div>
 
             <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                    Nutrition Setup
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Update the inputs that drive your calorie target and active meal plan.
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    isNutritionProfileComplete(profile)
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {isNutritionProfileComplete(profile) ? "Complete" : "Needs attention"}
-                </span>
-              </div>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="profile-age" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Age
-                  </label>
-                  <input
-                    id="profile-age"
-                    type="number"
-                    min="13"
-                    max="100"
-                    value={profile.age ?? ""}
-                    onChange={(event) => updateField("age", parseOptionalNumber(event.target.value))}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="profile-height" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Height (cm)
-                  </label>
-                  <input
-                    id="profile-height"
-                    type="number"
-                    min="100"
-                    max="250"
-                    value={profile.heightCm ?? ""}
-                    onChange={(event) => updateField("heightCm", parseOptionalNumber(event.target.value))}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="profile-weight" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Weight (kg)
-                  </label>
-                  <input
-                    id="profile-weight"
-                    type="number"
-                    min="30"
-                    max="300"
-                    value={profile.weightKg ?? ""}
-                    onChange={(event) => updateField("weightKg", parseOptionalNumber(event.target.value))}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="profile-activity" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Activity level
-                  </label>
-                  <select
-                    id="profile-activity"
-                    value={profile.activityLevel}
-                    onChange={(event) =>
-                      updateField("activityLevel", event.target.value as UserProfile["activityLevel"])
-                    }
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  >
-                    <option value="">Select activity</option>
-                    <option value="sedentary">Sedentary</option>
-                    <option value="light">Lightly active</option>
-                    <option value="moderate">Moderately active</option>
-                    <option value="active">Active</option>
-                    <option value="very_active">Very active</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="profile-goal" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Goal
-                  </label>
-                  <select
-                    id="profile-goal"
-                    value={profile.nutritionGoal}
-                    onChange={(event) =>
-                      updateField("nutritionGoal", event.target.value as UserProfile["nutritionGoal"])
-                    }
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  >
-                    <option value="">Select goal</option>
-                    <option value="lose">Lose</option>
-                    <option value="maintain">Maintain</option>
-                    <option value="gain">Gain</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="profile-meals" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Preferred meal count
-                  </label>
-                  <select
-                    id="profile-meals"
-                    value={profile.mealsPerDay ?? 3}
-                    onChange={(event) => updateField("mealsPerDay", parseOptionalNumber(event.target.value))}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  >
-                    <option value="3">3 meals</option>
-                    <option value="4">4 meals</option>
-                    <option value="5">5 meals</option>
-                  </select>
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label htmlFor="profile-calorie-override" className="mb-1 block text-sm font-semibold text-slate-700">
-                    Manual calorie override
-                  </label>
-                  <input
-                    id="profile-calorie-override"
-                    type="number"
-                    min="1200"
-                    max="5000"
-                    value={profile.dailyCalorieOverride ?? ""}
-                    onChange={(event) =>
-                      updateField("dailyCalorieOverride", parseOptionalNumber(event.target.value))
-                    }
-                    placeholder="Optional"
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
-                  />
-                </div>
-              </div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Nutrition Setup</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Nutrition setup now lives on its own page for a cleaner profile experience.
+              </p>
+              <Link
+                href="/nutrition/setup"
+                className="mt-3 inline-flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                Open nutrition setup
+              </Link>
             </div>
           </div>
 
@@ -852,14 +670,6 @@ export default function ProfileClient() {
             >
               View nutrition
             </Link>
-            <button
-              type="button"
-              onClick={handleNutritionUpdate}
-              disabled={isUpdatingNutrition}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isUpdatingNutrition ? "Updating nutrition..." : "Update nutrition plan"}
-            </button>
             <button
               type="submit"
               disabled={isSaving}

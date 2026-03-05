@@ -141,11 +141,39 @@ export const buildPlanningCatalog = async (): Promise<FoodCatalogItem[]> => {
     return fallbackFoodCatalog;
   }
 
+  const isOutlierName = (name: string) =>
+    /(dehydrated|dried|powder|concentrate|sweetened|syrup|mix|formula|meal replacement)/i.test(name);
+
+  const scoreCandidate = (fallback: FoodCatalogItem, candidate: FoodCatalogItem) => {
+    const fallbackName = fallback.name.toLowerCase();
+    const candidateName = candidate.name.toLowerCase();
+
+    let score = 0;
+    if (candidate.category === fallback.category) score += 80;
+    if (candidateName.includes(fallbackName) || fallbackName.includes(candidateName)) score += 50;
+    if (/(raw|fresh|plain|cooked|boiled|baked|roasted)/i.test(candidate.name)) score += 15;
+    if (isOutlierName(candidate.name)) score -= 180;
+
+    // Prefer nutrient profiles near the known local fallback baseline.
+    score -= Math.abs(candidate.calories - fallback.calories) * 1.2;
+    score -= Math.abs(candidate.proteinGrams - fallback.proteinGrams) * 3;
+    score -= Math.abs(candidate.carbsGrams - fallback.carbsGrams) * 2;
+    score -= Math.abs(candidate.fatGrams - fallback.fatGrams) * 2;
+
+    return score;
+  };
+
   const normalizedFoods = await Promise.all(
     fallbackFoodCatalog.map(async (fallback) => {
       try {
         const usdaResults = await searchUsdaFoods(fallback.name, 4);
-        const match = usdaResults.find((candidate) => candidate.category === fallback.category) ?? usdaResults[0];
+        if (usdaResults.length === 0) return fallback;
+
+        const ranked = [...usdaResults]
+          .filter((candidate) => !isOutlierName(candidate.name))
+          .sort((left, right) => scoreCandidate(fallback, right) - scoreCandidate(fallback, left));
+
+        const match = ranked[0] ?? usdaResults.sort((left, right) => scoreCandidate(fallback, right) - scoreCandidate(fallback, left))[0];
         return match ?? fallback;
       } catch {
         return fallback;

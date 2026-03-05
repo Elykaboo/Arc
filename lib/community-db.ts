@@ -126,20 +126,6 @@ const mapCommunityComment = (
   createdAt: data.createdAt ?? null,
 });
 
-const mapCommunityPost = (
-  documentId: string,
-  data: CommunityPostDocument,
-): CommunityPost => ({
-  id: documentId,
-  uid: data.uid,
-  authorName: data.authorName,
-  authorPhotoDataUrl: data.authorPhotoDataUrl,
-  caption: data.caption,
-  progressPhotoDataUrl: data.progressPhotoDataUrl,
-  progressPhotoDataUrls: normalizePhotoDataUrls(data.progressPhotoDataUrls, data.progressPhotoDataUrl),
-  createdAt: data.createdAt ?? null,
-});
-
 export const createCommunityPost = async (input: {
   uid: string;
   authorName: string;
@@ -174,7 +160,19 @@ export const listCommunityPosts = async (maxItems = 30): Promise<CommunityPost[]
   const postsQuery = query(communityPostsCollection, orderBy("createdAt", "desc"), limit(maxItems));
   const snapshot = await getDocs(postsQuery);
 
-  return snapshot.docs.map((docSnapshot) => mapCommunityPost(docSnapshot.id, docSnapshot.data()));
+  return snapshot.docs.map((docSnapshot) => {
+    const data = docSnapshot.data();
+    return {
+      id: docSnapshot.id,
+      uid: data.uid,
+      authorName: data.authorName,
+      authorPhotoDataUrl: data.authorPhotoDataUrl,
+      caption: data.caption,
+      progressPhotoDataUrl: data.progressPhotoDataUrl,
+      progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
+      createdAt: data.createdAt ?? null,
+    };
+  });
 };
 
 export const getCommunityPostById = async (postId: string): Promise<CommunityPost | null> => {
@@ -184,7 +182,17 @@ export const getCommunityPostById = async (postId: string): Promise<CommunityPos
   const snapshot = await getDoc(doc(db, "communityPosts", cleanedPostId).withConverter(communityPostConverter));
   if (!snapshot.exists()) return null;
 
-  return mapCommunityPost(snapshot.id, snapshot.data());
+  const data = snapshot.data();
+  return {
+    id: snapshot.id,
+    uid: data.uid,
+    authorName: data.authorName,
+    authorPhotoDataUrl: data.authorPhotoDataUrl,
+    caption: data.caption,
+    progressPhotoDataUrl: data.progressPhotoDataUrl,
+    progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
+    createdAt: data.createdAt ?? null,
+  };
 };
 
 export const subscribeCommunityPosts = (
@@ -197,7 +205,21 @@ export const subscribeCommunityPosts = (
   return onSnapshot(
     postsQuery,
     (snapshot) => {
-      onData(snapshot.docs.map((docSnapshot) => mapCommunityPost(docSnapshot.id, docSnapshot.data())));
+      onData(
+        snapshot.docs.map((docSnapshot) => {
+          const data = docSnapshot.data();
+          return {
+            id: docSnapshot.id,
+            uid: data.uid,
+            authorName: data.authorName,
+            authorPhotoDataUrl: data.authorPhotoDataUrl,
+            caption: data.caption,
+            progressPhotoDataUrl: data.progressPhotoDataUrl,
+            progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
+            createdAt: data.createdAt ?? null,
+          };
+        }),
+      );
     },
     (error) => {
       onError?.(error);
@@ -213,7 +235,19 @@ export const listCommunityPostsByUser = async (
   const snapshot = await getDocs(postsQuery);
 
   return snapshot.docs
-    .map((docSnapshot) => mapCommunityPost(docSnapshot.id, docSnapshot.data()))
+    .map((docSnapshot) => {
+      const data = docSnapshot.data();
+      return {
+        id: docSnapshot.id,
+        uid: data.uid,
+        authorName: data.authorName,
+        authorPhotoDataUrl: data.authorPhotoDataUrl,
+        caption: data.caption,
+        progressPhotoDataUrl: data.progressPhotoDataUrl,
+        progressPhotoDataUrls: data.progressPhotoDataUrls ?? [],
+        createdAt: data.createdAt ?? null,
+      };
+    })
     .sort((a, b) => {
       const aTime = a.createdAt?.toMillis?.() ?? 0;
       const bTime = b.createdAt?.toMillis?.() ?? 0;

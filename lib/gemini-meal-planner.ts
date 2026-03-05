@@ -17,10 +17,22 @@ const parseSuggestion = (rawText: string): MealRefinementSuggestion | null => {
 };
 
 export const refineMealPlanWithGemini = async ({
+  profile,
+  nutritionGoal,
+  mealsPerDay,
   targets,
   meals,
   candidates,
 }: {
+  profile: {
+    sex: string;
+    age: number;
+    heightCm: number;
+    weightKg: number;
+    activityLevel: string;
+  };
+  nutritionGoal: string | null;
+  mealsPerDay: number;
   targets: {
     calories: number;
     proteinGrams: number;
@@ -46,13 +58,26 @@ export const refineMealPlanWithGemini = async ({
             parts: [
               {
                 text: [
-                  "Refine this meal plan without inventing foods or nutrient values.",
+                  "You are refining a nutrition meal plan for a specific user profile.",
+                  "Do not invent foods, IDs, meal slots, or nutrient values.",
                   "Return JSON only with shape: {\"meals\":[{\"slot\":\"breakfast\",\"label\":\"...\",\"items\":[{\"foodId\":\"...\",\"quantity\":1}]}]}",
+                  "Rules:",
+                  "- Keep exactly the same meal slots as Current meals, no extras and no missing slots.",
+                  "- Use only foodId values from Allowed foods.",
+                  "- Keep quantity between 0.25 and 4.0 and use 0.25 increments.",
+                  "- Prefer foods tagged for that meal slot (breakfast/lunch/dinner/snack).",
+                  "- Try to match daily macro targets as closely as possible.",
+                  "- Hard constraint: daily calories, protein, carbs, and fat must NOT exceed Targets.",
+                  `User profile: ${JSON.stringify(profile)}`,
+                  `Nutrition goal: ${nutritionGoal ?? "maintain"}`,
+                  `Meals per day: ${mealsPerDay}`,
                   `Targets: ${JSON.stringify(targets)}`,
                   `Current meals: ${JSON.stringify(meals)}`,
                   `Allowed foods: ${JSON.stringify(candidates.map((item) => ({
                     foodId: item.foodId,
                     name: item.name,
+                    category: item.category,
+                    mealTags: item.mealTags,
                     servingLabel: item.servingLabel,
                     calories: item.calories,
                     proteinGrams: item.proteinGrams,
@@ -65,7 +90,7 @@ export const refineMealPlanWithGemini = async ({
           },
         ],
         generationConfig: {
-          temperature: 0.3,
+          temperature: 0.1,
           responseMimeType: "application/json",
         },
       }),

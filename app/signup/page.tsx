@@ -25,7 +25,7 @@ export default function SignupPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && !isCreatingAccountRef.current) {
         if (user.emailVerified) {
-          router.replace("/socializing");
+          router.replace("/");
           return;
         }
 
