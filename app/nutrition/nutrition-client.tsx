@@ -745,6 +745,47 @@ export default function NutritionClient() {
     }
   };
 
+  const handleClearMealSlot = async (meal: NutritionDashboardResponse["meals"][number]) => {
+    if (!dashboard || meal.entries.length === 0) return;
+
+    const shouldClear = window.confirm(
+      `Clear all ${meal.entries.length} item${meal.entries.length === 1 ? "" : "s"} from ${meal.slotLabel}?`,
+    );
+    if (!shouldClear) return;
+
+    setIsBusy(true);
+    setStatus(null);
+    try {
+      const headers = await getAuthHeaders();
+      const deletions = await Promise.all(
+        meal.entries.map(async (entry) => {
+          const response = await fetch(`/api/v1/nutrition/logs/${dashboard.date}/entries/${entry.id}`, {
+            method: "DELETE",
+            headers,
+          });
+          if (!response.ok) {
+            const data = (await response.json().catch(() => null)) as { message?: string } | null;
+            return data?.message || "Unable to delete one or more entries.";
+          }
+          return null;
+        }),
+      );
+
+      const failed = deletions.filter(Boolean).length;
+      if (failed > 0) {
+        await refreshAll(
+          `${meal.entries.length - failed} item${meal.entries.length - failed === 1 ? "" : "s"} cleared from ${meal.slotLabel}, ${failed} failed.`,
+        );
+      } else {
+        await refreshAll(`${meal.slotLabel} cleared.`);
+      }
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to clear meal slot.");
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
   const submitFoodForm = async () => {
     setIsBusy(true);
     setStatus(null);
@@ -1206,6 +1247,14 @@ export default function NutritionClient() {
                     className="w-full rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
                     Save as meal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleClearMealSlot(meal)}
+                    disabled={meal.entries.length === 0 || isBusy}
+                    className="w-full rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  >
+                    Clear slot
                   </button>
                 </div>
 
