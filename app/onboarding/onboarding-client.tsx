@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { getAuthHeaders } from "@/lib/authenticated-fetch";
@@ -10,7 +10,7 @@ import { isNutritionProfileComplete } from "@/lib/nutrition-profile";
 
 const defaultProfile: Pick<
   UserProfile,
-  "sex" | "age" | "heightCm" | "weightKg" | "activityLevel" | "nutritionGoal" | "mealsPerDay"
+  "sex" | "age" | "heightCm" | "weightKg" | "activityLevel" | "nutritionGoal" | "dailyCalorieOverride" | "mealsPerDay"
 > = {
   sex: "",
   age: null,
@@ -18,14 +18,27 @@ const defaultProfile: Pick<
   weightKg: null,
   activityLevel: "",
   nutritionGoal: "",
+  dailyCalorieOverride: null,
   mealsPerDay: 3,
 };
 
-const parseInteger = (value: string): number | null => {
+const parseOptionalNumber = (value: string): number | null => {
   if (!value.trim()) return null;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
   return Math.round(parsed);
+};
+
+const fallbackProfileValues: Required<
+  Pick<UserProfile, "sex" | "age" | "heightCm" | "weightKg" | "activityLevel" | "nutritionGoal" | "mealsPerDay">
+> = {
+  sex: "male",
+  age: 25,
+  heightCm: 170,
+  weightKg: 70,
+  activityLevel: "moderate",
+  nutritionGoal: "maintain",
+  mealsPerDay: 3,
 };
 
 export default function OnboardingClient() {
@@ -34,6 +47,19 @@ export default function OnboardingClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const setupComplete = useMemo(
+    () =>
+      isNutritionProfileComplete({
+        sex: profile.sex,
+        age: profile.age,
+        heightCm: profile.heightCm,
+        weightKg: profile.weightKg,
+        activityLevel: profile.activityLevel,
+        nutritionGoal: profile.nutritionGoal,
+        mealsPerDay: profile.mealsPerDay,
+      }),
+    [profile],
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -57,11 +83,12 @@ export default function OnboardingClient() {
             weightKg: storedProfile.weightKg,
             activityLevel: storedProfile.activityLevel,
             nutritionGoal: storedProfile.nutritionGoal,
+            dailyCalorieOverride: storedProfile.dailyCalorieOverride,
             mealsPerDay: storedProfile.mealsPerDay ?? 3,
           });
 
           if (isNutritionProfileComplete(storedProfile)) {
-            router.replace("/nutrition");
+            router.replace("/socializing");
             return;
           }
         }
@@ -91,9 +118,53 @@ export default function OnboardingClient() {
         throw new Error(errorData?.message || "Unable to save your nutrition profile.");
       }
 
-      router.replace("/nutrition");
+      const resolvedName =
+        auth.currentUser?.displayName?.trim() ||
+        auth.currentUser?.email?.split("@")[0]?.trim() ||
+        "Athlete";
+      router.replace(`/welcome?mode=new&name=${encodeURIComponent(resolvedName)}&next=${encodeURIComponent("/socializing")}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Unable to save your nutrition profile.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSkipForNow = async () => {
+    setStatus(null);
+    setIsSubmitting(true);
+
+    const skipPayload = {
+      ...profile,
+      sex: profile.sex || fallbackProfileValues.sex,
+      age: profile.age ?? fallbackProfileValues.age,
+      heightCm: profile.heightCm ?? fallbackProfileValues.heightCm,
+      weightKg: profile.weightKg ?? fallbackProfileValues.weightKg,
+      activityLevel: profile.activityLevel || fallbackProfileValues.activityLevel,
+      nutritionGoal: profile.nutritionGoal || fallbackProfileValues.nutritionGoal,
+      mealsPerDay: profile.mealsPerDay ?? fallbackProfileValues.mealsPerDay,
+    };
+
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch("/api/v1/nutrition/plan", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(skipPayload),
+      });
+
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(errorData?.message || "Unable to continue right now.");
+      }
+
+      const resolvedName =
+        auth.currentUser?.displayName?.trim() ||
+        auth.currentUser?.email?.split("@")[0]?.trim() ||
+        "Athlete";
+      router.replace(`/welcome?mode=new&name=${encodeURIComponent(resolvedName)}&next=${encodeURIComponent("/socializing")}`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to continue right now.");
     } finally {
       setIsSubmitting(false);
     }
@@ -104,28 +175,42 @@ export default function OnboardingClient() {
   }
 
   return (
-    <section className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-6 py-10">
-      <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-900">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-          Nutrition Setup
+    <section className="mx-auto w-full max-w-4xl px-6 py-10">
+      <div className="mb-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Nutrition</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Nutrition Setup</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Update the inputs that drive your calorie target and meal recommendations.
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          Build your first meal plan
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Arc uses your body data and goal to calculate calories, split macros, and generate a meal plan you can edit later in Profile.
-        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
           <div>
-            <label htmlFor="onboarding-sex" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Status</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {setupComplete ? "Setup is complete and ready for plan generation." : "Complete all required fields."}
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              setupComplete ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+            }`}
+          >
+            {setupComplete ? "Complete" : "Needs attention"}
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="onboarding-sex" className="mb-1 block text-sm font-semibold text-slate-700">
               Sex
             </label>
             <select
               id="onboarding-sex"
               value={profile.sex}
               onChange={(event) => setProfile((current) => ({ ...current, sex: event.target.value as UserProfile["sex"] }))}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             >
               <option value="">Select sex</option>
@@ -136,7 +221,7 @@ export default function OnboardingClient() {
           </div>
 
           <div>
-            <label htmlFor="onboarding-age" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label htmlFor="onboarding-age" className="mb-1 block text-sm font-semibold text-slate-700">
               Age
             </label>
             <input
@@ -145,14 +230,14 @@ export default function OnboardingClient() {
               min="13"
               max="100"
               value={profile.age ?? ""}
-              onChange={(event) => setProfile((current) => ({ ...current, age: parseInteger(event.target.value) }))}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              onChange={(event) => setProfile((current) => ({ ...current, age: parseOptionalNumber(event.target.value) }))}
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="onboarding-height" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label htmlFor="onboarding-height" className="mb-1 block text-sm font-semibold text-slate-700">
               Height (cm)
             </label>
             <input
@@ -161,14 +246,14 @@ export default function OnboardingClient() {
               min="100"
               max="250"
               value={profile.heightCm ?? ""}
-              onChange={(event) => setProfile((current) => ({ ...current, heightCm: parseInteger(event.target.value) }))}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              onChange={(event) => setProfile((current) => ({ ...current, heightCm: parseOptionalNumber(event.target.value) }))}
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="onboarding-weight" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label htmlFor="onboarding-weight" className="mb-1 block text-sm font-semibold text-slate-700">
               Weight (kg)
             </label>
             <input
@@ -177,14 +262,14 @@ export default function OnboardingClient() {
               min="30"
               max="300"
               value={profile.weightKg ?? ""}
-              onChange={(event) => setProfile((current) => ({ ...current, weightKg: parseInteger(event.target.value) }))}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              onChange={(event) => setProfile((current) => ({ ...current, weightKg: parseOptionalNumber(event.target.value) }))}
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="onboarding-activity" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label htmlFor="onboarding-activity" className="mb-1 block text-sm font-semibold text-slate-700">
               Activity level
             </label>
             <select
@@ -193,7 +278,7 @@ export default function OnboardingClient() {
               onChange={(event) =>
                 setProfile((current) => ({ ...current, activityLevel: event.target.value as UserProfile["activityLevel"] }))
               }
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             >
               <option value="">Select activity</option>
@@ -206,7 +291,7 @@ export default function OnboardingClient() {
           </div>
 
           <div>
-            <label htmlFor="onboarding-goal" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label htmlFor="onboarding-goal" className="mb-1 block text-sm font-semibold text-slate-700">
               Goal
             </label>
             <select
@@ -215,7 +300,7 @@ export default function OnboardingClient() {
               onChange={(event) =>
                 setProfile((current) => ({ ...current, nutritionGoal: event.target.value as UserProfile["nutritionGoal"] }))
               }
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             >
               <option value="">Select goal</option>
@@ -226,22 +311,43 @@ export default function OnboardingClient() {
           </div>
 
           <div className="sm:col-span-2">
-            <label htmlFor="onboarding-meals" className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label htmlFor="onboarding-meals" className="mb-1 block text-sm font-semibold text-slate-700">
               Preferred meal count
             </label>
             <select
               id="onboarding-meals"
               value={profile.mealsPerDay ?? 3}
               onChange={(event) =>
-                setProfile((current) => ({ ...current, mealsPerDay: parseInteger(event.target.value) ?? 3 }))
+                setProfile((current) => ({ ...current, mealsPerDay: parseOptionalNumber(event.target.value) ?? 3 }))
               }
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
               required
             >
+              <option value="2">2 meals</option>
               <option value="3">3 meals</option>
               <option value="4">4 meals</option>
               <option value="5">5 meals</option>
+              <option value="6">6 meals</option>
+              <option value="7">7 meals</option>
             </select>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="onboarding-calorie-override" className="mb-1 block text-sm font-semibold text-slate-700">
+              Manual calorie override
+            </label>
+            <input
+              id="onboarding-calorie-override"
+              type="number"
+              min="1200"
+              max="5000"
+              value={profile.dailyCalorieOverride ?? ""}
+              onChange={(event) =>
+                setProfile((current) => ({ ...current, dailyCalorieOverride: parseOptionalNumber(event.target.value) }))
+              }
+              placeholder="Optional"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-slate-300"
+            />
           </div>
 
           {status ? (
@@ -250,7 +356,15 @@ export default function OnboardingClient() {
             </p>
           ) : null}
 
-          <div className="sm:col-span-2 flex justify-end">
+          <div className="sm:col-span-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => void handleSkipForNow()}
+              disabled={isSubmitting}
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              Skip for now
+            </button>
             <button
               type="submit"
               disabled={isSubmitting}
@@ -259,8 +373,8 @@ export default function OnboardingClient() {
               {isSubmitting ? "Building plan..." : "Continue to nutrition"}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </section>
   );
 }

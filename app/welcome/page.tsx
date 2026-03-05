@@ -10,6 +10,11 @@ function WelcomePageContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
   const name = searchParams.get("name")?.trim() || "";
+  const requestedNext = searchParams.get("next")?.trim() || "/";
+  const nextRoute =
+    requestedNext.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/";
   const safeName = name || "Athlete";
   const message =
     mode === "new"
@@ -31,11 +36,11 @@ function WelcomePageContent() {
     }
 
     const timer = window.setTimeout(() => {
-      router.replace("/");
+      router.replace(nextRoute);
     }, DISPLAY_MS);
 
     return () => window.clearTimeout(timer);
-  }, [message, router]);
+  }, [message, nextRoute, router]);
 
   if (!message) {
     return null;

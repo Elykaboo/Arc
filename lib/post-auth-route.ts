@@ -16,5 +16,5 @@ export const resolvePostAuthRoute = async ({
   }
 
   const resolvedName = displayName?.trim() || email?.split("@")[0]?.trim() || "Athlete";
-  return `/welcome?mode=returning&name=${encodeURIComponent(resolvedName)}`;
+  return `/welcome?mode=returning&name=${encodeURIComponent(resolvedName)}&next=${encodeURIComponent("/socializing")}`;
 };

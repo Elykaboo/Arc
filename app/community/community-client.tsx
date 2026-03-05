@@ -22,6 +22,7 @@ import {
   deleteCommunityPost,
   getCommunityPostById,
   getCommunityPostPhotoDataUrls,
+  listCommunityCommentCountsForPosts,
   listCommunityCommentsForPosts,
   listCommunityPosts,
   listCommunityPostsByUser,
@@ -35,6 +36,8 @@ const MAX_UPLOAD_PHOTOS = 6;
 const MAX_PREVIEW_PHOTO_DATA_URL_BYTES = 160_000;
 const MAX_TOTAL_PHOTO_DATA_URL_BYTES = 720_000;
 const PHOTO_FRAME_ASPECT_RATIO = 4 / 5;
+const INITIAL_VISIBLE_COMMENTS = 4;
+const COMMENTS_PAGE_STEP = 6;
 
 type CropSettings = {
   zoom: number;
@@ -315,10 +318,14 @@ export default function CommunityClient({
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [likedPostIds, setLikedPostIds] = useState<Record<string, boolean>>({});
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
+  const [commentCountsByPost, setCommentCountsByPost] = useState<Record<string, number>>({});
+  const [commentsLoadingByPost, setCommentsLoadingByPost] = useState<Record<string, boolean>>({});
+  const [visibleCommentsByPost, setVisibleCommentsByPost] = useState<Record<string, number>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [activePhotoIndexByPost, setActivePhotoIndexByPost] = useState<Record<string, number>>({});
   const [commentDeleteBusyId, setCommentDeleteBusyId] = useState<string | null>(null);
+  const [commentSubmitBusyPostId, setCommentSubmitBusyPostId] = useState<string | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
   const [menuActionPostId, setMenuActionPostId] = useState<string | null>(null);
@@ -341,12 +348,24 @@ export default function CommunityClient({
     maxTranslateY: number;
   } | null>(null);
 
-  const refreshCommentsForPost = async (postId: string) => {
-    const refreshedComments = await listCommunityCommentsForPosts([postId]);
-    setCommentsByPost((current) => ({
-      ...current,
-      [postId]: refreshedComments[postId] || [],
-    }));
+  const refreshCommentsForPost = async (postId: string, force = false) => {
+    if (!force && Object.prototype.hasOwnProperty.call(commentsByPost, postId)) return;
+
+    setCommentsLoadingByPost((current) => ({ ...current, [postId]: true }));
+    try {
+      const refreshedComments = await listCommunityCommentsForPosts([postId]);
+      const nextComments = refreshedComments[postId] || [];
+      setCommentsByPost((current) => ({
+        ...current,
+        [postId]: nextComments,
+      }));
+      setCommentCountsByPost((current) => ({
+        ...current,
+        [postId]: nextComments.length,
+      }));
+    } finally {
+      setCommentsLoadingByPost((current) => ({ ...current, [postId]: false }));
+    }
   };
 
   useEffect(() => {
@@ -496,30 +515,61 @@ export default function CommunityClient({
   useEffect(() => {
     const visiblePostIds = posts.map((post) => post.id);
     if (visiblePostIds.length === 0) {
-      setCommentsByPost({});
+      setCommentCountsByPost({});
       return;
     }
 
     let cancelled = false;
 
-    const loadComments = async () => {
+    const loadCommentCounts = async () => {
       try {
-        const comments = await listCommunityCommentsForPosts(visiblePostIds);
+        const counts = await listCommunityCommentCountsForPosts(visiblePostIds);
         if (!cancelled) {
-          setCommentsByPost(comments);
+          setCommentCountsByPost(counts);
         }
       } catch {
         if (!cancelled) {
-          setCommentsByPost({});
+          setCommentCountsByPost({});
         }
       }
     };
 
-    void loadComments();
+    void loadCommentCounts();
 
     return () => {
       cancelled = true;
     };
+  }, [posts]);
+
+  useEffect(() => {
+    const visiblePostIds = new Set(posts.map((post) => post.id));
+    setCommentsByPost((current) => {
+      const next: Record<string, CommunityComment[]> = {};
+      for (const [postId, comments] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = comments;
+        }
+      }
+      return next;
+    });
+    setCommentCountsByPost((current) => {
+      const next: Record<string, number> = {};
+      for (const [postId, count] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = count;
+        }
+      }
+      return next;
+    });
+    setCommentsLoadingByPost((current) => {
+      const next: Record<string, boolean> = {};
+      for (const [postId, loading] of Object.entries(current)) {
+        if (visiblePostIds.has(postId)) {
+          next[postId] = loading;
+        }
+      }
+      return next;
+    });
   }, [posts]);
 
   useEffect(() => {
@@ -559,6 +609,10 @@ export default function CommunityClient({
         setCommentsByPost((current) => ({
           ...current,
           [postId]: refreshedComments[postId] || [],
+        }));
+        setCommentCountsByPost((current) => ({
+          ...current,
+          [postId]: (refreshedComments[postId] || []).length,
         }));
 
         setExpandedComments((current) => ({
@@ -1230,6 +1284,10 @@ export default function CommunityClient({
     }));
 
     if (nextOpen) {
+      setVisibleCommentsByPost((current) => ({
+        ...current,
+        [postId]: current[postId] ?? INITIAL_VISIBLE_COMMENTS,
+      }));
       void refreshCommentsForPost(postId);
     }
   };
@@ -1239,10 +1297,12 @@ export default function CommunityClient({
       setActionStatus("Log in to comment on posts.");
       return;
     }
+    if (commentSubmitBusyPostId) return;
 
     const text = commentDrafts[post.id]?.trim() || "";
     if (!text) return;
 
+    setCommentSubmitBusyPostId(post.id);
     try {
       await createCommunityComment({
         postId: post.id,
@@ -1254,7 +1314,7 @@ export default function CommunityClient({
         postCaption: post.caption,
       });
 
-      await refreshCommentsForPost(post.id);
+      await refreshCommentsForPost(post.id, true);
       setCommentDrafts((current) => ({
         ...current,
         [post.id]: "",
@@ -1266,6 +1326,8 @@ export default function CommunityClient({
       setActionStatus("Comment added.");
     } catch {
       setActionStatus("Unable to add comment right now.");
+    } finally {
+      setCommentSubmitBusyPostId(null);
     }
   };
 
@@ -1284,7 +1346,7 @@ export default function CommunityClient({
     setCommentDeleteBusyId(comment.id);
     try {
       await deleteCommunityComment(comment.id);
-      await refreshCommentsForPost(postId);
+      await refreshCommentsForPost(postId, true);
       setActionStatus("Comment deleted.");
     } catch {
       setActionStatus("Unable to delete comment right now.");
@@ -2012,7 +2074,18 @@ export default function CommunityClient({
                   const postPhotos = getCommunityPostPhotoDataUrls(post);
                   const initials = getInitials(resolvedIdentity.name || "Arc");
                   const isLiked = Boolean(likedPostIds[post.id]);
+                  const hasLoadedComments = Object.prototype.hasOwnProperty.call(commentsByPost, post.id);
+                  const isCommentsLoading = Boolean(commentsLoadingByPost[post.id]);
                   const postComments = commentsByPost[post.id] || [];
+                  const postCommentCount = hasLoadedComments
+                    ? postComments.length
+                    : (commentCountsByPost[post.id] ?? 0);
+                  const visibleComments = Math.max(
+                    INITIAL_VISIBLE_COMMENTS,
+                    visibleCommentsByPost[post.id] ?? INITIAL_VISIBLE_COMMENTS,
+                  );
+                  const visiblePostComments = postComments.slice(-visibleComments);
+                  const hasMoreHiddenComments = postComments.length > visiblePostComments.length;
                   const isCommentsOpen = Boolean(expandedComments[post.id]);
                   const isPostOwner = userId === post.uid;
                   const showCommentsPanel = isCommentsOpen;
@@ -2172,11 +2245,13 @@ export default function CommunityClient({
 
                   const commentsPanel = (
                     <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
-                      {postComments.length === 0 ? (
+                      {isCommentsLoading ? (
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Loading comments...</p>
+                      ) : !hasLoadedComments || postComments.length === 0 ? (
                         <p className="text-xs text-slate-500 dark:text-slate-400">No comments yet.</p>
                       ) : (
                         <ul className="space-y-1">
-                          {postComments.map((comment) => (
+                          {visiblePostComments.map((comment) => (
                             <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
                               <div className="flex items-start gap-2">
                                 <div className="min-w-0 flex-1">
@@ -2206,6 +2281,23 @@ export default function CommunityClient({
                           ))}
                         </ul>
                       )}
+                      {!isCommentsLoading && hasMoreHiddenComments ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVisibleCommentsByPost((current) => ({
+                              ...current,
+                              [post.id]: Math.min(
+                                postComments.length,
+                                (current[post.id] ?? INITIAL_VISIBLE_COMMENTS) + COMMENTS_PAGE_STEP,
+                              ),
+                            }))
+                          }
+                          className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                        >
+                          Load older comments
+                        </button>
+                      ) : null}
 
                       <form
                         className="flex gap-2"
@@ -2229,10 +2321,17 @@ export default function CommunityClient({
                         />
                         <button
                           type="submit"
-                          disabled={!userId || !(commentDrafts[post.id] || "").trim()}
-                          className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+                          disabled={!userId || !(commentDrafts[post.id] || "").trim() || commentSubmitBusyPostId === post.id}
+                          className="inline-flex min-w-[88px] items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
                         >
-                          Comment
+                          {commentSubmitBusyPostId === post.id ? (
+                            <>
+                              <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/70 border-t-transparent dark:border-slate-700/70 dark:border-t-transparent" />
+                              Posting...
+                            </>
+                          ) : (
+                            "Comment"
+                          )}
                         </button>
                       </form>
                     </div>
@@ -2329,7 +2428,7 @@ export default function CommunityClient({
                                 {post.caption}
                               </p>
                               <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {isLiked ? "You liked this post" : "Tap fire to like"} · {postComments.length} comments
+                                {isLiked ? "You liked this post" : "Tap fire to like"} · {postCommentCount} comments
                               </p>
                             </div>
                             {showCommentsPanel ? <div className="flex-1 px-4 pb-4">{commentsPanel}</div> : null}
@@ -2345,7 +2444,7 @@ export default function CommunityClient({
                             </p>
                             {postActions}
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                              {isLiked ? "You liked this post" : "Tap fire to like"} · {postComments.length} comments
+                              {isLiked ? "You liked this post" : "Tap fire to like"} · {postCommentCount} comments
                             </p>
                             {showCommentsPanel ? commentsPanel : null}
                           </div>
