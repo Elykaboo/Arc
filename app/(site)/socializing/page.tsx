@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CommunityClient from "@/app/community/community-client";
+import CommunityClient from "../community/community-client";
 
 export const metadata: Metadata = {
   title: "Home",

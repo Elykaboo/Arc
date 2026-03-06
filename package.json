@@ -1,6 +1,6 @@
 {
   "name": "arc",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,16 +8,24 @@
     "start": "next start",
     "lint": "eslint",
     "backfill:members": "node scripts/backfill-members.mjs",
+    "backfill:member-status": "node scripts/backfill-member-status.mjs",
+    "admin:bootstrap": "node scripts/bootstrap-admins.mjs",
     "tunnel": "ngrok http 3000",
     "dev:public": "sh -c \"npm run dev & npm run tunnel\""
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "^3.79.0",
+    "@payloadcms/next": "^3.79.0",
+    "@payloadcms/richtext-lexical": "^3.79.0",
     "firebase": "^12.9.0",
     "firebase-admin": "^13.7.0",
-    "next": "16.1.6",
+    "graphql": "^16.13.1",
+    "next": "^16.2.0-canary.10",
     "ngrok": "^5.0.0-beta.2",
+    "payload": "^3.79.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -25,7 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.2.0-canary.10",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

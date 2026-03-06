@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteLogEntry, updateLogEntry } from "@/lib/nutrition-tracking-db";
 import { normalizeUpdateLogEntryPayload } from "@/lib/nutrition-tracking";
 import { loadServerUserProfile } from "@/lib/server-profile-db";
-import { getAuthenticatedUid } from "@/lib/server-auth";
+import { assertUserCanWrite } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export async function PATCH(
   { params }: { params: Promise<{ date: string; entryId: string }> },
 ) {
   try {
-    const uid = await getAuthenticatedUid(request);
+    const { uid } = await assertUserCanWrite(request);
     const { date, entryId } = await params;
     const profile = await loadServerUserProfile(uid);
     const body = (await request.json()) as Record<string, unknown>;
@@ -27,7 +27,13 @@ export async function PATCH(
   } catch (error) {
     console.error("PATCH /api/v1/nutrition/logs/[date]/entries/[entryId] failed", error);
     const message = error instanceof Error ? error.message : "Unable to update log entry.";
-    const status = /token|bearer/i.test(message) ? 401 : /slot|entry|not found/i.test(message) ? 400 : 500;
+    const status = /token|bearer/i.test(message)
+      ? 401
+      : /slot|entry|not found/i.test(message)
+        ? 400
+        : /suspended|forbidden/i.test(message)
+          ? 403
+          : 500;
     return NextResponse.json({ message }, { status });
   }
 }
@@ -37,7 +43,7 @@ export async function DELETE(
   { params }: { params: Promise<{ date: string; entryId: string }> },
 ) {
   try {
-    const uid = await getAuthenticatedUid(request);
+    const { uid } = await assertUserCanWrite(request);
     const { date, entryId } = await params;
     const profile = await loadServerUserProfile(uid);
     const log = await deleteLogEntry({
@@ -50,7 +56,13 @@ export async function DELETE(
   } catch (error) {
     console.error("DELETE /api/v1/nutrition/logs/[date]/entries/[entryId] failed", error);
     const message = error instanceof Error ? error.message : "Unable to delete log entry.";
-    const status = /token|bearer/i.test(message) ? 401 : /entry|not found/i.test(message) ? 400 : 500;
+    const status = /token|bearer/i.test(message)
+      ? 401
+      : /entry|not found/i.test(message)
+        ? 400
+        : /suspended|forbidden/i.test(message)
+          ? 403
+          : 500;
     return NextResponse.json({ message }, { status });
   }
 }

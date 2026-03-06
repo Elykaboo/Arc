@@ -119,6 +119,75 @@ Firestore files are already included:
 - `firestore.indexes.json`
 - `firebase.json`
 
+## Admin dashboard (Payload + Firebase)
+
+The repo now includes a first-pass admin backend and protected admin routes:
+
+- Admin bridge login: `/admin-login`
+- Admin dashboard shell: `/admin`
+- Admin APIs: `/api/admin/v1/*`
+
+### 1) Install new dependencies
+
+```bash
+npm install
+```
+
+### 2) Configure environment variables
+
+Add the following values in `.env.local`:
+
+```bash
+ADMIN_SESSION_SECRET="a-long-random-secret"
+PAYLOAD_SECRET="another-long-random-secret"
+PAYLOAD_DATABASE_URL="postgres://..."
+```
+
+`FIREBASE_SERVICE_ACCOUNT_JSON` (or `FIREBASE_SERVICE_ACCOUNT_PATH`) must also be configured for admin APIs/scripts.
+
+### 3) Bootstrap the first admin
+
+Grant admin role and Firebase custom claim:
+
+```bash
+npm run admin:bootstrap -- grant owner admin@example.com
+```
+
+Revoke:
+
+```bash
+npm run admin:bootstrap -- revoke admin@example.com
+```
+
+### 4) Backfill member suspension defaults
+
+```bash
+npm run backfill:member-status
+```
+
+### 5) Run the app and open admin
+
+```bash
+npm run dev
+```
+
+Flow:
+1. Sign in with Firebase as an allowlisted admin.
+2. Open `/admin-login` to establish the signed admin session cookie.
+3. Open `/admin`.
+
+### Admin API quick checks
+
+- `GET /api/admin/v1/users`
+- `GET /api/admin/v1/users/:uid`
+- `PATCH /api/admin/v1/users/:uid/suspension`
+- `GET /api/admin/v1/community/posts`
+- `POST /api/admin/v1/community/posts/:postId/hide`
+- `DELETE /api/admin/v1/community/posts/:postId`
+- `DELETE /api/admin/v1/community/comments/:commentId`
+- `DELETE /api/admin/v1/community/likes/:likeId`
+- `GET /api/admin/v1/audit-actions`
+
 ## Ngrok for live client access
 
 1. Create/sign in to your ngrok account and copy your auth token from the ngrok dashboard.

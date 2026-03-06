@@ -6,6 +6,21 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 const DEFAULT_PAGE_SIZE = 1000;
 
+const loadDotEnvLocal = async () => {
+  const raw = await readFile(".env.local", "utf8").catch(() => "");
+  if (!raw) return;
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const separator = trimmed.indexOf("=");
+    if (separator <= 0) continue;
+    const key = trimmed.slice(0, separator).trim();
+    if (!key || process.env[key] !== undefined) continue;
+    const value = trimmed.slice(separator + 1).trim().replace(/^"(.*)"$/, "$1");
+    process.env[key] = value;
+  }
+};
+
 const parseServiceAccountFromEnv = () => {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) return null;
@@ -81,6 +96,7 @@ const buildMemberDocument = (userRecord) => {
 };
 
 const run = async () => {
+  await loadDotEnvLocal();
   await initializeAdminApp();
 
   const auth = getAuth();

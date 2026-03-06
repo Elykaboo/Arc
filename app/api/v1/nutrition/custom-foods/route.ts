@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { listCustomFoods, saveCustomFood } from "@/lib/nutrition-tracking-db";
 import { normalizeCustomFoodPayload, toCustomFood, validateCustomFoodInput } from "@/lib/nutrition-tracking";
-import { getAuthenticatedUid } from "@/lib/server-auth";
+import { assertUserCanWrite, getAuthenticatedUid } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 
@@ -13,14 +13,14 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("GET /api/v1/nutrition/custom-foods failed", error);
     const message = error instanceof Error ? error.message : "Unable to load custom foods.";
-    const status = /token|bearer/i.test(message) ? 401 : 500;
+    const status = /token|bearer/i.test(message) ? 401 : /suspended|forbidden/i.test(message) ? 403 : 500;
     return NextResponse.json({ message }, { status });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const uid = await getAuthenticatedUid(request);
+    const { uid } = await assertUserCanWrite(request);
     const body = (await request.json()) as Record<string, unknown>;
     const payload = normalizeCustomFoodPayload(body);
     const validationError = validateCustomFoodInput(payload);

@@ -4,7 +4,7 @@ import { coerceDateKey, normalizeMealSlots } from "@/lib/nutrition-tracking";
 import { loadActiveNutritionPlan } from "@/lib/nutrition-db";
 import { regenerateNutritionPlan } from "@/lib/nutrition-service";
 import { loadServerUserProfile, saveServerUserProfile } from "@/lib/server-profile-db";
-import { getAuthenticatedUid } from "@/lib/server-auth";
+import { assertUserCanWrite, getAuthenticatedUid } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const uid = await getAuthenticatedUid(request);
+    const { uid } = await assertUserCanWrite(request);
     const profile = await loadServerUserProfile(uid);
     if (!profile) {
       return NextResponse.json({ message: "Profile not found." }, { status: 400 });
@@ -78,7 +78,13 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error("PUT /api/v1/nutrition/meal-setup failed", error);
     const message = error instanceof Error ? error.message : "Unable to save meal setup.";
-    const status = /token|bearer/i.test(message) ? 401 : /slot|Meal setup|Reassign/i.test(message) ? 400 : 500;
+    const status = /token|bearer/i.test(message)
+      ? 401
+      : /slot|Meal setup|Reassign/i.test(message)
+        ? 400
+        : /suspended|forbidden/i.test(message)
+          ? 403
+          : 500;
     return NextResponse.json({ message }, { status });
   }
 }

@@ -1,0 +1,335 @@
+.page {
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  color: var(--theme-text);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-0);
+  color: var(--theme-text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.backLink:hover {
+  background: var(--theme-elevation-50);
+}
+
+.refreshButton {
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-50);
+  color: var(--theme-text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hero {
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 14px;
+  background: linear-gradient(145deg, var(--theme-elevation-0), var(--theme-elevation-100));
+  padding: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--theme-elevation-800);
+}
+
+.stats {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.statCard {
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 10px;
+  background: var(--theme-elevation-0);
+  padding: 10px 12px;
+}
+
+.statLabel {
+  margin: 0;
+  color: var(--theme-elevation-650);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statValue {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.banner {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid;
+}
+
+.bannerInfo {
+  background: color-mix(in srgb, var(--theme-elevation-100) 70%, transparent);
+  border-color: var(--theme-elevation-300);
+}
+
+.bannerSuccess {
+  background: color-mix(in srgb, #1f9d55 16%, transparent);
+  border-color: color-mix(in srgb, #1f9d55 40%, var(--theme-elevation-200));
+}
+
+.bannerError {
+  background: color-mix(in srgb, #c53030 18%, transparent);
+  border-color: color-mix(in srgb, #c53030 40%, var(--theme-elevation-200));
+}
+
+.panel {
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 12px;
+  background: var(--theme-elevation-0);
+  padding: 16px;
+  box-shadow: 0 1px 0 var(--theme-elevation-100);
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-50);
+  font-size: 12px;
+  color: var(--theme-elevation-700);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--theme-elevation-700);
+  border-bottom: 1px solid var(--theme-elevation-200);
+  padding: 10px 8px;
+}
+
+.table td {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  padding: 10px 8px;
+  vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--theme-elevation-50) 70%, transparent);
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--theme-elevation-100) 75%, transparent);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+}
+
+.statusActive,
+.statusSuspended {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  border: 1px solid;
+}
+
+.statusActive {
+  background: color-mix(in srgb, #1f9d55 12%, transparent);
+  border-color: color-mix(in srgb, #1f9d55 40%, var(--theme-elevation-200));
+}
+
+.statusSuspended {
+  background: color-mix(in srgb, #c53030 14%, transparent);
+  border-color: color-mix(in srgb, #c53030 40%, var(--theme-elevation-200));
+}
+
+.deleteButton {
+  border: 1px solid color-mix(in srgb, #c53030 50%, var(--theme-elevation-200));
+  background: color-mix(in srgb, #c53030 20%, transparent);
+  color: color-mix(in srgb, var(--theme-text) 92%, #7f1d1d);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background: color-mix(in srgb, #c53030 25%, transparent);
+}
+
+.deleteButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  color: var(--theme-elevation-650);
+  text-align: center;
+  padding: 14px;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  z-index: 999;
+}
+
+.modalCard {
+  width: min(560px, 100%);
+  border-radius: 12px;
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-0);
+  padding: 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-0);
+  color: var(--theme-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: var(--theme-elevation-100);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 22px;
+}
+
+.modalSubtitle {
+  margin: 8px 0 0;
+  color: var(--theme-elevation-700);
+}
+
+.form {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--theme-elevation-700);
+}
+
+.input,
+.textarea {
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-50);
+  border-radius: 8px;
+  color: var(--theme-text);
+  padding: 10px;
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.confirmButton {
+  border: 1px solid color-mix(in srgb, #c53030 50%, var(--theme-elevation-250));
+  background: color-mix(in srgb, #c53030 24%, transparent);
+  color: var(--theme-text);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid var(--theme-elevation-250);
+  background: var(--theme-elevation-0);
+  color: var(--theme-text);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}

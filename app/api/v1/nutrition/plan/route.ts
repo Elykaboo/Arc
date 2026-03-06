@@ -4,7 +4,7 @@ import {
   createOrUpdateNutritionPlan,
   normalizeNutritionRequest,
 } from "@/lib/nutrition-service";
-import { getAuthenticatedUid } from "@/lib/server-auth";
+import { assertUserCanWrite, getAuthenticatedUid } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const uid = await getAuthenticatedUid(request);
+    const { uid } = await assertUserCanWrite(request);
     const body = (await request.json()) as Record<string, unknown>;
     const payload = normalizeNutritionRequest(body);
     const { plan } = await createOrUpdateNutritionPlan(uid, payload);
@@ -39,6 +39,8 @@ export async function POST(request: Request) {
       ? 400
       : /token|bearer/i.test(message)
         ? 401
+        : /suspended|forbidden/i.test(message)
+          ? 403
         : 500;
     return NextResponse.json({ message }, { status });
   }

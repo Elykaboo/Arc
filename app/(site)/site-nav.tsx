@@ -167,6 +167,7 @@ export default function SiteNav() {
   const [lastReadAtMs, setLastReadAtMs] = useState(0);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(getResolvedDarkMode);
+  const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false);
 
   const menuRef = useRef<HTMLElement>(null);
 
@@ -182,7 +183,21 @@ export default function SiteNav() {
       setProfilePhoto(user?.photoURL || "");
 
       if (!user?.uid) {
+        setIsVerifiedAdmin(false);
         return;
+      }
+
+      try {
+        const idToken = await user.getIdToken();
+        const response = await fetch("/api/admin/v1/session", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+        setIsVerifiedAdmin(response.ok);
+      } catch {
+        setIsVerifiedAdmin(false);
       }
 
       try {
@@ -786,6 +801,16 @@ export default function SiteNav() {
                   >
                     Profile
                   </Link>
+                  {isVerifiedAdmin ? (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="block rounded-xl px-3 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50 dark:text-cyan-300 dark:hover:bg-cyan-950/40"
+                      role="menuitem"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  ) : null}
                   <button
                     type="button"
                     onClick={async () => {
