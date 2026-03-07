@@ -48,6 +48,7 @@ export type HardDeleteResult = {
   followEdgesDeleted: number;
   notificationsDeleted: number;
   topLevelDocsDeleted: number;
+  residualIdentityDocsDeleted: number;
   authDeleted: boolean;
   authAlreadyMissing: boolean;
   userDocDeleted: boolean;

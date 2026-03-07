@@ -41,6 +41,28 @@ export type CommunityPostAdminSummary = {
 };
 
 const DELETE_BATCH_SIZE = 300;
+const IDENTITY_FIELD_KEYS = new Set([
+  "uid",
+  "useruid",
+  "userid",
+  "authoruid",
+  "actoruid",
+  "owneruid",
+  "targetuid",
+  "targetid",
+  "memberuid",
+  "followeruid",
+  "followinguid",
+  "performedbyuid",
+  "performedbyemail",
+  "email",
+  "username",
+  "firebaseuid",
+  "createdby",
+  "updatedby",
+  "moderatedby",
+  "hiddenby",
+]);
 
 const toIsoOrNull = (value: unknown): string | null => {
   if (value instanceof Timestamp) return value.toDate().toISOString();
@@ -48,6 +70,7 @@ const toIsoOrNull = (value: unknown): string | null => {
 };
 
 const toString = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const normalize = (value: string): string => value.trim().toLowerCase();
 
 const toBoolean = (value: unknown): boolean => value === true;
 
@@ -410,6 +433,106 @@ const deleteTopLevelDocIfExists = async (collectionName: string, docId: string):
   return 1;
 };
 
+const hasIdentityFieldMatch = (
+  value: unknown,
+  path: string[],
+  identityValues: Set<string>,
+): boolean => {
+  if (value == null) return false;
+
+  if (typeof value === "string") {
+    if (path.length === 0) return false;
+    const key = path[path.length - 1]?.toLowerCase() ?? "";
+    if (!IDENTITY_FIELD_KEYS.has(key)) return false;
+    return identityValues.has(normalize(value));
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item) => hasIdentityFieldMatch(item, path, identityValues));
+  }
+
+  if (typeof value === "object") {
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      if (hasIdentityFieldMatch(child, [...path, key], identityValues)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+const sweepCollectionForIdentityMatches = async (input: {
+  db: FirebaseFirestore.Firestore;
+  collectionRef: FirebaseFirestore.CollectionReference;
+  targetUid: string;
+  identityValues: Set<string>;
+  skipDocPaths: Set<string>;
+}): Promise<number> => {
+  let deleted = 0;
+  let lastDocId = "";
+
+  while (true) {
+    let query: FirebaseFirestore.Query = input.collectionRef
+      .orderBy(FieldPath.documentId())
+      .limit(DELETE_BATCH_SIZE);
+
+    if (lastDocId) {
+      query = query.startAfter(lastDocId);
+    }
+
+    const snapshot = await query.get();
+    if (snapshot.empty) break;
+
+    for (const doc of snapshot.docs) {
+      const shouldSkip = input.skipDocPaths.has(doc.ref.path);
+      if (shouldSkip) continue;
+
+      const docData = doc.data();
+      const shouldDelete =
+        doc.id === input.targetUid || hasIdentityFieldMatch(docData, [], input.identityValues);
+
+      if (shouldDelete) {
+        await input.db.recursiveDelete(doc.ref);
+        deleted += 1;
+        continue;
+      }
+
+      const subCollections = await doc.ref.listCollections();
+      for (const subCollectionRef of subCollections) {
+        deleted += await sweepCollectionForIdentityMatches({
+          ...input,
+          collectionRef: subCollectionRef,
+        });
+      }
+    }
+
+    lastDocId = snapshot.docs[snapshot.docs.length - 1]?.id ?? "";
+    if (snapshot.docs.length < DELETE_BATCH_SIZE) break;
+  }
+
+  return deleted;
+};
+
+const sweepFirestoreForIdentityMatches = async (input: {
+  db: FirebaseFirestore.Firestore;
+  targetUid: string;
+  identityValues: Set<string>;
+  skipDocPaths: Set<string>;
+}): Promise<number> => {
+  const rootCollections = await input.db.listCollections();
+  let deleted = 0;
+
+  for (const collectionRef of rootCollections) {
+    deleted += await sweepCollectionForIdentityMatches({
+      ...input,
+      collectionRef,
+    });
+  }
+
+  return deleted;
+};
+
 export const deleteCommunityPostAsAdmin = async (
   postId: string,
 ): Promise<{ postDeleted: boolean; commentsDeleted: number; likesDeleted: number }> => {
@@ -545,6 +668,7 @@ export const deleteUserAccountAsAdmin = async (input: {
   let followEdgesDeleted = 0;
   let notificationsDeleted = 0;
   let topLevelDocsDeleted = 0;
+  let residualIdentityDocsDeleted = 0;
 
   while (true) {
     const posts = await db.collection("communityPosts").where("uid", "==", targetUid).limit(DELETE_BATCH_SIZE).get();
@@ -589,6 +713,37 @@ export const deleteUserAccountAsAdmin = async (input: {
     }
   }
 
+  const memberData = memberDoc.data() ?? {};
+  const publicProfileData = publicProfileDoc.data() ?? {};
+  const userData = userDoc.data() ?? {};
+  const identityValues = new Set<string>();
+  identityValues.add(normalize(targetUid));
+
+  const candidateIdentityStrings = [
+    authRecord?.email ?? "",
+    toString(memberData.username),
+    toString(publicProfileData.username),
+    toString(userData.username),
+    toString(userData.email),
+  ];
+
+  for (const candidate of candidateIdentityStrings) {
+    if (!candidate) continue;
+    identityValues.add(normalize(candidate));
+  }
+
+  const skipDocPaths = new Set<string>([
+    // Never delete the acting admin's allowlist document during residual sweep.
+    `admins/${input.actorUid.trim()}`,
+  ]);
+
+  residualIdentityDocsDeleted = await sweepFirestoreForIdentityMatches({
+    db,
+    targetUid,
+    identityValues,
+    skipDocPaths,
+  });
+
   await createModerationAction({
     targetType: "user",
     targetId: targetUid,
@@ -607,6 +762,7 @@ export const deleteUserAccountAsAdmin = async (input: {
       followEdgesDeleted,
       notificationsDeleted,
       topLevelDocsDeleted,
+      residualIdentityDocsDeleted,
       userDocDeleted,
       authDeleted,
       authAlreadyMissing,
@@ -620,6 +776,7 @@ export const deleteUserAccountAsAdmin = async (input: {
     followEdgesDeleted,
     notificationsDeleted,
     topLevelDocsDeleted,
+    residualIdentityDocsDeleted,
     authDeleted,
     authAlreadyMissing,
     userDocDeleted,

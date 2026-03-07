@@ -146,8 +146,7 @@ export const isFollowingUser = async (viewerUid: string, targetUid: string): Pro
 
 export const listFollowingUsers = async (viewerUid: string, maxItems = 500): Promise<FollowingUser[]> => {
   const snapshot = await getDocs(query(followingCollection(viewerUid), limit(maxItems)));
-
-  return snapshot.docs.map((document) => {
+  const rawUsers = snapshot.docs.map((document) => {
     const data = document.data();
     return {
       uid: document.id,
@@ -155,6 +154,12 @@ export const listFollowingUsers = async (viewerUid: string, maxItems = 500): Pro
       photoDataUrl: data.photoDataUrl,
     };
   });
+
+  const memberSnapshots = await Promise.all(
+    rawUsers.map((user) => getDoc(doc(db, "members", user.uid))),
+  );
+
+  return rawUsers.filter((user, index) => memberSnapshots[index]?.exists());
 };
 
 export const countFollowersForUser = async (targetUid: string, maxItems = 2000): Promise<number> => {
@@ -254,5 +259,10 @@ export const listUsersFromFollowGraph = async (maxItems = 2000): Promise<FollowG
     // Ignore follower graph fallbacks when the query is unavailable.
   }
 
-  return Array.from(usersById.values());
+  const users = Array.from(usersById.values());
+  const memberSnapshots = await Promise.all(
+    users.map((user) => getDoc(doc(db, "members", user.uid))),
+  );
+
+  return users.filter((user, index) => memberSnapshots[index]?.exists());
 };

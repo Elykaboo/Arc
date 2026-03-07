@@ -69,12 +69,15 @@ const buildDirectoryUsers = (
   searchableProfiles: SearchableUserProfile[],
   communityPosts: CommunityPost[],
   followGraphUsers: FollowGraphUser[],
+  viewerUid: null | string,
 ): DirectoryUser[] => {
   const usersById = new Map<string, DirectoryUser>();
+  const profileBackedUids = new Set<string>();
 
   for (const member of memberProfiles) {
     const username = member.username.trim();
     if (!member.uid || !username) continue;
+    profileBackedUids.add(member.uid);
 
     usersById.set(member.uid, {
       uid: member.uid,
@@ -88,6 +91,7 @@ const buildDirectoryUsers = (
   for (const profile of publicProfiles) {
     const username = profile.username.trim();
     if (!profile.uid || !username) continue;
+    profileBackedUids.add(profile.uid);
 
     usersById.set(profile.uid, {
       uid: profile.uid,
@@ -101,6 +105,7 @@ const buildDirectoryUsers = (
   for (const profile of searchableProfiles) {
     const username = profile.username.trim();
     if (!profile.uid || !username) continue;
+    profileBackedUids.add(profile.uid);
 
     const existing = usersById.get(profile.uid);
     usersById.set(profile.uid, {
@@ -115,6 +120,7 @@ const buildDirectoryUsers = (
   for (const post of communityPosts) {
     const username = post.authorName.trim();
     if (!post.uid || !username) continue;
+    if (!profileBackedUids.has(post.uid) && post.uid !== viewerUid) continue;
 
     const existing = usersById.get(post.uid);
     usersById.set(post.uid, {
@@ -128,6 +134,7 @@ const buildDirectoryUsers = (
 
   for (const user of followGraphUsers) {
     if (!user.uid) continue;
+    if (!profileBackedUids.has(user.uid) && user.uid !== viewerUid) continue;
 
     const existing = usersById.get(user.uid);
     usersById.set(user.uid, {
@@ -356,8 +363,9 @@ export default function CommunityDirectoryClient() {
         searchableProfiles,
         communityPosts,
         followGraphUsers,
+        viewerUid,
       ),
-    [communityPosts, followGraphUsers, memberProfiles, publicProfiles, searchableProfiles],
+    [communityPosts, followGraphUsers, memberProfiles, publicProfiles, searchableProfiles, viewerUid],
   );
 
   const isLoading =
