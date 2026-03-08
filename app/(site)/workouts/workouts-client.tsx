@@ -176,10 +176,15 @@ export default function WorkoutsClient() {
     [items, featuredExerciseId, pageItems],
   );
 
-  const canShowVideo = (exercise: Exercise | null): exercise is Exercise =>
-    Boolean(exercise?.videoUrl?.trim()) && !brokenVideoByExerciseId[exercise.id];
-  const canShowGif = (exercise: Exercise | null): exercise is Exercise =>
-    Boolean(exercise?.gifUrl?.trim()) && !brokenGifByExerciseId[exercise.id];
+  const canShowVideo = (exercise: Exercise | null): boolean => {
+    if (!exercise) return false;
+    return Boolean(exercise.videoUrl?.trim()) && !brokenVideoByExerciseId[exercise.id];
+  };
+
+  const canShowGif = (exercise: Exercise | null): boolean => {
+    if (!exercise) return false;
+    return Boolean(exercise.gifUrl?.trim()) && !brokenGifByExerciseId[exercise.id];
+  };
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
