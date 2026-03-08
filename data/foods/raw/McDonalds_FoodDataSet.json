@@ -1,0 +1,194 @@
+[
+  {
+    "id": "5eef5d89-e2ba-4d24-9636-7af7dfa21559",
+    "restaurant": "McDonalds",
+    "item_name": "Big Mac",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 121
+    },
+    "macros": {
+      "calories_kcal": 443,
+      "protein_g": 18,
+      "carbs_g": 59,
+      "fat_g": 15
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "ae778bab-ccf1-437f-bb9c-64cbc95e8c92",
+    "restaurant": "McDonalds",
+    "item_name": "Quarter Pounder w Cheese",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 350
+    },
+    "macros": {
+      "calories_kcal": 381,
+      "protein_g": 11,
+      "carbs_g": 55,
+      "fat_g": 13
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "7c3a24bc-c5bb-4a91-abe4-2df4580f0e74",
+    "restaurant": "McDonalds",
+    "item_name": "Cheeseburger",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 243
+    },
+    "macros": {
+      "calories_kcal": 504,
+      "protein_g": 18,
+      "carbs_g": 63,
+      "fat_g": 20
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "088d8b4f-0ba6-47d8-97bf-eeef1b7aa3f0",
+    "restaurant": "McDonalds",
+    "item_name": "Double Cheeseburger",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 88
+    },
+    "macros": {
+      "calories_kcal": 384,
+      "protein_g": 18,
+      "carbs_g": 42,
+      "fat_g": 16
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "16c3f148-32c2-426d-9a24-eb41c2f4700e",
+    "restaurant": "McDonalds",
+    "item_name": "McChicken",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 318
+    },
+    "macros": {
+      "calories_kcal": 577,
+      "protein_g": 22,
+      "carbs_g": 66,
+      "fat_g": 25
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "3d273abb-7fb6-437c-8f98-c6df72734e41",
+    "restaurant": "McDonalds",
+    "item_name": "Filet O Fish",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 309
+    },
+    "macros": {
+      "calories_kcal": 388,
+      "protein_g": 21,
+      "carbs_g": 40,
+      "fat_g": 16
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "5b6a62e9-c260-4701-b1f8-21caed4f1df9",
+    "restaurant": "McDonalds",
+    "item_name": "McCrispy Chicken Sandwich",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 83
+    },
+    "macros": {
+      "calories_kcal": 471,
+      "protein_g": 15,
+      "carbs_g": 60,
+      "fat_g": 19
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "b7e4113f-b525-419e-ab4f-83812f0a5165",
+    "restaurant": "McDonalds",
+    "item_name": "Chicken McNuggets 6pc",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 270
+    },
+    "macros": {
+      "calories_kcal": 420,
+      "protein_g": 20,
+      "carbs_g": 40,
+      "fat_g": 20
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "2c245dfe-f596-4706-be8a-898fd1ea4e76",
+    "restaurant": "McDonalds",
+    "item_name": "French Fries Medium",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 171
+    },
+    "macros": {
+      "calories_kcal": 436,
+      "protein_g": 17,
+      "carbs_g": 29,
+      "fat_g": 28
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "cbf16476-c2da-4979-a1ab-8eb8b52821a4",
+    "restaurant": "McDonalds",
+    "item_name": "Hash Browns",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 226
+    },
+    "macros": {
+      "calories_kcal": 460,
+      "protein_g": 24,
+      "carbs_g": 46,
+      "fat_g": 20
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "98e5563b-fc52-4bc8-9843-948f7bfa81b4",
+    "restaurant": "McDonalds",
+    "item_name": "Hot Fudge Sundae",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 209
+    },
+    "macros": {
+      "calories_kcal": 305,
+      "protein_g": 13,
+      "carbs_g": 25,
+      "fat_g": 17
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "956fb559-6fa4-4c86-8a30-6dd0172140eb",
+    "restaurant": "McDonalds",
+    "item_name": "McFlurry Oreo",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 243
+    },
+    "macros": {
+      "calories_kcal": 429,
+      "protein_g": 21,
+      "carbs_g": 48,
+      "fat_g": 17
+    },
+    "source": "US_reference_estimate"
+  }
+]

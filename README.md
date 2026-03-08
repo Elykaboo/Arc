@@ -59,11 +59,10 @@ EXERCISE_API_VERSION="/api/v1"
 FIREBASE_SERVICE_ACCOUNT_JSON="..."
 FIREBASE_SERVICE_ACCOUNT_PATH=""
 
-USDA_API_KEY="..."
-USDA_API_BASE_URL="https://api.nal.usda.gov/fdc/v1"
-
 GEMINI_API_KEY="..."
 GEMINI_MODEL="gemini-2.0-flash"
+GEMINI_MACRO_MINUTE_LIMIT="4"
+GEMINI_MACRO_DAILY_LIMIT="25"
 ```
 
 Notes:
@@ -71,8 +70,9 @@ Notes:
 - Firebase web app variables are required for login, signup, profile, planner sync, and community features.
 - `RAPIDAPI_KEY` is recommended for the exercise API routes. Without it, the app falls back to a public exercise dataset when the RapidAPI source is unavailable.
 - `FIREBASE_SERVICE_ACCOUNT_JSON` or `FIREBASE_SERVICE_ACCOUNT_PATH` is required for authenticated server API routes that verify Firebase ID tokens.
-- `USDA_API_KEY` powers food search and USDA-backed macro validation.
-- `GEMINI_API_KEY` is optional. Without it, the app still generates deterministic USDA/local meal plans.
+- `GEMINI_API_KEY` is required for nutrition photo macro estimation on `/nutrition`.
+- `GEMINI_MACRO_MINUTE_LIMIT` and `GEMINI_MACRO_DAILY_LIMIT` protect your free Gemini quota.
+- Nutrition food search and base meal planning use local JSON datasets in `data/foods/raw`.
 - The production build uses `webpack` instead of Turbopack for more reliable deployment builds.
 
 ## Firebase auth setup

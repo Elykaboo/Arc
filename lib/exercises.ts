@@ -25,10 +25,57 @@ type ApiExercise = {
   equipment?: string;
   instructions?: string[] | string;
   description?: string;
+  video?: string;
+  videoUrl?: string;
+  youtubeUrl?: string;
+  ytUrl?: string;
+  gifUrl?: string;
+  image?: string;
+  imageUrl?: string;
+  images?: {
+    gif?: string;
+    gifUrl?: string;
+    original?: string;
+    source?: string;
+  };
+  videos?: Array<{
+    url?: string;
+    video?: string;
+    source?: string;
+  }>;
 };
 
 let cachedExercises: Exercise[] | null = null;
 const asText = (value: unknown) => (typeof value === "string" ? value : value ? String(value) : "");
+
+const resolveGifUrl = (item: ApiExercise): string => {
+  const direct =
+    asText(item.gifUrl).trim() ||
+    asText(item.imageUrl).trim() ||
+    asText(item.image).trim();
+  if (direct) return direct;
+
+  const nested =
+    asText(item.images?.gifUrl).trim() ||
+    asText(item.images?.gif).trim() ||
+    asText(item.images?.original).trim() ||
+    asText(item.images?.source).trim();
+
+  return nested;
+};
+
+const resolveVideoUrl = (item: ApiExercise): string => {
+  const direct =
+    asText(item.videoUrl).trim() ||
+    asText(item.video).trim() ||
+    asText(item.youtubeUrl).trim() ||
+    asText(item.ytUrl).trim();
+  if (direct) return direct;
+
+  const firstVideo = item.videos?.[0];
+  if (!firstVideo) return "";
+  return asText(firstVideo.url).trim() || asText(firstVideo.video).trim() || asText(firstVideo.source).trim();
+};
 
 function toExercise(item: ApiExercise): Exercise | null {
   const name = asText(item.name).trim();
@@ -63,6 +110,8 @@ function toExercise(item: ApiExercise): Exercise | null {
       item.description ??
       instructionText ??
       `A ${name} variation for ${item.bodyPart?.toLowerCase() ?? "general"} training.`,
+    videoUrl: resolveVideoUrl(item) || undefined,
+    gifUrl: resolveGifUrl(item) || undefined,
   };
 }
 

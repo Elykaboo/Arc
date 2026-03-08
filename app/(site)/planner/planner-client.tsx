@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { saveMemberProfile } from "@/lib/member-db";
@@ -244,9 +245,11 @@ export default function PlannerClient() {
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string>("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(routineTemplates[0]?.id ?? "");
+  const [isClient, setIsClient] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
   const [cloudStatus, setCloudStatus] = useState<"idle" | "syncing" | "error">("idle");
+  const [activeDayOverlay, setActiveDayOverlay] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -255,6 +258,10 @@ export default function PlannerClient() {
     });
 
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true);
   }, []);
 
   useEffect(() => {
@@ -384,6 +391,40 @@ export default function PlannerClient() {
       },
     }));
   };
+
+  const openDayOverlay = (day: string) => {
+    setActiveDayOverlay(day);
+  };
+
+  const closeDayOverlay = () => {
+    setActiveDayOverlay(null);
+  };
+
+  useEffect(() => {
+    if (!activeDayOverlay || typeof window === "undefined") return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeDayOverlay();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeDayOverlay]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (!activeDayOverlay) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [activeDayOverlay]);
 
   const savePlan = async () => {
     window.localStorage.setItem(plannerStorageKey, planSnapshot);
@@ -537,6 +578,14 @@ export default function PlannerClient() {
     ) as Record<string, Exercise[]>;
   }, [exerciseById, exerciseOptions, plan]);
 
+  const overlayDayItems = activeDayOverlay ? plan[activeDayOverlay].items : [];
+  const overlayDayTemplateLabels = activeDayOverlay
+    ? (Array.from(
+        new Set(overlayDayItems.map((item) => item.templateLabel?.trim()).filter(Boolean)),
+      ) as string[])
+    : [];
+  const overlayDaySuggestions = activeDayOverlay ? suggestionsByDay[activeDayOverlay] ?? [] : [];
+
   return (
     <main className="page-scene mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
       <header className="page-card overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-amber-100 via-orange-50 to-white p-6 shadow-sm sm:p-8">
@@ -674,164 +723,225 @@ export default function PlannerClient() {
               const dayTemplateLabels = Array.from(
                 new Set(dayItems.map((item) => item.templateLabel?.trim()).filter(Boolean)),
               ) as string[];
-              const suggestions = suggestionsByDay[day] ?? [];
 
               return (
-                <article
+                <button
+                  type="button"
                   key={day}
-                  className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+                  onClick={() => openDayOverlay(day)}
+                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex w-full items-center justify-between gap-2 text-left">
                     <h2 className="text-lg font-bold text-slate-900">{day}</h2>
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                        plannedCount > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {plannedCount > 0 ? `${activeCount}/${plannedCount} selected` : "Rest"}
+                    <span className="flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          plannedCount > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {plannedCount > 0 ? `${activeCount}/${plannedCount} selected` : "Rest"}
+                      </span>
                     </span>
                   </div>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {plannedCount > 0
+                      ? `${plannedCount} workout${plannedCount === 1 ? "" : "s"} planned`
+                      : "No workouts planned"}
+                  </p>
                   {dayTemplateLabels.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {dayTemplateLabels.map((label) => (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {dayTemplateLabels.slice(0, 2).map((label) => (
                         <span
-                          key={`${day}-${label}`}
-                          className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800"
+                          key={`${day}-card-label-${label}`}
+                          className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800"
                         >
                           {label}
                         </span>
                       ))}
                     </div>
                   ) : null}
+                </button>
+              );
+            })}
+          </section>
 
-                  <div className="rounded-lg border border-slate-100 bg-slate-50 p-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Suggestions
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {suggestions.map((exercise) => (
-                        <button
-                          key={exercise.id}
-                          type="button"
-                          onClick={() => addWorkout(day, exercise.id)}
-                          className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
-                        >
-                          + {exercise.name}
-                        </button>
-                      ))}
-                      {suggestions.length === 0 ? (
-                        <p className="text-xs text-slate-500">No suggestions available.</p>
-                      ) : null}
-                    </div>
+          {isClient && activeDayOverlay
+            ? createPortal(
+              <div className="fixed inset-0 z-[120]">
+              <button
+                type="button"
+                aria-label="Close day editor"
+                className="absolute inset-0 bg-slate-950/60"
+                onClick={closeDayOverlay}
+              />
+              <div className="relative z-10 flex min-h-full items-center justify-center p-4">
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`${activeDayOverlay} workout editor`}
+                  className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-5"
+                >
+                <button
+                  type="button"
+                  onClick={closeDayOverlay}
+                  className="absolute right-3 top-3 rounded-full border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                  aria-label="Close day editor"
+                  title="Close"
+                >
+                  ×
+                </button>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-xl font-bold text-slate-900">{activeDayOverlay}</h3>
+                </div>
+
+                {overlayDayTemplateLabels.length > 0 ? (
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    {overlayDayTemplateLabels.map((label) => (
+                      <span
+                        key={`${activeDayOverlay}-${label}`}
+                        className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800"
+                      >
+                        {label}
+                      </span>
+                    ))}
                   </div>
+                ) : null}
 
-                  {dayItems.length === 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => addWorkout(day)}
-                      className="w-full rounded-md border border-dashed border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-                    >
-                      + Add workout
-                    </button>
-                  ) : null}
+                <div className="mb-3 rounded-lg border border-slate-100 bg-slate-50 p-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Suggestions
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {overlayDaySuggestions.map((exercise) => (
+                      <button
+                        key={exercise.id}
+                        type="button"
+                        onClick={() => addWorkout(activeDayOverlay, exercise.id)}
+                        className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
+                      >
+                        + {exercise.name}
+                      </button>
+                    ))}
+                    {overlayDaySuggestions.length === 0 ? (
+                      <p className="text-xs text-slate-500">No suggestions available.</p>
+                    ) : null}
+                  </div>
+                </div>
 
-                  {dayItems.map((item, index) => {
+                {overlayDayItems.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => addWorkout(activeDayOverlay)}
+                    className="mb-3 w-full rounded-md border border-dashed border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    + Add workout
+                  </button>
+                ) : null}
+
+                <div className="space-y-3">
+                  {overlayDayItems.map((item, index) => {
                     const selectedExercise = exerciseById.get(item.exerciseId);
                     return (
                       <div key={item.id} className="space-y-2 rounded-lg border border-slate-200 p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-800">Workout {index + 1}</p>
-                          {item.templateLabel ? (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
-                              {item.templateLabel}
-                            </span>
-                          ) : null}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-slate-800">Workout {index + 1}</p>
+                            {item.templateLabel ? (
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                                {item.templateLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeWorkout(activeDayOverlay, item.id)}
+                            className="text-xs font-semibold text-rose-700 transition hover:text-rose-900"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => removeWorkout(day, item.id)}
-                          className="text-xs font-semibold text-rose-700 transition hover:text-rose-900"
-                        >
-                          Remove
-                        </button>
-                      </div>
 
-                      <label className="block space-y-1 text-sm text-slate-700">
-                        Exercise
-                        <select
-                          value={item.exerciseId}
-                          onChange={(event) =>
-                            updateWorkout(day, item.id, { exerciseId: event.target.value })
-                          }
-                          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        >
-                          <option value="">Select exercise</option>
-                          {exerciseOptions.map((exercise) => (
-                            <option key={exercise.id} value={exercise.id}>
-                              {exercise.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-
-                      {selectedExercise ? (
-                        <div className="flex flex-wrap gap-1.5 text-xs">
-                          <span className="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">
-                            {selectedExercise.category}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">
-                            {selectedExercise.equipment || "Bodyweight"}
-                          </span>
-                          {selectedExercise.primaryMuscles?.[0] ? (
-                            <span className="rounded-full bg-orange-100 px-2 py-1 font-medium text-orange-800">
-                              {selectedExercise.primaryMuscles[0]}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
-
-                      <div className="grid grid-cols-2 gap-2">
                         <label className="block space-y-1 text-sm text-slate-700">
-                          Sets
-                          <input
-                            type="number"
-                            min={1}
-                            value={item.sets}
+                          Exercise
+                          <select
+                            value={item.exerciseId}
                             onChange={(event) =>
-                              updateWorkout(day, item.id, {
-                                sets: Number.parseInt(event.target.value || "1", 10),
-                              })
+                              updateWorkout(activeDayOverlay, item.id, { exerciseId: event.target.value })
                             }
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                          />
+                            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          >
+                            <option value="">Select exercise</option>
+                            {exerciseOptions.map((exercise) => (
+                              <option key={exercise.id} value={exercise.id}>
+                                {exercise.name}
+                              </option>
+                            ))}
+                          </select>
                         </label>
-                        <label className="block space-y-1 text-sm text-slate-700">
-                          Reps
-                          <input
-                            value={item.reps}
-                            onChange={(event) => updateWorkout(day, item.id, { reps: event.target.value })}
-                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  );
-                })}
 
-                {dayItems.length > 0 ? (
+                        {selectedExercise ? (
+                          <div className="flex flex-wrap gap-1.5 text-xs">
+                            <span className="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">
+                              {selectedExercise.category}
+                            </span>
+                            <span className="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">
+                              {selectedExercise.equipment || "Bodyweight"}
+                            </span>
+                            {selectedExercise.primaryMuscles?.[0] ? (
+                              <span className="rounded-full bg-orange-100 px-2 py-1 font-medium text-orange-800">
+                                {selectedExercise.primaryMuscles[0]}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="block space-y-1 text-sm text-slate-700">
+                            Sets
+                            <input
+                              type="number"
+                              min={1}
+                              value={item.sets}
+                              onChange={(event) =>
+                                updateWorkout(activeDayOverlay, item.id, {
+                                  sets: Number.parseInt(event.target.value || "1", 10),
+                                })
+                              }
+                              className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                            />
+                          </label>
+                          <label className="block space-y-1 text-sm text-slate-700">
+                            Reps
+                            <input
+                              value={item.reps}
+                              onChange={(event) =>
+                                updateWorkout(activeDayOverlay, item.id, { reps: event.target.value })
+                              }
+                              className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {overlayDayItems.length > 0 ? (
                   <button
                     type="button"
-                    onClick={() => addWorkout(day)}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    onClick={() => addWorkout(activeDayOverlay)}
+                    className="mt-3 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                   >
                     + Add another workout
                   </button>
                 ) : null}
-              </article>
-            );
-          })}
-        </section>
+                </div>
+              </div>
+            </div>,
+              document.body,
+            )
+            : null}
+
         </>
       )}
     </main>

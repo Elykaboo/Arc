@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { getAuthHeaders } from "@/lib/authenticated-fetch";
 import { auth } from "@/lib/firebase";
 import { loadUserProfile, type UserProfile } from "@/lib/profile-db";
 import { isNutritionProfileComplete } from "@/lib/nutrition-profile";
@@ -106,25 +105,13 @@ export default function OnboardingClient() {
     setIsSubmitting(true);
 
     try {
-      const headers = await getAuthHeaders();
-      const response = await fetch("/api/v1/nutrition/plan", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(profile),
-      });
-
-      if (!response.ok) {
-        const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(errorData?.message || "Unable to save your nutrition profile.");
-      }
-
       const resolvedName =
         auth.currentUser?.displayName?.trim() ||
         auth.currentUser?.email?.split("@")[0]?.trim() ||
         "Athlete";
       router.replace(`/welcome?mode=new&name=${encodeURIComponent(resolvedName)}&next=${encodeURIComponent("/socializing")}`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to save your nutrition profile.");
+      setStatus(error instanceof Error ? error.message : "Unable to continue.");
     } finally {
       setIsSubmitting(false);
     }
@@ -146,17 +133,7 @@ export default function OnboardingClient() {
     };
 
     try {
-      const headers = await getAuthHeaders();
-      const response = await fetch("/api/v1/nutrition/plan", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(skipPayload),
-      });
-
-      if (!response.ok) {
-        const errorData = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(errorData?.message || "Unable to continue right now.");
-      }
+      void skipPayload;
 
       const resolvedName =
         auth.currentUser?.displayName?.trim() ||

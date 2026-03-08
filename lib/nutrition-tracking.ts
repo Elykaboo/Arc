@@ -491,7 +491,15 @@ export const planFoodToSearchResult = ({
   };
 };
 
-export const normalizeUsdaSearchResult = (item: {
+export const normalizeLegacyLibraryItemType = (
+  itemType: NutritionSearchResult["itemType"],
+): NutritionSearchResult["itemType"] => (itemType === "usda" ? "catalog" : itemType);
+
+const normalizeLegacyNonPlannedItemType = (
+  itemType: Exclude<NutritionSearchResult["itemType"], "planned_food">,
+): Exclude<NutritionSearchResult["itemType"], "planned_food"> => (itemType === "usda" ? "catalog" : itemType);
+
+export const normalizeCatalogSearchResult = (item: {
   foodId: string;
   name: string;
   servingLabel: string;
@@ -499,20 +507,34 @@ export const normalizeUsdaSearchResult = (item: {
   proteinGrams: number;
   carbsGrams: number;
   fatGrams: number;
-  brandOwner?: string;
-  dataType?: string;
 }): NutritionSearchResult => ({
-  id: `usda-${item.foodId}`,
-  itemType: "usda",
-  sourceId: item.foodId,
-  name: item.name,
-  subtitle: item.brandOwner ? `USDA • ${item.brandOwner}` : `USDA${item.dataType ? ` • ${item.dataType}` : ""}`,
-  servingLabel: item.servingLabel,
-  calories: round(item.calories),
-  proteinGrams: round(item.proteinGrams),
-  carbsGrams: round(item.carbsGrams),
-  fatGrams: round(item.fatGrams),
-  brandName: item.brandOwner,
+  // foodId format: catalog-{sourceGroup}-{id}
+  // this keeps search result labels informative for restaurant datasets.
+  ...(() => {
+    const sourceGroup = item.foodId.split("-")[1] ?? "";
+    const sourceLabel =
+      sourceGroup === "jollibee"
+        ? "Jollibee"
+        : sourceGroup === "mcdonalds"
+          ? "McDonalds"
+          : sourceGroup === "kfc"
+            ? "KFC"
+            : sourceGroup === "burgerking"
+              ? "Burger King"
+              : "Food database";
+    return {
+      id: `catalog-${item.foodId}`,
+      itemType: "catalog" as const,
+      sourceId: item.foodId,
+      name: item.name,
+      subtitle: sourceLabel === "Food database" ? sourceLabel : `Food database • ${sourceLabel}`,
+      servingLabel: item.servingLabel,
+      calories: round(item.calories),
+      proteinGrams: round(item.proteinGrams),
+      carbsGrams: round(item.carbsGrams),
+      fatGrams: round(item.fatGrams),
+    };
+  })(),
 });
 
 export const toDashboardResponse = ({
@@ -556,12 +578,13 @@ export const mergeRecentResults = (entries: LoggedFoodEntry[]): NutritionSearchR
   const results: NutritionSearchResult[] = [];
 
   for (const entry of [...entries].sort((a, b) => b.loggedAt.localeCompare(a.loggedAt))) {
-    const key = `${entry.entryType}:${entry.sourceId ?? entry.name}`;
+    const itemType = normalizeLegacyLibraryItemType(entry.entryType);
+    const key = `${itemType}:${entry.sourceId ?? entry.name}`;
     if (seen.has(key)) continue;
     seen.add(key);
     results.push({
       id: `recent-${entry.id}`,
-      itemType: entry.entryType,
+      itemType,
       sourceId: entry.sourceId,
       name: entry.name,
       subtitle: "Recent",
@@ -584,10 +607,11 @@ export const mergeFrequentResults = (entries: LoggedFoodEntry[]): NutritionSearc
   >();
 
   for (const entry of entries) {
-    const key = `${entry.entryType}:${entry.sourceId ?? entry.name}`;
+    const itemType = normalizeLegacyLibraryItemType(entry.entryType);
+    const key = `${itemType}:${entry.sourceId ?? entry.name}`;
     const current = tally.get(key);
     if (!current || current.latest.loggedAt < entry.loggedAt) {
-      tally.set(key, { count: (current?.count ?? 0) + 1, latest: entry });
+      tally.set(key, { count: (current?.count ?? 0) + 1, latest: { ...entry, entryType: itemType } });
     } else {
       tally.set(key, { count: current.count + 1, latest: current.latest });
     }
@@ -614,13 +638,14 @@ export const normalizeLogEntryPayload = (body: Record<string, unknown>): CreateL
   mealSlotId: typeof body.mealSlotId === "string" ? body.mealSlotId : "",
   mealSlotLabel: typeof body.mealSlotLabel === "string" ? body.mealSlotLabel : undefined,
   entryType:
+    body.entryType === "catalog" ||
     body.entryType === "usda" ||
     body.entryType === "custom_food" ||
     body.entryType === "recipe" ||
     body.entryType === "saved_meal" ||
     body.entryType === "planned_food"
-      ? body.entryType
-      : "usda",
+      ? normalizeLegacyLibraryItemType(body.entryType)
+      : "catalog",
   sourceId: typeof body.sourceId === "string" ? body.sourceId : null,
   quantity: typeof body.quantity === "number" ? body.quantity : undefined,
   name: typeof body.name === "string" ? body.name : undefined,
@@ -668,11 +693,12 @@ export const normalizeRecipePayload = (body: Record<string, unknown>): CreateRec
         .filter(Boolean)
         .map((ingredient) => ({
           itemType:
+            ingredient.itemType === "catalog" ||
             ingredient.itemType === "usda" ||
             ingredient.itemType === "custom_food" ||
             ingredient.itemType === "recipe" ||
             ingredient.itemType === "saved_meal"
-              ? ingredient.itemType
+              ? normalizeLegacyNonPlannedItemType(ingredient.itemType)
               : "custom_food",
           itemId: typeof ingredient.itemId === "string" ? ingredient.itemId : "",
           nameSnapshot: typeof ingredient.nameSnapshot === "string" ? ingredient.nameSnapshot : "",
@@ -696,11 +722,12 @@ export const normalizeSavedMealPayload = (body: Record<string, unknown>): Create
         const payload = item as Record<string, unknown>;
         return {
           itemType:
+            payload.itemType === "catalog" ||
             payload.itemType === "usda" ||
             payload.itemType === "custom_food" ||
             payload.itemType === "recipe" ||
             payload.itemType === "saved_meal"
-              ? payload.itemType
+              ? normalizeLegacyNonPlannedItemType(payload.itemType)
               : "custom_food",
           sourceId: typeof payload.sourceId === "string" ? payload.sourceId : null,
           name: typeof payload.name === "string" ? payload.name : "",

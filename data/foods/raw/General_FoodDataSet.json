@@ -1,0 +1,6006 @@
+{
+  "dataset_name": "General_FoodDataSet",
+  "total_foods": 500,
+  "foods": [
+    {
+      "id": "c31cdbe8-3347-43aa-b20b-c49ede9487d3",
+      "name": "kangkong baked",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "5e3bc315-4932-4567-9fc0-640e5e81925a",
+      "name": "peanut butter grilled",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d59c250e-deac-4da7-a858-7b419bbc599e",
+      "name": "ketchup raw",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "0f311fcd-6246-4a18-a9a8-ddf83f6451ef",
+      "name": "malunggay raw",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "ebd67173-86cf-43e5-b123-3970cfd14965",
+      "name": "olive oil fried",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "87c90fb5-6181-4ac9-a4cf-71959da48f4d",
+      "name": "chickpeas baked",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "93baca87-75ff-4ce3-9bbd-6273db264906",
+      "name": "brown rice fried",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "e9dd5b4d-55e5-4422-9d22-680ec852ec3a",
+      "name": "lean beef baked",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "08c9a98c-7bd5-4a7f-915a-e21625fbec32",
+      "name": "tuna grilled",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "76187f0e-c210-475f-944e-e253d39c00d7",
+      "name": "potato raw",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "d212c446-be98-45bf-a972-d5cb09bb7158",
+      "name": "greek yogurt raw",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "5c29d9c2-4a2a-4786-ba4f-7bc54c86c5a9",
+      "name": "greek yogurt raw",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "c394654c-bc2e-438d-a328-17b48433829a",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "3590095c-d224-4234-8154-1b0a1ff1cd3a",
+      "name": "chickpeas boiled",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "0ade4c12-e6bd-4c0a-85ea-8b03fbbbf053",
+      "name": "almonds fried",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "a4edf762-1325-4133-89a6-0ffee5a5943b",
+      "name": "whey protein boiled",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "ccbba8e4-ed84-4c7a-a421-aec9893b3a00",
+      "name": "lean beef cooked",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "2d3466de-a98c-4463-b961-577a6083b7b4",
+      "name": "olive oil steamed",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "b1da659e-4866-4768-b6cd-4934a75160be",
+      "name": "chicken breast grilled",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "ed1606ed-2394-4347-83b9-fe25dd578f43",
+      "name": "milk cooked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "a3a21dc0-f950-4839-8762-4a8ae0a89e52",
+      "name": "potato boiled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "b718e741-b0de-4f0d-9c76-d8c65086ecb6",
+      "name": "malunggay steamed",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "81561caa-2c14-4a62-812e-cf43bf2440ee",
+      "name": "brown rice baked",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "e1efeec5-b2c3-4adc-bb42-9cb67c33b523",
+      "name": "avocado grilled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "b4626950-2ebd-4da0-8563-b5fc16fe1779",
+      "name": "oats grilled",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "8c2cae07-464e-40ae-9a27-7a82b28046cc",
+      "name": "greek yogurt fried",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "cd8cac0b-a3f3-4fdd-8855-de3d397fcba7",
+      "name": "olive oil steamed",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "469279a5-67b5-4e46-ae00-070c0953b8ef",
+      "name": "spinach baked",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "91be1e2b-40ad-4722-9569-376fd7c4cbe2",
+      "name": "lentils cooked",
+      "base_ingredient": "lentils",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 352,
+        "protein_g": 25,
+        "carbs_g": 60,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "a477cfae-57b2-4662-a1e9-7648baf674fe",
+      "name": "peanut butter grilled",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "ddbb8548-806a-4032-9380-2282d61a662c",
+      "name": "banana grilled",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "fbc945bd-e7ba-4654-be77-c2d7736c117a",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "6cf48fdc-25e7-4ec3-8c09-05015ba9b72a",
+      "name": "mango cooked",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "3d293377-42a7-4c60-bcdb-4e10d30336e6",
+      "name": "ketchup steamed",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "3c1e19b7-e95a-4fb6-bbcc-068d60731398",
+      "name": "tuna boiled",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "1fa58eb5-b7d0-439f-8610-213f7c732f56",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "a576c202-d12b-4219-a8a9-c00aa9210d27",
+      "name": "banana raw",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "d94ff1b2-ca94-4efc-b185-d15cf240bca8",
+      "name": "galunggong steamed",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "69e838b7-3c11-4063-a5db-ec8bbd2854a3",
+      "name": "sweet potato grilled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "84371f1a-fb39-4d1c-a388-28a45b76c187",
+      "name": "milk grilled",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "e741665e-16cb-4b49-9fb8-edb9389d9771",
+      "name": "oats fried",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "e4e6b933-a34e-437a-a145-c62df506d87e",
+      "name": "milk steamed",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "34d39337-83d6-4763-af23-4fd0ce134731",
+      "name": "mustard boiled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "4aaa6872-f3f7-4136-b672-eaa084a04785",
+      "name": "salmon raw",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "593ceeda-22b6-4f9c-8718-8037b6fee118",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "c52cab31-0903-4627-b610-5d1d55b995dd",
+      "name": "kangkong grilled",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "b4021739-afbb-48f7-95fa-149676b2ba14",
+      "name": "chickpeas grilled",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "2e852313-8cdc-4394-91d8-9cd195fe5cf6",
+      "name": "egg fried",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "64d2c46e-d736-40db-ab1f-1fa8e824a1c9",
+      "name": "sweet potato grilled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "028398a8-1894-4e9b-9b20-e0d217726740",
+      "name": "peanut butter cooked",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "b55afd95-c2c1-4c72-b54f-6fe35af79151",
+      "name": "quinoa boiled",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "327ae4cb-daad-4863-b373-2aed7ba586df",
+      "name": "avocado steamed",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "5928506e-97b7-4fc1-8ab3-ae99487aaaeb",
+      "name": "brown rice boiled",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "bd93b3aa-f87c-4a62-ad75-19d5cfb08557",
+      "name": "sweet potato fried",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "81ba8bc8-6b61-47f5-8456-b8c45174aaec",
+      "name": "broccoli steamed",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "902996e1-d07a-4b52-8ca2-54c463f044cd",
+      "name": "broccoli baked",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "58f23c28-1845-4dd0-8287-03d5a8101fdb",
+      "name": "quinoa steamed",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "d47b796a-9324-46f6-9264-2bc7445c66fa",
+      "name": "potato steamed",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "08c1153b-9d78-47e6-a793-cb688367bf38",
+      "name": "salmon baked",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "a446cc25-f460-4a35-a5d4-fe6a8362d35c",
+      "name": "mango cooked",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "aaca077f-0a73-4a80-9449-d81c5ce3867b",
+      "name": "mango baked",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "56762462-3042-4df9-a163-a767f21bad5c",
+      "name": "quinoa baked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "3d87f2d4-c082-48ee-a0bc-1c24766645b4",
+      "name": "lean beef steamed",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "20209521-63b4-4501-b57c-4912f46a5d35",
+      "name": "tuna fried",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "08ce89a8-0ff7-4e82-8c7c-b3afe77c419c",
+      "name": "milk boiled",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "b13e309a-fd5e-4e04-965d-6c06e9f8d9cf",
+      "name": "avocado boiled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "926a42a5-2ca9-48a5-a2a1-795a8f06060d",
+      "name": "olive oil cooked",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "49095699-544f-4cdc-85fd-a55bc9195ff4",
+      "name": "potato steamed",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "c143ed45-9817-4d4a-b8f0-19ca99548abc",
+      "name": "kangkong steamed",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "ddd29330-e52e-4bd4-b5bd-6833656de3dc",
+      "name": "white rice baked",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "c541e3fb-4f49-41bc-b1c2-77c27ac95e4d",
+      "name": "quinoa cooked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "9b6858b0-3e34-410b-95a8-2a1a2b81932f",
+      "name": "fish sauce steamed",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "297eef17-f38d-4d11-b434-1cf594810ef3",
+      "name": "olive oil raw",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "7854ee36-e580-4abc-a410-ba9f940b593f",
+      "name": "apple grilled",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "7ca1651a-16dd-403e-a6ff-923b35e3a9d3",
+      "name": "chickpeas cooked",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "b6200d85-be34-43e9-85a7-d266fa5f0b56",
+      "name": "sweet potato cooked",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "9716a88b-8c77-4ea1-b24d-2ff96a20b062",
+      "name": "mango raw",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "f8f3753b-5208-41e8-955d-7ab255aa5292",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "c7b0a40d-ddf2-493b-8e3e-9ebdc38902c7",
+      "name": "broccoli fried",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "51080aa4-6322-4067-a418-a1206b467d32",
+      "name": "white rice raw",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "560752be-5f06-44fb-8af6-3de75df9b848",
+      "name": "olive oil boiled",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "46de0d29-39a7-43c7-a882-441c02b0e31f",
+      "name": "greek yogurt baked",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "cba4f9c0-878a-485e-8cfc-b6b71dfe6c0d",
+      "name": "ketchup fried",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "f13d3ce2-925a-4d29-8f33-d5159771904f",
+      "name": "malunggay cooked",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "d036c6eb-5ff0-450d-b843-833593edd136",
+      "name": "potato cooked",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "407c23d4-5850-42b6-82db-2341974020c5",
+      "name": "fish sauce cooked",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "7987bf50-d3cb-41e0-b783-94d72a65fb61",
+      "name": "sweet potato baked",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "17e5cde8-9346-4c47-8975-2058d5d3be07",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "72472bb3-fff3-4203-86e1-fe9c6c2c7aa7",
+      "name": "avocado grilled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "c0a30393-645b-43f4-85b4-f1ce8a7e917c",
+      "name": "spinach raw",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "096b5354-cc06-4089-9e62-79704a37aeff",
+      "name": "tuna raw",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "b19eef7c-0765-4225-a69e-386e8016dfb1",
+      "name": "quinoa grilled",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "e76e6a2b-0d3b-42c8-ab06-d012ccb7b166",
+      "name": "potato baked",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "adc062a1-d9e5-4e99-9698-3fdda780af7c",
+      "name": "chicken breast cooked",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "d91ccc2d-fdc4-4be3-94f4-0119dd7fb6a7",
+      "name": "mustard raw",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "71924214-3214-4f9f-bc78-d0ef4f8d6dc3",
+      "name": "apple steamed",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "d95781f0-dad3-4326-973d-e1beae4c4620",
+      "name": "oats raw",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "5595fe1b-efcb-433e-9643-55068cc7408e",
+      "name": "lean beef cooked",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "97d6db3a-be3c-4c2b-8136-d4e247fdcecc",
+      "name": "oats baked",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "b2a5cf91-9e22-4d65-a169-71f4ddbf960a",
+      "name": "mustard fried",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "31f33eb4-58ef-4f7d-8ec7-43ab7f50a68c",
+      "name": "fish sauce cooked",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "1dbd9de1-d22d-4fac-8a81-5316b1f35894",
+      "name": "almonds raw",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "05d4c73b-dda1-427a-b6d3-81c3ba0a0355",
+      "name": "milk cooked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "375e60be-ed39-46be-8a2a-402918927d89",
+      "name": "malunggay raw",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "0392cc04-be59-43d9-892b-927f5787f6a8",
+      "name": "chicken breast boiled",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "7b15a084-241a-4ff6-b93f-d19db3748904",
+      "name": "greek yogurt grilled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "978d5c6e-7d30-4bbc-9642-cb64dbce0199",
+      "name": "mustard grilled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "437dbf9d-a65b-4aa3-94db-5c51b03d27e2",
+      "name": "almonds cooked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d67ab1c8-32d1-4368-86a4-5a6039690a64",
+      "name": "malunggay cooked",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "d3a0b64a-b2f8-4f46-9460-ae0599080238",
+      "name": "quinoa boiled",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "6a433a02-1d07-4c40-a5a8-5e15fb846b58",
+      "name": "olive oil boiled",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "e7b6a9e3-5ac0-49f2-a04d-423e1b772de2",
+      "name": "ketchup baked",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "f0b6bced-4620-4b74-9582-bdaa3f898c8b",
+      "name": "chickpeas fried",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "f767a533-8a54-401f-996f-4e94f46ce2d1",
+      "name": "greek yogurt boiled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "60af11f4-362b-4a63-9d7e-2ed3399250db",
+      "name": "galunggong raw",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "aefc3a3f-7415-4fc8-a616-dcf46ae5d2c8",
+      "name": "kangkong baked",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "30730abb-5c65-4a2a-852f-22c12fed0db6",
+      "name": "salmon cooked",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "d41977fb-cfe3-4004-8495-7af8b81cd70f",
+      "name": "almonds boiled",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d73ad838-e7ab-457e-a859-114bb018e99b",
+      "name": "spinach boiled",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "e51bedf8-f366-4020-b7dc-bdc0fd57ca42",
+      "name": "peanut butter baked",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "6d7b02ce-4cd7-409d-98ee-36178146aaf2",
+      "name": "banana steamed",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "10209204-a6b1-4759-9ff4-48202ba1b742",
+      "name": "oats fried",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "549d540a-9735-4633-a6b2-b67235baf3d3",
+      "name": "soy sauce steamed",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "3426bae2-369a-4765-846a-c151d6b6af20",
+      "name": "ketchup steamed",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "44f6500c-469a-4cde-8b07-6f7fbf7e19dc",
+      "name": "chickpeas raw",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "6496c943-1309-4b45-a6e3-8f69eb87b32a",
+      "name": "milk raw",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "64580ff6-e3af-4f8a-a285-8fd21a840318",
+      "name": "mustard baked",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "4cfad1b2-22e0-46ea-bbc6-a5eb601fe6fe",
+      "name": "greek yogurt boiled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "8d16b72b-4fbc-4123-a651-b0aa119a4f15",
+      "name": "milk boiled",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "84b501a6-8bb9-4ffc-84c4-3e7ad2edcd7d",
+      "name": "kangkong boiled",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "476f1453-ad0b-4e23-b8d9-afb0fb55be57",
+      "name": "almonds baked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "f98124b9-be5c-4cfc-849b-365094ad7df7",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "0b39e4f3-8aea-4206-a684-01808e761f78",
+      "name": "chicken breast baked",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "0e6f4a8e-de5b-49c2-8b1a-54ff04b66673",
+      "name": "ketchup cooked",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "171569fc-de16-4127-8a13-c61abc6ff052",
+      "name": "galunggong grilled",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "9994769e-7423-45df-b28e-445a7cec10ef",
+      "name": "quinoa cooked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "cb62aa96-1524-45d3-a55b-646a6e4e792a",
+      "name": "tuna fried",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "ad758858-9f0f-4cc1-9424-b86410fa9ea7",
+      "name": "chicken breast steamed",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "082b2754-c3e3-4712-a661-b71dd1a07598",
+      "name": "bangus fried",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "56deaa33-359f-4d2f-a673-bc92ceae50da",
+      "name": "bangus steamed",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "4da0eec6-750e-4c6d-99a0-483ea0dad6bf",
+      "name": "egg boiled",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "b64013ae-279c-43bc-80f6-ec11fc81b728",
+      "name": "mayonnaise cooked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "c316fd70-d4bd-4772-8814-97085cb6cf22",
+      "name": "bangus boiled",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "cffe1377-67c3-4840-8310-24fede59e506",
+      "name": "mustard grilled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "c0b639e9-65b8-43e5-a81a-d282ad3f4106",
+      "name": "white rice steamed",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "e7289f05-cce1-4864-beb2-a65d044f9769",
+      "name": "whey protein steamed",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "a36d8b16-680e-4f41-9fca-f8152ccdce54",
+      "name": "malunggay steamed",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "3cf4a6ee-084e-4036-b4e3-1925ebb3e608",
+      "name": "mayonnaise fried",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "aa0d6223-3363-49e7-92e0-9fadd32d7f8d",
+      "name": "galunggong cooked",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "e88f413a-a8cc-46ee-9bd9-9df4bfe8962e",
+      "name": "chicken breast grilled",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "fcfe9d9b-919d-4f47-a530-a641104111c3",
+      "name": "salmon raw",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "42691015-bd09-445a-98a9-124fc3b31b78",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "d34c4728-10f1-4592-8dcc-5d6a243c425b",
+      "name": "mustard grilled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "286b128b-b031-4edc-a084-446eebd83a42",
+      "name": "tuna grilled",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "e39d0f5d-c833-4d16-8ab3-f8729aa5fd7b",
+      "name": "mayonnaise raw",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "15bfde95-aab2-480b-9571-4779ddb5d54b",
+      "name": "fish sauce baked",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "f15ca72b-d846-4404-984f-95fe78e7d57e",
+      "name": "chicken breast baked",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "208df342-28c1-42f5-bca7-ba913875c370",
+      "name": "quinoa cooked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "7bbfe59c-ff69-4f09-857c-337ab60a7684",
+      "name": "broccoli grilled",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "0bae8401-0217-4072-aba9-f87d24d08bac",
+      "name": "almonds cooked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "8e9bbcef-c891-476d-8e87-5f0dd7a283b0",
+      "name": "chickpeas raw",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "32aab82b-fd82-4e2a-9c61-75d895b59d28",
+      "name": "mayonnaise raw",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "79de4ee7-4cae-446a-8f33-65cee18330d1",
+      "name": "soy sauce steamed",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "daa6f6b7-9437-4db1-8510-60d5045287bc",
+      "name": "peanut butter boiled",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d0355c77-8735-4bef-be31-f3c801c65d3b",
+      "name": "chickpeas baked",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "fdecde30-81ea-41e3-8ce1-76edbabe042f",
+      "name": "bangus steamed",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "849727c0-150c-4a58-905f-d480ddb2d993",
+      "name": "salmon steamed",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "895b80ea-c25e-41b0-88a7-6be4e8d21aba",
+      "name": "potato boiled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "7b0ca8cc-8ad7-4c04-b4a4-337d95927d0d",
+      "name": "whey protein fried",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "76751d15-057e-4177-b648-8a4d70da27f6",
+      "name": "almonds boiled",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "2bc14922-fb61-4e18-99ad-0883a4a0b4bf",
+      "name": "salmon grilled",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "7fcfef3a-f1b5-49ac-a307-724c83f7be1b",
+      "name": "galunggong fried",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "5f31b7f7-5ad1-4c9d-b112-39b22fd3ef90",
+      "name": "banana boiled",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "b9f9a666-5a77-49f5-a2e0-b56b941fdb7f",
+      "name": "avocado grilled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "d44b1976-b0cc-48ef-8a11-39e3ee011527",
+      "name": "mustard grilled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "169d9960-4b46-4c60-9154-17d157d84cf3",
+      "name": "quinoa steamed",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "ef0d0165-d451-42d6-854c-c137c0438122",
+      "name": "black beans grilled",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "7e8c0ce2-b0b5-4f0a-b46b-fccb59a8f69a",
+      "name": "potato grilled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "a0e64bb1-2db7-42fb-8121-3b443d29d289",
+      "name": "olive oil fried",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "3a292043-370f-4277-97d1-d1f4c8b3f9ec",
+      "name": "mustard raw",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "20164de9-2fd6-4268-a7f5-b4645b3717b6",
+      "name": "mayonnaise cooked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "ee7ee30e-09b7-49dd-be9d-100de004db0c",
+      "name": "lean beef fried",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "a97d5408-5e3f-4b0f-ba6e-d80eab205f84",
+      "name": "galunggong fried",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "6021d867-686e-4c7a-90da-da6bef799115",
+      "name": "whey protein boiled",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "743103e0-072a-47ab-a315-9a3486f0d52b",
+      "name": "malunggay cooked",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "3dc17aec-0245-4eda-b81e-8b952cbf2288",
+      "name": "bangus baked",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "89e9953f-d439-44e9-873d-bfb2351e0d47",
+      "name": "avocado grilled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "ff89d27b-c0bd-40f2-9c2c-1998fdaacaea",
+      "name": "ketchup fried",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "c1343ea4-7071-4530-abe0-6d087f71047c",
+      "name": "potato steamed",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "b1831713-f150-4390-9ffc-e1ce42b495ac",
+      "name": "whey protein boiled",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "42113afe-e6a5-4999-92ba-03bd83df582d",
+      "name": "broccoli grilled",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "a925afe5-ca5e-410c-a381-f9e338e49e9b",
+      "name": "malunggay boiled",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "d0bd4bfa-ebd3-4c36-95c5-275642d72925",
+      "name": "egg cooked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "2eb20ef7-db8f-4354-8678-4b1643b9bd65",
+      "name": "bangus boiled",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "f5402884-7e1e-4c13-9e87-2c1064b0bbd1",
+      "name": "greek yogurt grilled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "434601a4-a5fc-4678-9c90-a622b036a9db",
+      "name": "sweet potato fried",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "1f417d80-21e1-4308-92a1-d80d100e5610",
+      "name": "chickpeas steamed",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "51018a5f-71a4-40f5-babc-b075a49e8f3f",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "7e8b3fb4-7574-4fe7-b516-cf37554e8242",
+      "name": "mustard raw",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "81354e26-4c5c-4ee0-8887-f34e3e25e0dc",
+      "name": "bangus boiled",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "e686276f-2c79-43d3-b5f6-cfb5fdf00a0e",
+      "name": "fish sauce boiled",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "de6979a0-fb48-4ca1-b1fc-c4b6650c4bea",
+      "name": "fish sauce cooked",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "3b149e80-b444-4911-b0e6-8e0cb489d144",
+      "name": "chickpeas fried",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "a4d1bf81-ccdc-47fa-84ca-e31c9cd681c5",
+      "name": "banana boiled",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "6fa37f59-49a8-4ab1-8229-551da23fdb0a",
+      "name": "apple steamed",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "f2dae284-901d-427d-ab76-58b108f4f711",
+      "name": "spinach raw",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "4b47ad82-23bb-4bc1-af31-2f9d907eeec8",
+      "name": "sweet potato cooked",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "106cc971-52cd-41eb-893c-bdd0d3caefb8",
+      "name": "lean beef fried",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "b9550a9b-5173-4799-a20b-7e8909ed6e4a",
+      "name": "white rice cooked",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "ee095fdd-97e2-49e6-9614-73edf20e3010",
+      "name": "chicken breast cooked",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "ac1c3e64-883e-4f9a-976c-2d65221edbdf",
+      "name": "egg raw",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "797f3215-1edb-4979-9a71-feee030bc3a7",
+      "name": "potato cooked",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "a3a8cc8b-d40e-47d6-a42e-f44b9c3b342d",
+      "name": "olive oil grilled",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "2efdb118-a517-4918-b643-f1ad72d6caeb",
+      "name": "oats grilled",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "0c02dc8b-2afa-47f4-b4d1-a733a8c20215",
+      "name": "apple fried",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "13f056ce-dac1-4d1b-9888-f854cb26a2d0",
+      "name": "ketchup baked",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "4f6690ea-8bce-4f29-a031-1be5126a8c1b",
+      "name": "bangus steamed",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "f365d648-331f-4942-b39e-523789a01b1a",
+      "name": "bangus steamed",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "5a9b740d-66c4-4544-ab53-7845ffd3f793",
+      "name": "ketchup baked",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "452d536a-cd8f-47c0-a17c-714b2dc6209a",
+      "name": "spinach raw",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "30a552c2-7e46-4e8b-8a60-35c42d35ac61",
+      "name": "whey protein steamed",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "8c0ce4f5-b73b-45d4-8e33-da362852ed5a",
+      "name": "chicken breast steamed",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "94fb5ac2-15b3-47ce-9343-4882d119f0df",
+      "name": "mango baked",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "2e551198-3327-4b21-a985-45365e68fdcb",
+      "name": "galunggong fried",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "9623d221-2ad4-4ecb-a618-b57f78a9b9a5",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "f5e760a3-7582-466b-8646-d925d4f50389",
+      "name": "oats raw",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "5336fac0-09f8-45d5-ab74-1959c6f8ed33",
+      "name": "olive oil grilled",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "2315740b-b3bf-40bb-9281-10e65e465f52",
+      "name": "oats fried",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "ec65588d-7b81-433f-99f5-a9fb751a5990",
+      "name": "ketchup raw",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "1c84cf6e-6233-436a-9dc6-a4bbe16cb14d",
+      "name": "sweet potato baked",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "b729704a-d344-454c-86ec-adb1e76ca703",
+      "name": "lentils fried",
+      "base_ingredient": "lentils",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 352,
+        "protein_g": 25,
+        "carbs_g": 60,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "9b963a9c-c380-4c1c-8fae-f1461351b241",
+      "name": "oats boiled",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "bd3bd2b9-242a-44f6-8bf7-945f068be838",
+      "name": "oats baked",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "d44d8d87-0149-4710-912b-5980dc4c1cd8",
+      "name": "kangkong baked",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "6919f7e8-c17f-427a-abb7-143de04d4a5e",
+      "name": "brown rice fried",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "85b52a1d-3bac-4670-8fa7-8fd37801fc83",
+      "name": "potato boiled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "54cf6892-f112-4aa1-98e9-29579bd3d6c3",
+      "name": "banana cooked",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "284e58b7-6da5-460b-9f84-af7233a02d5c",
+      "name": "milk cooked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "dff1e03c-cd4e-4201-966f-d3e0afa0ea48",
+      "name": "sweet potato steamed",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "98d94ffb-8be6-455d-bad9-b8369770f66a",
+      "name": "quinoa fried",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "b2c124ba-9230-4076-af4c-eb655166cbc0",
+      "name": "kangkong boiled",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "164041c9-3ff0-4358-ba31-7bc3408f901c",
+      "name": "chicken breast boiled",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "7cac45b3-e772-4d12-8743-495b6675216f",
+      "name": "ketchup steamed",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "c016062e-3791-4dbd-b8f3-44fdfa5b8404",
+      "name": "mustard boiled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "4fa2e846-4e17-4fbf-9b10-3707eb4be141",
+      "name": "almonds fried",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "db041f1f-8c9a-496f-aa5a-1736ab8a8d4f",
+      "name": "potato grilled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "924b5e25-5a6e-4374-ac3e-c3918df475c1",
+      "name": "milk baked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "05be5a01-8b4c-4e72-ad7b-484fb4371750",
+      "name": "soy sauce cooked",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "866bf4c0-078e-4fe4-84f3-f09c45197ffb",
+      "name": "peanut butter grilled",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "b6fdb41d-19f7-41b6-b90d-d52ef94daaf9",
+      "name": "peanut butter boiled",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "6febf43b-dc5a-49bd-9c63-ea31541d500f",
+      "name": "lean beef grilled",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "be946fc8-1ab0-4e87-ad53-8fd89fb824d9",
+      "name": "apple cooked",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "2ef0ab46-1367-49f3-84d1-7b4bf9e44d61",
+      "name": "white rice steamed",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "b85f3a65-7994-4e60-877f-d55a3d707278",
+      "name": "tuna steamed",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "3e2efc65-b586-4e99-891b-601a7c4c6efc",
+      "name": "oats cooked",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "e6acf598-2561-4929-a5a2-e74f4468d11d",
+      "name": "egg fried",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "618b09aa-40b1-40ba-a4e8-09961971ba7a",
+      "name": "greek yogurt boiled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "db90a19b-7d52-49ff-9350-239f8bc506df",
+      "name": "quinoa cooked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "9ad0df61-17d7-48ab-b74c-67256a4867a5",
+      "name": "salmon grilled",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "98f92a9f-3087-4e6c-b396-f4183520a657",
+      "name": "salmon cooked",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "398b0250-5b49-4a6b-ae9d-1e81bb63213a",
+      "name": "galunggong baked",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "8bc9a143-aeec-4da2-af3e-ef9cacc4e6ee",
+      "name": "lean beef cooked",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "b52fa74e-d199-4830-ac80-984b76704fb8",
+      "name": "brown rice fried",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "b35ef831-57ed-4c65-bea7-009fc80ecca8",
+      "name": "milk raw",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "0323886f-b17d-40ba-80a2-a177127713fe",
+      "name": "oats boiled",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "19eb74ad-8a8d-4faa-9580-780e3b8791fa",
+      "name": "olive oil baked",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "733533eb-2360-4275-9d3f-1127b2c4216d",
+      "name": "banana baked",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "9a54c532-520d-4791-b96a-b7cf059ecdd7",
+      "name": "spinach cooked",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "c1b815fb-63ea-4c04-8004-5f785e45222a",
+      "name": "olive oil steamed",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "447752c5-1037-4eb9-94bb-8a77d83f543b",
+      "name": "tuna boiled",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "33f773f5-f94d-4443-b36e-187a8cdbd3c8",
+      "name": "salmon baked",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "a1787df2-7eb1-4656-9446-55b93f887a07",
+      "name": "sweet potato grilled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "ddcb85c4-84a7-49bb-b6b0-e957bc59fbb7",
+      "name": "mayonnaise fried",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "f1e52700-e16b-4b2e-9e30-1310e7a7801d",
+      "name": "egg raw",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "187e6150-bdaf-402e-9e1e-5132cc524fdf",
+      "name": "peanut butter baked",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "4d5c51e4-a8ba-4aa6-8ae1-547470ae72bd",
+      "name": "casein protein steamed",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "29d78f52-c9dd-47b6-9f9a-c408d4f60bc8",
+      "name": "brown rice steamed",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "4e11e084-8dc4-442c-8df8-e4f3791f782a",
+      "name": "bangus cooked",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "4a2ca0a5-a48b-4d1a-bbd9-7291fe0b4882",
+      "name": "casein protein baked",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "d265cf66-911f-4e18-b908-c1636dc26afc",
+      "name": "milk cooked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "c2ddc552-23db-4854-b016-00aab93b62fa",
+      "name": "white rice cooked",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "d301fff7-6f61-4659-a9ad-48f3a01a4936",
+      "name": "fish sauce boiled",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "3b69b065-7287-4861-98db-01d35713c914",
+      "name": "quinoa fried",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "267e2d14-5c1a-48ec-ac9d-d146fc20a3aa",
+      "name": "apple cooked",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "90cce702-10e0-4036-a35b-6c7edcb59711",
+      "name": "broccoli fried",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "04a36cb7-9dfa-4fa2-ba0d-5fb536afac5c",
+      "name": "mango cooked",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "da03c506-47dc-4f22-a5c9-63aed7015517",
+      "name": "quinoa cooked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "0c606655-fb98-48fc-be7e-722fac68b796",
+      "name": "milk steamed",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "41023b29-1f60-49f1-9561-30728090884a",
+      "name": "white rice fried",
+      "base_ingredient": "white_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 365,
+        "protein_g": 7,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      }
+    },
+    {
+      "id": "cea8963e-20f4-4ed6-9278-7199d876981d",
+      "name": "tuna raw",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "43417ca3-5270-4231-80b2-5ba791564fe6",
+      "name": "sweet potato cooked",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "a5e48cfe-c690-46a0-a1b7-45ea65ce55b1",
+      "name": "peanut butter fried",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "641629ea-15d9-42f7-9fdb-3d99044f69ab",
+      "name": "chicken breast steamed",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "67e0f599-b986-4250-bd2a-68904c359a74",
+      "name": "egg baked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "a2dde425-8bc6-4cfb-9967-b52e95c1d316",
+      "name": "mustard raw",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "e82c5ddc-eca4-4135-8ece-3b0a2ea7b447",
+      "name": "black beans steamed",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "94bdb1a7-584b-4264-9a76-aa287e1d75d0",
+      "name": "sweet potato cooked",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "be91095d-bfae-44b8-a4ee-dcb03e101ac2",
+      "name": "chicken breast raw",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "89d3986d-c313-4abe-8bb1-aef772e4430b",
+      "name": "oats baked",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "2f74fb00-7817-4290-addc-6815315d3fd8",
+      "name": "oats raw",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "fc22658d-291c-4f1c-be59-d3ec6b986a5c",
+      "name": "mango fried",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "b754bd81-eee6-48cd-907a-8e578fb5612e",
+      "name": "bangus boiled",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "3fefc734-a6d4-4e72-85fc-c29e7c656e41",
+      "name": "kangkong grilled",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "0002fcf9-ce6e-4169-a95b-b8a02a183f2a",
+      "name": "fish sauce grilled",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "8edd8827-915a-4462-b74f-067a6f03eed7",
+      "name": "salmon fried",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "328bd322-40ff-42e0-a9eb-626c54b75d08",
+      "name": "egg raw",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "6e9b50a7-6684-4450-975f-3fb41169718a",
+      "name": "peanut butter baked",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "1601f1a2-59fe-4800-92ad-8b1ccd962081",
+      "name": "banana raw",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "6ce44c88-4306-4e7d-b912-2efcebb46b02",
+      "name": "oats cooked",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "dc370196-e766-4742-b1c8-6299299e6f0d",
+      "name": "sweet potato boiled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "c1655423-623c-4df8-a6ca-2ab2b1e4995f",
+      "name": "banana raw",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "4c76ef50-7006-4d87-b096-8dabd6fc91f6",
+      "name": "olive oil grilled",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "079f843e-0829-4d95-9e71-6307a6ffd534",
+      "name": "malunggay boiled",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "41d497cc-497b-4963-bc6e-8af6bfd26c5f",
+      "name": "oats raw",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "b01b931a-ac59-44e0-956a-a75783035f7c",
+      "name": "quinoa cooked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "2b028a5d-642a-44b4-86cd-2af057e77a81",
+      "name": "mustard steamed",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "fc9d6820-e0bb-43ff-9b62-e2a17e1313e2",
+      "name": "tuna steamed",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "cfa7a514-a225-49e0-976f-d7e1fd98d486",
+      "name": "salmon grilled",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "6a0220c4-9dd4-4cf6-b8f5-6863c3807769",
+      "name": "egg baked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "b5f14414-b1c0-40c6-b496-bcb0fff958f9",
+      "name": "kangkong steamed",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "06d830ff-1508-4566-b096-f02ebd028685",
+      "name": "mustard grilled",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "73c94f32-25e3-4d93-89d5-8c206de0e5f3",
+      "name": "mango steamed",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "8d0c7076-bff8-43e3-9fbf-070261f8e4dc",
+      "name": "greek yogurt boiled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "7ab0fdf1-81e4-4345-9ddd-779c6974818c",
+      "name": "chickpeas grilled",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "881cdcc5-a260-42c8-b3d2-37b9aeb26f4b",
+      "name": "casein protein cooked",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "b0a361c0-129f-4f30-9bc0-71881abf60d6",
+      "name": "black beans fried",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "e4909aa9-b04b-4053-9e0d-03837e50e16d",
+      "name": "chicken breast grilled",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "7c2d1183-c665-49e6-a1be-48843bba96cb",
+      "name": "avocado raw",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "ecfe7c1a-1f16-49cd-ba41-1ea761ef80f8",
+      "name": "black beans cooked",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "e4f621e9-48ce-4dc0-a539-4317bfacc0c9",
+      "name": "black beans boiled",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "0215be02-0e16-4b23-9a80-85f0655e8605",
+      "name": "egg cooked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "9b29d343-7ed9-4b07-a489-81bc73f8227a",
+      "name": "tuna steamed",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "3621d40f-05a3-4a30-9d2d-a7374ad8ff90",
+      "name": "chicken breast boiled",
+      "base_ingredient": "chicken_breast",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 165,
+        "protein_g": 31,
+        "carbs_g": 0,
+        "fat_g": 3.6
+      }
+    },
+    {
+      "id": "23fe564d-b646-4c5d-b317-2be254314ba0",
+      "name": "chickpeas baked",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "0cac6eef-88cb-40b0-9f50-30184f1bf781",
+      "name": "almonds baked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "8058868c-d9d0-4fbc-9ddc-bb93a53d0366",
+      "name": "olive oil baked",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "1b9cb13f-0a38-4833-bb9d-ddb8032e1db7",
+      "name": "avocado grilled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "fa4d2880-23b6-439a-a473-2d4f7cf117fa",
+      "name": "chickpeas grilled",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "9fcf9916-875b-4f42-a83d-995017ee9c3c",
+      "name": "mayonnaise fried",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "02068de4-8df2-4566-bc75-97f842d96815",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "0297ee35-aaf6-40b4-8adf-91d7ea64e736",
+      "name": "brown rice boiled",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "247618ac-3d87-47a1-9d84-1bad6b537467",
+      "name": "banana boiled",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "bb770b3a-0c01-4f18-aa7a-5fdf40ef16d4",
+      "name": "brown rice baked",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "a903b20f-df38-4e4c-9798-42c33914995e",
+      "name": "egg cooked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "b19d3292-12f5-4d12-bc02-7b6a9fe6c4df",
+      "name": "quinoa baked",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "baf336c8-f62b-4425-8177-6a6f4732b9e2",
+      "name": "malunggay baked",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "46cd3838-4cf8-4f11-adbb-007383458d14",
+      "name": "soy sauce steamed",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "a6b29c42-9eb8-453c-b430-c882a859b292",
+      "name": "galunggong boiled",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "2c2e2c4a-33ae-4ac5-a902-8740c4bbdcc2",
+      "name": "apple grilled",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "e9ab452c-8d4e-4986-a69e-ef1aac244289",
+      "name": "lean beef fried",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "02b378cb-5fe5-4746-965d-4036fa8bdbd2",
+      "name": "lentils fried",
+      "base_ingredient": "lentils",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 352,
+        "protein_g": 25,
+        "carbs_g": 60,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "1f13a255-76b4-4568-90cd-f81bcf87d771",
+      "name": "quinoa grilled",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "a6039df6-34ad-4880-8ea7-71870e878b4b",
+      "name": "potato boiled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "16b0afeb-1fe1-498e-a4ad-f939cb4a82f9",
+      "name": "tuna cooked",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "d95d0772-ea89-4e47-986f-ee4e9ad4e326",
+      "name": "mayonnaise baked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "2cdb0c55-ff31-4ea8-8041-1ca5560a82e6",
+      "name": "avocado fried",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "fc304e2a-a26d-40e7-9090-516a45c22b19",
+      "name": "potato boiled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "e3ec0a22-e486-499a-b8b1-4321447b1a0a",
+      "name": "greek yogurt boiled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "2357a8ed-dd7d-4a87-ae35-537ee63b1f58",
+      "name": "almonds baked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "cc6822f4-b198-4d76-8c50-dc0212f2e72d",
+      "name": "olive oil steamed",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "0e63e209-4cef-4980-93e6-e8fd59c3bc2b",
+      "name": "sweet potato grilled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "cfb30b27-a336-49e6-94a6-102cbf4c377d",
+      "name": "quinoa raw",
+      "base_ingredient": "quinoa",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 368,
+        "protein_g": 14,
+        "carbs_g": 64,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "3d6a8952-b086-4185-b6f4-e03e1bf08af9",
+      "name": "casein protein cooked",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "19ede60a-1455-4372-bb10-81fced23c52d",
+      "name": "almonds steamed",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "b4933ddb-2dae-4038-af3e-ae2709ce69bf",
+      "name": "fish sauce cooked",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "7806b0c7-bdf0-4e3b-a3ba-791559dcf9ac",
+      "name": "brown rice boiled",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "4802c75d-5fe9-4384-9e7f-300fd55120e6",
+      "name": "ketchup fried",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "ebc4ccd0-835c-46f9-a819-d7a0682e202c",
+      "name": "potato boiled",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "36c1527d-8080-4f2e-83ff-7baf0a4fc4ee",
+      "name": "olive oil boiled",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "3f06443d-22ba-495e-bab5-c9c856ca7b5a",
+      "name": "mango cooked",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "6a4929bf-7952-42d7-98bc-665a07fe4121",
+      "name": "chickpeas boiled",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "e4012b54-33f7-4099-97cd-1873552598da",
+      "name": "greek yogurt baked",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "15beeadd-787e-483f-b99d-3e39d542b4e5",
+      "name": "mayonnaise cooked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "c8e4dcf3-21ba-4c18-a7f3-e58c1482d0bb",
+      "name": "banana steamed",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "2d52a328-f889-450f-bf50-9eeff4a6f25c",
+      "name": "milk fried",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "9f423b93-5708-4538-b421-368ecf3983c8",
+      "name": "chickpeas baked",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "5e3b9e60-4393-459e-97f6-470dc60ef526",
+      "name": "chickpeas cooked",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "4068fec1-88bb-4781-954b-bbd775cc67f7",
+      "name": "oats raw",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "db29f2cc-9da0-4e4c-b2b9-a17baef166c8",
+      "name": "chickpeas steamed",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "26c4dfe8-eb6d-4c0e-93a5-74b6c36b66b4",
+      "name": "brown rice steamed",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "7a5466ef-c4b7-4055-8b58-04d51529188e",
+      "name": "milk boiled",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "1f03be9f-b01a-4a6f-9b06-bddda74e5ae4",
+      "name": "mayonnaise cooked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "8d847f82-f40e-4e97-9b26-0d7f780ad0c2",
+      "name": "mayonnaise cooked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "041c6273-ca89-4871-92e2-1836e00b4638",
+      "name": "ketchup fried",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "8fa57345-fce7-47a5-958e-dc0717c7574c",
+      "name": "mustard cooked",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    },
+    {
+      "id": "28e8f4dd-e47e-42a5-9d68-dcc910012241",
+      "name": "apple grilled",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "5c9a3b81-5865-4071-9c54-f617d549c93a",
+      "name": "broccoli steamed",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "56a72600-11ec-4513-87c4-4e62ef55c988",
+      "name": "galunggong grilled",
+      "base_ingredient": "galunggong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 143,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "c2664efe-7952-4170-94a8-9c26bdadb882",
+      "name": "spinach raw",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "2423c185-70a8-40bf-bb16-e9567ae0c6bd",
+      "name": "black beans cooked",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "6539b1e5-45f1-408b-a155-8d7b951a9223",
+      "name": "whey protein raw",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "b723050b-1b18-43b7-861d-a4e926825366",
+      "name": "oats baked",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "40b8bc2a-566f-49b1-acc2-c722ef9c0fe4",
+      "name": "soy sauce raw",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "ed1d678e-e5e9-4919-8ffe-871e376f1a53",
+      "name": "broccoli boiled",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "a74f9bf9-1753-42ff-b5e9-a5f0d82fd73e",
+      "name": "soy sauce raw",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "9d35dec1-2f88-47dd-b606-e7215b72b778",
+      "name": "lentils boiled",
+      "base_ingredient": "lentils",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 352,
+        "protein_g": 25,
+        "carbs_g": 60,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "bb781107-9534-4099-a769-8447c436eeb6",
+      "name": "salmon raw",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "a56b6107-a0c8-41d2-921e-df79814431e4",
+      "name": "banana baked",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "50ad9f67-d42d-483b-b6c6-9e0a4c49ba87",
+      "name": "egg grilled",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "8df47fd6-0912-48de-8b63-a0246e207d83",
+      "name": "mayonnaise baked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "a5096e1a-cf60-4110-9b48-6f6fbd0108df",
+      "name": "potato cooked",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "dfdcfb2b-78b7-4c4d-83b1-62c255d6533e",
+      "name": "fish sauce raw",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "3c0292bb-0bc6-4553-91dc-d687cc653266",
+      "name": "lean beef baked",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "a208d898-3585-4ced-8b94-604560ceec8d",
+      "name": "spinach steamed",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "579591f5-8564-4644-8f82-454102e9db6c",
+      "name": "banana fried",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "85153337-11ad-4bd9-9754-4e58f3cf9e9d",
+      "name": "casein protein cooked",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "91498bec-035e-42bd-bbc4-b4f56729370b",
+      "name": "lean beef baked",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "25d138bf-6da8-41a0-b2e0-a2d977519a66",
+      "name": "olive oil fried",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "926cdc52-8468-43b8-b362-b0a0bc09b5fb",
+      "name": "whey protein fried",
+      "base_ingredient": "whey_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 400,
+        "protein_g": 80,
+        "carbs_g": 8,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "93c5a654-1605-4b0e-9e2c-63a1dad781a5",
+      "name": "kangkong boiled",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "fb262040-eec9-45c3-9ddb-d63c031ed7fd",
+      "name": "oats grilled",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "dfe1891c-ebe5-4ea2-8132-e168c665879e",
+      "name": "greek yogurt cooked",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "a0c5c354-7fc4-4805-9e70-c59949cfc0fd",
+      "name": "brown rice grilled",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "54b8eba3-1c56-4722-8aa8-e5a2c405029f",
+      "name": "ketchup boiled",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "46976696-c300-41b0-8e64-50c38edbd660",
+      "name": "egg steamed",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "6ba296bd-7703-4f9a-a3ae-489127377a15",
+      "name": "almonds grilled",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "b53e77f7-220d-4a27-8cfd-441498ae0640",
+      "name": "kangkong cooked",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "1ad53a60-0f3e-4a88-a821-0df1be1953f9",
+      "name": "egg cooked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "43ca9726-2a6a-4637-a737-dfb64ee2d0d0",
+      "name": "broccoli boiled",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "c4a19bfd-0d7b-46b4-8db8-553c963e3e6d",
+      "name": "olive oil cooked",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "630a3051-2db4-4cd1-a5ac-bc734598af16",
+      "name": "sweet potato grilled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "5946e37f-5b34-4a64-ab6a-c42ef451ec4a",
+      "name": "sweet potato fried",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "82985587-f1ae-43c1-a8bf-e24be1282f07",
+      "name": "mango boiled",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "9d79486e-b131-47df-b501-919ed2b4dd86",
+      "name": "apple steamed",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "f32b26c4-c320-404f-ba2b-1d6c64075213",
+      "name": "soy sauce fried",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "4a322126-08a4-488a-ab85-6b90f579c174",
+      "name": "mango steamed",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "10459bdc-a819-4234-af4b-aba27f6ff6dc",
+      "name": "greek yogurt grilled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "f9120d6d-2a10-46aa-b890-3db664b0424e",
+      "name": "casein protein boiled",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "abd07af6-9611-40b9-8df2-a8c26e3476ed",
+      "name": "potato raw",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "16639fdc-4f42-4341-922a-d3109f18b99d",
+      "name": "greek yogurt fried",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "9f0a6467-9d41-4505-940a-df6460d50318",
+      "name": "potato raw",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "c54d52ae-ff95-4f9f-b32a-3ad286d2bde3",
+      "name": "bangus baked",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "ccbc8555-b06f-43af-ae77-b24b97167dfe",
+      "name": "milk raw",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "5b2d669a-9df7-46a8-942a-6a618cec5360",
+      "name": "bangus grilled",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "c084b28b-c096-4a70-9163-1bc3c12a5952",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d8437483-2bf5-407d-b340-f11f8079e5d5",
+      "name": "apple raw",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "8d4fb57d-9825-47b2-8559-3ec148150bca",
+      "name": "kangkong boiled",
+      "base_ingredient": "kangkong",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 19,
+        "protein_g": 2.6,
+        "carbs_g": 3.1,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "fa949972-e113-4042-ac03-18852739aa0a",
+      "name": "spinach cooked",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "863e1784-b9ef-4a82-9948-f4c9e9af2c23",
+      "name": "banana grilled",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "c0e16b32-414d-4cd8-bd9c-ab2c7797ee47",
+      "name": "bangus grilled",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "6f016e5b-ecf3-490e-9d2c-1d0a4407646e",
+      "name": "potato fried",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "be2ab433-271d-42bb-ac54-a1ef00471e1a",
+      "name": "mayonnaise baked",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "09d79f06-7ddb-464d-9d49-e6f650349a96",
+      "name": "broccoli grilled",
+      "base_ingredient": "broccoli",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 34,
+        "protein_g": 2.8,
+        "carbs_g": 7,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "103a3b5a-7b82-4385-a55d-ebd83daf0674",
+      "name": "banana raw",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "f6e66cf7-7d92-41b9-ac00-5a3b1de3ee12",
+      "name": "milk baked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "c5bc4684-0a30-4035-89eb-1b6284fb2cdc",
+      "name": "salmon grilled",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "135887b0-f884-4a38-8b8e-3c8e58e2d60d",
+      "name": "sweet potato boiled",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "4c12c222-d8f7-4ae8-827c-23690a8d2864",
+      "name": "oats boiled",
+      "base_ingredient": "oats",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 389,
+        "protein_g": 17,
+        "carbs_g": 66,
+        "fat_g": 7
+      }
+    },
+    {
+      "id": "c59ef0e6-3e6b-400c-a4c8-4682f90c3dee",
+      "name": "ketchup fried",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "1259e783-b41e-4d18-a363-4b35447c558b",
+      "name": "olive oil steamed",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "8014bdb5-1b89-4918-bcb6-307be62b369f",
+      "name": "egg baked",
+      "base_ingredient": "egg",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 155,
+        "protein_g": 13,
+        "carbs_g": 1,
+        "fat_g": 11
+      }
+    },
+    {
+      "id": "8cb4667f-61b5-40e5-b9e9-3d4f1c84f563",
+      "name": "avocado raw",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "9cf9d680-ca9e-46b0-b6f1-ac19c797d2fe",
+      "name": "black beans grilled",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "64f75dcb-a240-4861-a230-4c4cce69dab0",
+      "name": "spinach grilled",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "825c3da9-504e-4657-9a61-b4c1b099c5ec",
+      "name": "almonds baked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "e3186982-1028-4216-a91f-fb021289394c",
+      "name": "olive oil baked",
+      "base_ingredient": "olive_oil",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      }
+    },
+    {
+      "id": "73db0ea7-d19f-4628-833f-600c28a66b17",
+      "name": "malunggay steamed",
+      "base_ingredient": "malunggay",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 64,
+        "protein_g": 9.4,
+        "carbs_g": 8.3,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "c2af371a-670a-4428-91f1-909c5f7abcb0",
+      "name": "fish sauce grilled",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "c22d632b-1248-4427-8305-25703f193e33",
+      "name": "almonds baked",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d5fd2fdb-c783-443d-9440-7ef8480fdce9",
+      "name": "ketchup cooked",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "8c2a39d4-e9f1-485e-ab97-8af82a5b270c",
+      "name": "apple raw",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "2fdf3210-7a42-4bd6-aa14-b064dc02354a",
+      "name": "casein protein boiled",
+      "base_ingredient": "casein_protein",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 75,
+        "carbs_g": 10,
+        "fat_g": 3
+      }
+    },
+    {
+      "id": "15414334-8dce-42b0-b4bf-1065753eb7da",
+      "name": "black beans cooked",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "cf980c55-bc0a-4387-bb93-b548f0917d11",
+      "name": "ketchup fried",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "c5d39b90-7db1-4f96-93ef-60816a8efc72",
+      "name": "almonds grilled",
+      "base_ingredient": "almonds",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 579,
+        "protein_g": 21,
+        "carbs_g": 22,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "2a45b009-5776-427e-86f7-26ab9b8b65de",
+      "name": "apple baked",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "38354b66-92cf-4714-a98d-65b75961ef7b",
+      "name": "mango fried",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "451df8b2-0a48-4e8f-92e4-38371c93fe0e",
+      "name": "ketchup cooked",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "ff2d497a-ced8-489f-9fd1-3cc6248be51e",
+      "name": "greek yogurt raw",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "4c00f650-c309-4e16-89c3-dce91fafbd7d",
+      "name": "tuna baked",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "2b2c3a6c-9325-4245-bc08-e31a073b6f1d",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "d93bda21-4f2b-4384-873f-0b083c3395f5",
+      "name": "avocado grilled",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "d6cf5cd6-a659-48c9-9e98-67ffd72548dd",
+      "name": "brown rice grilled",
+      "base_ingredient": "brown_rice",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 370,
+        "protein_g": 7.9,
+        "carbs_g": 77,
+        "fat_g": 2.9
+      }
+    },
+    {
+      "id": "a49f7513-cf07-43f4-b416-d333a7f5a6fb",
+      "name": "apple raw",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "cd49e025-afa6-4406-bf84-5f40e5285a1d",
+      "name": "greek yogurt grilled",
+      "base_ingredient": "greek_yogurt",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 59,
+        "protein_g": 10,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "70e36a12-e2e2-4cb5-8d31-546c4f4c44eb",
+      "name": "black beans raw",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "8b43913a-79e3-4459-9de6-660f94e7ad55",
+      "name": "black beans cooked",
+      "base_ingredient": "black_beans",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 341,
+        "protein_g": 21,
+        "carbs_g": 63,
+        "fat_g": 1.4
+      }
+    },
+    {
+      "id": "7f04370e-dd20-491f-9062-ae10943822af",
+      "name": "ketchup raw",
+      "base_ingredient": "ketchup",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 112,
+        "protein_g": 1.3,
+        "carbs_g": 27,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "ae70ce3d-128f-49ae-acfd-8d7cd0db84b7",
+      "name": "bangus fried",
+      "base_ingredient": "bangus",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 148,
+        "protein_g": 20.5,
+        "carbs_g": 0,
+        "fat_g": 6.7
+      }
+    },
+    {
+      "id": "a28cb77b-ab10-48ba-be84-3ad49b2f8821",
+      "name": "banana baked",
+      "base_ingredient": "banana",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 23,
+        "fat_g": 0.3
+      }
+    },
+    {
+      "id": "eceab408-bccb-43c4-8b79-47ab576dd474",
+      "name": "soy sauce steamed",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "8da49a6b-0587-44b1-81d1-79f71c0ae516",
+      "name": "apple raw",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "b9307ed9-743d-4811-b3a7-dc869db8b36a",
+      "name": "fish sauce grilled",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "684acefa-6449-48c8-9a22-e60483af14cc",
+      "name": "potato fried",
+      "base_ingredient": "potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 77,
+        "protein_g": 2,
+        "carbs_g": 17,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "9ec577d1-efca-4c62-9fa0-5a65f8c48c89",
+      "name": "avocado raw",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "f30b45f7-8a23-4d04-add4-fe326c86493c",
+      "name": "spinach fried",
+      "base_ingredient": "spinach",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "b0a62b3e-a768-404c-9a90-f694dbd412ca",
+      "name": "apple baked",
+      "base_ingredient": "apple",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 14,
+        "fat_g": 0.2
+      }
+    },
+    {
+      "id": "7e8e82bc-1713-4d31-a14e-f3496beee2cc",
+      "name": "soy sauce fried",
+      "base_ingredient": "soy_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 53,
+        "protein_g": 8,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      }
+    },
+    {
+      "id": "80d5e3a6-105d-4f51-9898-cb0b57768217",
+      "name": "avocado cooked",
+      "base_ingredient": "avocado",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 15
+      }
+    },
+    {
+      "id": "abeefbe3-f510-490d-bbcb-31c59ca9135c",
+      "name": "salmon baked",
+      "base_ingredient": "salmon",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 208,
+        "protein_g": 20,
+        "carbs_g": 0,
+        "fat_g": 13
+      }
+    },
+    {
+      "id": "6994239f-3813-4721-9cbd-db00557ccb74",
+      "name": "peanut butter raw",
+      "base_ingredient": "peanut_butter",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 588,
+        "protein_g": 25,
+        "carbs_g": 20,
+        "fat_g": 50
+      }
+    },
+    {
+      "id": "630b1fc4-8e60-4b26-bb97-c945b677bfc3",
+      "name": "mayonnaise steamed",
+      "base_ingredient": "mayonnaise",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 75
+      }
+    },
+    {
+      "id": "4f644487-282c-4e1f-ac36-3b9f7ffdae60",
+      "name": "chickpeas raw",
+      "base_ingredient": "chickpeas",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 364,
+        "protein_g": 19,
+        "carbs_g": 61,
+        "fat_g": 6
+      }
+    },
+    {
+      "id": "412e981d-f283-46a2-8ca0-7b1dcb893ba3",
+      "name": "tuna raw",
+      "base_ingredient": "tuna",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 132,
+        "protein_g": 29,
+        "carbs_g": 0,
+        "fat_g": 1
+      }
+    },
+    {
+      "id": "60c92447-1feb-4650-999e-19ced17a4894",
+      "name": "fish sauce boiled",
+      "base_ingredient": "fish_sauce",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 35,
+        "protein_g": 5.6,
+        "carbs_g": 3.2,
+        "fat_g": 0
+      }
+    },
+    {
+      "id": "c7912ba4-5ae2-4580-b2fe-d2d0c410ed4d",
+      "name": "sweet potato fried",
+      "base_ingredient": "sweet_potato",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 86,
+        "protein_g": 1.6,
+        "carbs_g": 20,
+        "fat_g": 0.1
+      }
+    },
+    {
+      "id": "a02f4aaf-85aa-4670-93cb-7271a3c216b5",
+      "name": "lean beef raw",
+      "base_ingredient": "lean_beef",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 176,
+        "protein_g": 26,
+        "carbs_g": 0,
+        "fat_g": 10
+      }
+    },
+    {
+      "id": "67d21bab-36a9-4937-a74c-6336dad4b90b",
+      "name": "milk baked",
+      "base_ingredient": "milk",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 61,
+        "protein_g": 3.2,
+        "carbs_g": 4.8,
+        "fat_g": 3.3
+      }
+    },
+    {
+      "id": "8b64fed6-d894-48bd-a967-f032bc155339",
+      "name": "mango raw",
+      "base_ingredient": "mango",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      }
+    },
+    {
+      "id": "05cd1f3e-fa3c-4740-990b-3a3d513aafd0",
+      "name": "mustard raw",
+      "base_ingredient": "mustard",
+      "serving_basis": "100g",
+      "macros": {
+        "calories_kcal": 66,
+        "protein_g": 4.4,
+        "carbs_g": 5.8,
+        "fat_g": 4.4
+      }
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+[
+  {
+    "id": "8d71c172-49be-4db1-ac6d-4a9ad88cc0ab",
+    "restaurant": "KFC",
+    "item_name": "Original Recipe Chicken",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 185
+    },
+    "macros": {
+      "calories_kcal": 299,
+      "protein_g": 23,
+      "carbs_g": 27,
+      "fat_g": 11
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "af64b5da-8b54-4bf8-85b4-4cdac84cd287",
+    "restaurant": "KFC",
+    "item_name": "Hot & Crispy Chicken",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 272
+    },
+    "macros": {
+      "calories_kcal": 542,
+      "protein_g": 28,
+      "carbs_g": 49,
+      "fat_g": 26
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "db6899b9-cb39-474e-bd0a-445373c66cfd",
+    "restaurant": "KFC",
+    "item_name": "Zinger Burger",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 89
+    },
+    "macros": {
+      "calories_kcal": 426,
+      "protein_g": 22,
+      "carbs_g": 44,
+      "fat_g": 18
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "8bdfaf9f-1793-48d9-bb3a-cf3c54f21988",
+    "restaurant": "KFC",
+    "item_name": "Chicken Sandwich",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 350
+    },
+    "macros": {
+      "calories_kcal": 363,
+      "protein_g": 11,
+      "carbs_g": 46,
+      "fat_g": 15
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "7a24f885-d35a-44c5-9c3d-e8796313b2c1",
+    "restaurant": "KFC",
+    "item_name": "Chicken Nuggets",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 309
+    },
+    "macros": {
+      "calories_kcal": 571,
+      "protein_g": 25,
+      "carbs_g": 66,
+      "fat_g": 23
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "beee00b3-b1e2-494d-b977-653ef01dafe4",
+    "restaurant": "KFC",
+    "item_name": "Famous Bowl",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 97
+    },
+    "macros": {
+      "calories_kcal": 565,
+      "protein_g": 10,
+      "carbs_g": 66,
+      "fat_g": 29
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "48b4cf36-f145-4bd1-bb11-94a4ce8a91e6",
+    "restaurant": "KFC",
+    "item_name": "Mashed Potato",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 290
+    },
+    "macros": {
+      "calories_kcal": 368,
+      "protein_g": 17,
+      "carbs_g": 21,
+      "fat_g": 24
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "94302161-b3f8-446a-b3a5-0885cc211158",
+    "restaurant": "KFC",
+    "item_name": "Coleslaw",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 317
+    },
+    "macros": {
+      "calories_kcal": 451,
+      "protein_g": 14,
+      "carbs_g": 47,
+      "fat_g": 23
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "5d5e144b-ddfe-4005-b81a-25478ee96713",
+    "restaurant": "KFC",
+    "item_name": "Fries Medium",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 193
+    },
+    "macros": {
+      "calories_kcal": 490,
+      "protein_g": 22,
+      "carbs_g": 60,
+      "fat_g": 18
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "5e656089-43c4-46e4-aa3f-e12a3db71b5c",
+    "restaurant": "KFC",
+    "item_name": "Popcorn Chicken",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 318
+    },
+    "macros": {
+      "calories_kcal": 371,
+      "protein_g": 18,
+      "carbs_g": 50,
+      "fat_g": 11
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "5cd3d2f3-59a8-4387-88d4-1ea847deaa03",
+    "restaurant": "KFC",
+    "item_name": "Chocolate Krushers",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 327
+    },
+    "macros": {
+      "calories_kcal": 363,
+      "protein_g": 29,
+      "carbs_g": 28,
+      "fat_g": 15
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "40bc8d5c-d689-4eca-98c5-fa692e1b2868",
+    "restaurant": "KFC",
+    "item_name": "Rice Bowl",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 166
+    },
+    "macros": {
+      "calories_kcal": 335,
+      "protein_g": 20,
+      "carbs_g": 21,
+      "fat_g": 19
+    },
+    "source": "US_reference_estimate"
+  }
+]

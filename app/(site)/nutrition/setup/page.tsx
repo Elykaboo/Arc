@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import NutritionSetupClient from "./setup-client";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Nutrition Setup",
-  description: "Update your nutrition setup to regenerate targets and meal recommendations.",
+  description: "Nutrition setup is unavailable during redevelopment.",
 };
 
 export default function NutritionSetupPage() {
-  return <NutritionSetupClient />;
+  redirect("/nutrition");
 }

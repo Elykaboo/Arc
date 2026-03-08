@@ -1,0 +1,194 @@
+[
+  {
+    "id": "00881b2e-ab3a-4b9d-b3a5-1b2affdb7301",
+    "restaurant": "Jollibee",
+    "item_name": "Chickenjoy Drumstick",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 310
+    },
+    "macros": {
+      "calories_kcal": 467,
+      "protein_g": 10,
+      "carbs_g": 55,
+      "fat_g": 23
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "62b8291e-d22b-4068-8ec8-75830952e2f4",
+    "restaurant": "Jollibee",
+    "item_name": "Chickenjoy Thigh",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 121
+    },
+    "macros": {
+      "calories_kcal": 317,
+      "protein_g": 10,
+      "carbs_g": 40,
+      "fat_g": 13
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "414b4a68-9248-4c76-8a61-8b19be14e199",
+    "restaurant": "Jollibee",
+    "item_name": "Jolly Spaghetti",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 291
+    },
+    "macros": {
+      "calories_kcal": 343,
+      "protein_g": 15,
+      "carbs_g": 28,
+      "fat_g": 19
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "854a9f19-29fb-4bfc-96f5-44892299a357",
+    "restaurant": "Jollibee",
+    "item_name": "Palabok Fiesta",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 97
+    },
+    "macros": {
+      "calories_kcal": 577,
+      "protein_g": 23,
+      "carbs_g": 65,
+      "fat_g": 25
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "dcde7f8f-992b-4921-8a72-860cb32d46f6",
+    "restaurant": "Jollibee",
+    "item_name": "Yum Burger",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 130
+    },
+    "macros": {
+      "calories_kcal": 528,
+      "protein_g": 30,
+      "carbs_g": 66,
+      "fat_g": 16
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "05d5b2a8-de70-4879-81b7-4adacbd62cfc",
+    "restaurant": "Jollibee",
+    "item_name": "Yum Burger w Cheese",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 167
+    },
+    "macros": {
+      "calories_kcal": 343,
+      "protein_g": 23,
+      "carbs_g": 20,
+      "fat_g": 19
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "48ed2c07-d7ff-43d3-bdc5-d71ed0ea6ab0",
+    "restaurant": "Jollibee",
+    "item_name": "Burger Steak 1pc w Rice",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 122
+    },
+    "macros": {
+      "calories_kcal": 551,
+      "protein_g": 30,
+      "carbs_g": 47,
+      "fat_g": 27
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "df63cdf5-8e82-45e4-b367-e5e0cdab4d60",
+    "restaurant": "Jollibee",
+    "item_name": "Burger Steak 2pc w Rice",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 103
+    },
+    "macros": {
+      "calories_kcal": 566,
+      "protein_g": 27,
+      "carbs_g": 47,
+      "fat_g": 30
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "dca70960-0f85-434a-88b1-c3f5af2983a6",
+    "restaurant": "Jollibee",
+    "item_name": "Jolly Crispy Fries",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 145
+    },
+    "macros": {
+      "calories_kcal": 474,
+      "protein_g": 12,
+      "carbs_g": 39,
+      "fat_g": 30
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "2821ede0-c8a5-496d-be83-8c25fff029c3",
+    "restaurant": "Jollibee",
+    "item_name": "Peach Mango Pie",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 82
+    },
+    "macros": {
+      "calories_kcal": 337,
+      "protein_g": 15,
+      "carbs_g": 22,
+      "fat_g": 21
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "ccd732ee-481d-4926-9ae9-b63c6a0e48f0",
+    "restaurant": "Jollibee",
+    "item_name": "Steamed Rice",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 202
+    },
+    "macros": {
+      "calories_kcal": 386,
+      "protein_g": 21,
+      "carbs_g": 53,
+      "fat_g": 10
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "6a415f81-83b0-4140-a790-c7e4fd9ff1cd",
+    "restaurant": "Jollibee",
+    "item_name": "Pineapple Quencher",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 117
+    },
+    "macros": {
+      "calories_kcal": 528,
+      "protein_g": 28,
+      "carbs_g": 50,
+      "fat_g": 24
+    },
+    "source": "US_reference_estimate"
+  }
+]

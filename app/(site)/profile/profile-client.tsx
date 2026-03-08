@@ -482,7 +482,7 @@ export default function ProfileClient() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Account</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Profile</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Edit your public profile details. Nutrition setup now has a dedicated page.
+          Edit your public profile details.
         </p>
         <Link
           href={`/users/${userId}`}
@@ -637,18 +637,6 @@ export default function ProfileClient() {
               )}
             </div>
 
-            <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Nutrition Setup</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Nutrition setup now lives on its own page for a cleaner profile experience.
-              </p>
-              <Link
-                href="/nutrition/setup"
-                className="mt-3 inline-flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-              >
-                Open nutrition setup
-              </Link>
-            </div>
           </div>
 
           {status ? (
@@ -664,12 +652,6 @@ export default function ProfileClient() {
           ) : null}
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Link
-              href="/nutrition"
-              className="rounded-md border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              View nutrition
-            </Link>
             <button
               type="submit"
               disabled={isSaving}
