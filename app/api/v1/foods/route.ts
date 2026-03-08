@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchFoodsWithFallback } from "@/lib/usda-foods";
+import { searchCatalogFoods } from "@/lib/catalog-foods";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const limit = limitValue ? Number.parseInt(limitValue, 10) : undefined;
 
   try {
-    const items = await searchFoodsWithFallback({ search, category, mealTag, limit });
+    const items = searchCatalogFoods({ search, category, mealTag, limit });
     return NextResponse.json({
       total: items.length,
       items,

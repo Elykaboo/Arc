@@ -24,13 +24,16 @@ import {
   deleteCommunityPost,
   getCommunityPostById,
   getCommunityPostPhotoDataUrls,
+  likeCommunityComment,
   likeCommunityPost,
+  listCommunityCommentLikeSummaries,
   listCommunityCommentCountsForPosts,
   listCommunityCommentsForPosts,
   listCommunityLikeSummariesForPosts,
   listCommunityLikesForPost,
   listCommunityPosts,
   listCommunityPostsByUser,
+  unlikeCommunityComment,
   unlikeCommunityPost,
   updateCommunityPostCaption,
   type CommunityComment,
@@ -331,12 +334,17 @@ export default function CommunityClient({
   const [likeBusyPostId, setLikeBusyPostId] = useState<string | null>(null);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentCountsByPost, setCommentCountsByPost] = useState<Record<string, number>>({});
+  const [commentLikeCountsByComment, setCommentLikeCountsByComment] = useState<Record<string, number>>({});
+  const [likedCommentIds, setLikedCommentIds] = useState<Record<string, boolean>>({});
   const [commentsLoadingByPost, setCommentsLoadingByPost] = useState<Record<string, boolean>>({});
   const [visibleCommentsByPost, setVisibleCommentsByPost] = useState<Record<string, number>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [replyDraftsByComment, setReplyDraftsByComment] = useState<Record<string, string>>({});
+  const [activeReplyCommentIdByPost, setActiveReplyCommentIdByPost] = useState<Record<string, string | null>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [activePhotoIndexByPost, setActivePhotoIndexByPost] = useState<Record<string, number>>({});
   const [commentDeleteBusyId, setCommentDeleteBusyId] = useState<string | null>(null);
+  const [commentLikeBusyId, setCommentLikeBusyId] = useState<string | null>(null);
   const [commentSubmitBusyPostId, setCommentSubmitBusyPostId] = useState<string | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
@@ -367,6 +375,18 @@ export default function CommunityClient({
     try {
       const refreshedComments = await listCommunityCommentsForPosts([postId]);
       const nextComments = refreshedComments[postId] || [];
+      let likeSummary: { counts: Record<string, number>; likedByViewer: Record<string, boolean> } = {
+        counts: {},
+        likedByViewer: {},
+      };
+      try {
+        likeSummary = await listCommunityCommentLikeSummaries(
+          nextComments.map((comment) => comment.id),
+          userId,
+        );
+      } catch {
+        // Keep comments visible if comment-like collection rules are not deployed yet.
+      }
       setCommentsByPost((current) => ({
         ...current,
         [postId]: nextComments,
@@ -375,6 +395,17 @@ export default function CommunityClient({
         ...current,
         [postId]: nextComments.length,
       }));
+      setCommentLikeCountsByComment((current) => ({
+        ...current,
+        ...likeSummary.counts,
+      }));
+      setLikedCommentIds((current) => {
+        const next = { ...current };
+        for (const comment of nextComments) {
+          next[comment.id] = Boolean(likeSummary.likedByViewer[comment.id]);
+        }
+        return next;
+      });
     } finally {
       setCommentsLoadingByPost((current) => ({ ...current, [postId]: false }));
     }
@@ -551,7 +582,7 @@ export default function CommunityClient({
     return () => {
       cancelled = true;
     };
-  }, [posts]);
+  }, [posts, userId]);
 
   useEffect(() => {
     const visiblePostIds = new Set(posts.map((post) => post.id));
@@ -618,7 +649,39 @@ export default function CommunityClient({
       }
       return next;
     });
-  }, [posts]);
+  }, [posts, userId]);
+
+  useEffect(() => {
+    const allCommentIds = Object.values(commentsByPost).flatMap((comments) =>
+      comments.map((comment) => comment.id),
+    );
+    if (allCommentIds.length === 0) return;
+
+    let cancelled = false;
+
+    const refreshCommentLikes = async () => {
+      try {
+        const summary = await listCommunityCommentLikeSummaries(allCommentIds, userId);
+        if (cancelled) return;
+        setCommentLikeCountsByComment((current) => ({ ...current, ...summary.counts }));
+        setLikedCommentIds((current) => {
+          const next = { ...current };
+          for (const commentId of allCommentIds) {
+            next[commentId] = Boolean(summary.likedByViewer[commentId]);
+          }
+          return next;
+        });
+      } catch {
+        // Keep existing values if comment-like summary refresh fails.
+      }
+    };
+
+    void refreshCommentLikes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [commentsByPost, userId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -653,15 +716,40 @@ export default function CommunityClient({
 
         const refreshedComments = await listCommunityCommentsForPosts([postId]);
         if (cancelled) return;
+        const nextComments = refreshedComments[postId] || [];
+        let likeSummary: { counts: Record<string, number>; likedByViewer: Record<string, boolean> } = {
+          counts: {},
+          likedByViewer: {},
+        };
+        try {
+          likeSummary = await listCommunityCommentLikeSummaries(
+            nextComments.map((comment) => comment.id),
+            userId,
+          );
+        } catch {
+          // Keep comments visible if comment-like collection rules are not deployed yet.
+        }
+        if (cancelled) return;
 
         setCommentsByPost((current) => ({
           ...current,
-          [postId]: refreshedComments[postId] || [],
+          [postId]: nextComments,
         }));
         setCommentCountsByPost((current) => ({
           ...current,
-          [postId]: (refreshedComments[postId] || []).length,
+          [postId]: nextComments.length,
         }));
+        setCommentLikeCountsByComment((current) => ({
+          ...current,
+          ...likeSummary.counts,
+        }));
+        setLikedCommentIds((current) => {
+          const next = { ...current };
+          for (const comment of nextComments) {
+            next[comment.id] = Boolean(likeSummary.likedByViewer[comment.id]);
+          }
+          return next;
+        });
 
         setExpandedComments((current) => ({
           ...current,
@@ -688,7 +776,7 @@ export default function CommunityClient({
       cancelled = true;
       window.removeEventListener("hashchange", handleHashChange);
     };
-  }, [posts]);
+  }, [posts, userId]);
 
   useEffect(() => {
     const unsubscribe = subscribeMemberProfiles(
@@ -1441,14 +1529,17 @@ export default function CommunityClient({
     }
   };
 
-  const submitComment = async (post: CommunityPost) => {
+  const submitComment = async (post: CommunityPost, parentComment?: CommunityComment | null) => {
     if (!userId) {
       setActionStatus("Log in to comment on posts.");
       return;
     }
     if (commentSubmitBusyPostId) return;
 
-    const text = commentDrafts[post.id]?.trim() || "";
+    const parentCommentId = parentComment?.id ?? null;
+    const text = parentCommentId
+      ? (replyDraftsByComment[parentCommentId] || "").trim()
+      : (commentDrafts[post.id] || "").trim();
     if (!text) return;
 
     setCommentSubmitBusyPostId(post.id);
@@ -1456,6 +1547,7 @@ export default function CommunityClient({
       await createCommunityComment({
         postId: post.id,
         postOwnerUid: post.uid,
+        parentCommentId,
         uid: userId,
         authorName: displayName || "Arc User",
         authorPhotoDataUrl: profilePhoto,
@@ -1464,19 +1556,67 @@ export default function CommunityClient({
       });
 
       await refreshCommentsForPost(post.id, true);
-      setCommentDrafts((current) => ({
-        ...current,
-        [post.id]: "",
-      }));
+      if (parentCommentId) {
+        setReplyDraftsByComment((current) => ({
+          ...current,
+          [parentCommentId]: "",
+        }));
+        setActiveReplyCommentIdByPost((current) => ({
+          ...current,
+          [post.id]: null,
+        }));
+      } else {
+        setCommentDrafts((current) => ({
+          ...current,
+          [post.id]: "",
+        }));
+      }
       setExpandedComments((current) => ({
         ...current,
         [post.id]: true,
       }));
-      setActionStatus("Comment added.");
+      setActionStatus(parentCommentId ? "Reply added." : "Comment added.");
     } catch {
-      setActionStatus("Unable to add comment right now.");
+      setActionStatus(parentCommentId ? "Unable to add reply right now." : "Unable to add comment right now.");
     } finally {
       setCommentSubmitBusyPostId(null);
+    }
+  };
+
+  const toggleCommentLike = async (postId: string, comment: CommunityComment) => {
+    if (!userId) {
+      setActionStatus("Log in to like comments.");
+      return;
+    }
+    if (commentLikeBusyId) return;
+
+    const currentlyLiked = Boolean(likedCommentIds[comment.id]);
+    const previousCount = commentLikeCountsByComment[comment.id] ?? 0;
+    const optimisticCount = Math.max(0, previousCount + (currentlyLiked ? -1 : 1));
+
+    setCommentLikeBusyId(comment.id);
+    setLikedCommentIds((current) => ({ ...current, [comment.id]: !currentlyLiked }));
+    setCommentLikeCountsByComment((current) => ({ ...current, [comment.id]: optimisticCount }));
+    setActionStatus(null);
+
+    try {
+      if (currentlyLiked) {
+        await unlikeCommunityComment(comment.id, userId);
+      } else {
+        await likeCommunityComment({
+          postId,
+          commentId: comment.id,
+          uid: userId,
+          authorName: displayName || "Arc User",
+          authorPhotoDataUrl: profilePhoto || "",
+        });
+      }
+    } catch {
+      setLikedCommentIds((current) => ({ ...current, [comment.id]: currentlyLiked }));
+      setCommentLikeCountsByComment((current) => ({ ...current, [comment.id]: previousCount }));
+      setActionStatus("Unable to update comment like right now.");
+    } finally {
+      setCommentLikeBusyId(null);
     }
   };
 
@@ -2230,12 +2370,24 @@ export default function CommunityClient({
                   const postCommentCount = hasLoadedComments
                     ? postComments.length
                     : (commentCountsByPost[post.id] ?? 0);
+                  const postCommentIds = new Set(postComments.map((comment) => comment.id));
+                  const rootComments = postComments.filter(
+                    (comment) =>
+                      !comment.parentCommentId || !postCommentIds.has(comment.parentCommentId),
+                  );
+                  const repliesByParentId = new Map<string, CommunityComment[]>();
+                  for (const comment of postComments) {
+                    if (!comment.parentCommentId) continue;
+                    const existingReplies = repliesByParentId.get(comment.parentCommentId) || [];
+                    existingReplies.push(comment);
+                    repliesByParentId.set(comment.parentCommentId, existingReplies);
+                  }
                   const visibleComments = Math.max(
                     INITIAL_VISIBLE_COMMENTS,
                     visibleCommentsByPost[post.id] ?? INITIAL_VISIBLE_COMMENTS,
                   );
-                  const visiblePostComments = postComments.slice(-visibleComments);
-                  const hasMoreHiddenComments = postComments.length > visiblePostComments.length;
+                  const visibleRootComments = rootComments.slice(-visibleComments);
+                  const hasMoreHiddenComments = rootComments.length > visibleRootComments.length;
                   const isCommentsOpen = Boolean(expandedComments[post.id]);
                   const isPostOwner = userId === post.uid;
                   const showCommentsPanel = isCommentsOpen;
@@ -2415,34 +2567,148 @@ export default function CommunityClient({
                         <p className="text-xs text-slate-500 dark:text-slate-400">No comments yet.</p>
                       ) : (
                         <ul className="space-y-1">
-                          {visiblePostComments.map((comment) => (
-                            <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
-                              <div className="flex items-start gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p>
-                                    <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
-                                  </p>
-                                  <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                    {formatCommentTimestamp(comment.createdAt)}
-                                  </p>
+                          {visibleRootComments.map((comment) => {
+                            const replies = repliesByParentId.get(comment.id) || [];
+                            const isReplyComposerOpen = activeReplyCommentIdByPost[post.id] === comment.id;
+                            const commentLikeCount = commentLikeCountsByComment[comment.id] ?? 0;
+                            const commentLikedByViewer = Boolean(likedCommentIds[comment.id]);
+                            return (
+                              <li key={comment.id} className="rounded-xl bg-white px-2 py-1.5 text-xs text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                                <div className="flex items-start gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p>
+                                      <span className="font-semibold">{comment.authorName || "Arc User"}</span> {comment.text}
+                                    </p>
+                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                      <span>{formatCommentTimestamp(comment.createdAt)}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          void toggleCommentLike(post.id, comment);
+                                        }}
+                                        disabled={commentLikeBusyId === comment.id}
+                                        className={`rounded-full border px-2 py-0.5 font-semibold transition ${
+                                          commentLikedByViewer
+                                            ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                                            : "border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                        } disabled:cursor-not-allowed disabled:opacity-60`}
+                                      >
+                                        Like {commentLikeCount > 0 ? `(${commentLikeCount})` : ""}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setActiveReplyCommentIdByPost((current) => ({
+                                            ...current,
+                                            [post.id]: current[post.id] === comment.id ? null : comment.id,
+                                          }))
+                                        }
+                                        className="rounded-full border border-slate-200 px-2 py-0.5 font-semibold text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                      >
+                                        Reply
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {userId === comment.uid ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        void removeComment(post.id, comment);
+                                      }}
+                                      disabled={commentDeleteBusyId === comment.id}
+                                      className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
+                                      aria-label="Delete comment"
+                                      title="Delete comment"
+                                    >
+                                      {commentDeleteBusyId === comment.id ? "…" : "×"}
+                                    </button>
+                                  ) : null}
                                 </div>
-                                {userId === comment.uid ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      void removeComment(post.id, comment);
+
+                                {isReplyComposerOpen ? (
+                                  <form
+                                    className="mt-2 flex gap-2"
+                                    onSubmit={(event) => {
+                                      event.preventDefault();
+                                      submitComment(post, comment);
                                     }}
-                                    disabled={commentDeleteBusyId === comment.id}
-                                    className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
-                                    aria-label="Delete comment"
-                                    title="Delete comment"
                                   >
-                                    {commentDeleteBusyId === comment.id ? "…" : "×"}
-                                  </button>
+                                    <input
+                                      type="text"
+                                      value={replyDraftsByComment[comment.id] || ""}
+                                      onChange={(event) =>
+                                        setReplyDraftsByComment((current) => ({
+                                          ...current,
+                                          [comment.id]: event.target.value,
+                                        }))
+                                      }
+                                      placeholder={userId ? "Write a reply..." : "Log in to reply."}
+                                      disabled={!userId}
+                                      className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none ring-slate-300 focus:ring dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                                    />
+                                    <button
+                                      type="submit"
+                                      disabled={!userId || !(replyDraftsByComment[comment.id] || "").trim() || commentSubmitBusyPostId === post.id}
+                                      className="inline-flex min-w-[76px] items-center justify-center rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+                                    >
+                                      Reply
+                                    </button>
+                                  </form>
                                 ) : null}
-                              </div>
-                            </li>
-                          ))}
+
+                                {replies.length > 0 ? (
+                                  <ul className="mt-2 space-y-1 border-l border-slate-200 pl-3 dark:border-slate-700">
+                                    {replies.map((reply) => {
+                                      const replyLikeCount = commentLikeCountsByComment[reply.id] ?? 0;
+                                      const replyLikedByViewer = Boolean(likedCommentIds[reply.id]);
+                                      return (
+                                        <li key={reply.id} className="rounded-lg bg-slate-50 px-2 py-1 text-[11px] text-slate-700 dark:bg-slate-800/60 dark:text-slate-200">
+                                          <div className="flex items-start gap-2">
+                                            <div className="min-w-0 flex-1">
+                                              <p>
+                                                <span className="font-semibold">{reply.authorName || "Arc User"}</span> {reply.text}
+                                              </p>
+                                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                                <span>{formatCommentTimestamp(reply.createdAt)}</span>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    void toggleCommentLike(post.id, reply);
+                                                  }}
+                                                  disabled={commentLikeBusyId === reply.id}
+                                                  className={`rounded-full border px-2 py-0.5 font-semibold transition ${
+                                                    replyLikedByViewer
+                                                      ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                                                      : "border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                                                >
+                                                  Like {replyLikeCount > 0 ? `(${replyLikeCount})` : ""}
+                                                </button>
+                                              </div>
+                                            </div>
+                                            {userId === reply.uid ? (
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  void removeComment(post.id, reply);
+                                                }}
+                                                disabled={commentDeleteBusyId === reply.id}
+                                                className="shrink-0 rounded-full p-1 text-[10px] font-semibold leading-none text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-rose-300"
+                                                aria-label="Delete comment"
+                                                title="Delete comment"
+                                              >
+                                                {commentDeleteBusyId === reply.id ? "…" : "×"}
+                                              </button>
+                                            ) : null}
+                                          </div>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                ) : null}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                       {!isCommentsLoading && hasMoreHiddenComments ? (
@@ -2452,7 +2718,7 @@ export default function CommunityClient({
                             setVisibleCommentsByPost((current) => ({
                               ...current,
                               [post.id]: Math.min(
-                                postComments.length,
+                                rootComments.length,
                                 (current[post.id] ?? INITIAL_VISIBLE_COMMENTS) + COMMENTS_PAGE_STEP,
                               ),
                             }))

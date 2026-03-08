@@ -7,6 +7,7 @@ import {
   foodToSearchResult,
   mergeFrequentResults,
   mergeRecentResults,
+  normalizeLegacyLibraryItemType,
   normalizeMealSlots,
   planFoodToSearchResult,
   recalculateDailyLog,
@@ -16,7 +17,7 @@ import {
   toDashboardResponse,
   validateMealSetup,
 } from "@/lib/nutrition-tracking";
-import { searchFoodsWithFallback } from "@/lib/usda-foods";
+import { searchCatalogFoods } from "@/lib/catalog-foods";
 import type {
   ActiveNutritionPlan,
   CreateLogEntryRequest,
@@ -71,8 +72,16 @@ const parseMealSetup = (uid: string, data: Record<string, unknown> | undefined):
 
 const parseDailyLog = (uid: string, date: string, data: Record<string, unknown> | undefined): DailyNutritionLog | null => {
   if (!data) return null;
+  const raw = data as DailyNutritionLog & FirestoreTimestamped;
   const log = {
-    ...(data as DailyNutritionLog & FirestoreTimestamped),
+    ...raw,
+    meals: (raw.meals ?? []).map((meal) => ({
+      ...meal,
+      entries: (meal.entries ?? []).map((entry) => ({
+        ...entry,
+        entryType: normalizeLegacyLibraryItemType(entry.entryType),
+      })),
+    })),
     uid,
     date,
     updatedAt: serializeTimestamp((data as FirestoreTimestamped).updatedAt),
@@ -386,7 +395,7 @@ const buildEntriesFromPayload = async ({
         item: {
           ...savedMealToSearchResult(savedMeal),
           id: `saved-meal-${savedMeal.id}-${index}`,
-          itemType: item.itemType,
+          itemType: normalizeLegacyLibraryItemType(item.itemType),
           sourceId: item.sourceId,
           name: item.name,
           subtitle: savedMeal.name,
@@ -418,17 +427,20 @@ const buildEntriesFromPayload = async ({
     }
   }
 
-  if ((payload.entryType === "usda" || payload.entryType === "planned_food") && payload.sourceId) {
-    const results = await searchFoodsWithFallback({ search: payload.name || payload.sourceId, limit: 15 });
+  if (
+    (payload.entryType === "catalog" || payload.entryType === "usda" || payload.entryType === "planned_food") &&
+    payload.sourceId
+  ) {
+    const results = searchCatalogFoods({ search: payload.name || payload.sourceId, limit: 15 });
     const found = results.find((item) => item.foodId === payload.sourceId || item.name === payload.name);
     if (!found) throw new Error("Food not found.");
     return [buildLogEntryFromSearchResult({
       item: {
         id: found.foodId,
-        itemType: "usda",
+        itemType: "catalog",
         sourceId: found.foodId,
         name: found.name,
-        subtitle: "USDA",
+        subtitle: "Food database",
         servingLabel: found.servingLabel,
         calories: found.calories,
         proteinGrams: found.proteinGrams,

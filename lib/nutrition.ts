@@ -415,7 +415,7 @@ export const buildDeterministicMealPlan = ({
   mealsPerDay: number;
   catalog: FoodCatalogItem[];
   varietySeed?: number;
-}): { meals: PlannedMeal[]; warnings: string[]; baseSource: "usda" | "mixed" } => {
+}): { meals: PlannedMeal[]; warnings: string[]; baseSource: "catalog" | "mixed" } => {
   const layout = mealSlotDistributions[mealsPerDay] ?? mealSlotDistributions[3];
   const warnings: string[] = [];
   let usedFallback = false;
@@ -495,7 +495,7 @@ export const buildDeterministicMealPlan = ({
   return {
     meals: normalizedMeals,
     warnings,
-    baseSource: usedFallback ? "mixed" : "usda",
+    baseSource: usedFallback ? "mixed" : "catalog",
   };
 };
 
@@ -538,8 +538,6 @@ export const buildPlanSkeleton = ({
     warnings,
     generation: {
       baseSource,
-      aiRefined: false,
-      aiProvider: null,
     },
     generatedAt: new Date().toISOString(),
   };

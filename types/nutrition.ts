@@ -15,7 +15,7 @@ export type MacroTargets = {
   fatGrams: number;
 };
 
-export type FoodSource = "usda" | "local";
+export type FoodSource = "catalog" | "local" | "usda";
 
 export type FoodCategory =
   | "protein"
@@ -42,10 +42,8 @@ export type FoodCatalogItem = {
   priority: number;
 };
 
-export type UsdaFoodItem = FoodCatalogItem & {
-  fdcId: number;
-  dataType: string;
-  brandOwner?: string;
+export type CatalogFoodItem = FoodCatalogItem & {
+  sourceGroup?: string;
 };
 
 export type MealPlanFood = {
@@ -85,9 +83,7 @@ export type ActiveNutritionPlan = {
   meals: PlannedMeal[];
   warnings: string[];
   generation: {
-    baseSource: "usda" | "mixed";
-    aiRefined: boolean;
-    aiProvider: "gemini" | null;
+    baseSource: "catalog" | "mixed" | "usda";
   };
   generatedAt: string;
 };
@@ -112,18 +108,7 @@ export type OnboardingStatusResponse = {
   missingFields: string[];
 };
 
-export type MealRefinementSuggestion = {
-  meals: Array<{
-    slot: MealSlot;
-    label: string;
-    items: Array<{
-      foodId: string;
-      quantity: number;
-    }>;
-  }>;
-};
-
-export type NutritionLibraryItemType = "usda" | "custom_food" | "recipe" | "saved_meal" | "planned_food";
+export type NutritionLibraryItemType = "catalog" | "usda" | "custom_food" | "recipe" | "saved_meal" | "planned_food";
 
 export type NutritionLogDate = string;
 

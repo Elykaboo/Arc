@@ -30,14 +30,6 @@ const navItems: NavItem[] = [
   { href: "/socializing", label: "Home", match: "startsWith" },
   { href: "/community", label: "Community", match: "startsWith" },
   {
-    href: "/nutrition-menu",
-    label: "Nutrition",
-    children: [
-      { href: "/nutrition", label: "Tracker" },
-      { href: "/nutrition/setup", label: "Setup" },
-    ],
-  },
-  {
     href: "/dashboard-menu",
     label: "Training Dashboard",
     children: [
@@ -45,9 +37,15 @@ const navItems: NavItem[] = [
       { href: "/bmi", label: "BMI Page" },
     ],
   },
-  { href: "/workouts", label: "Workouts", match: "startsWith" },
-  { href: "/planner", label: "Planner", match: "startsWith" },
-  { href: "/routines", label: "Routines", match: "startsWith" },
+  {
+    href: "/planner-menu",
+    label: "Planner",
+    children: [
+      { href: "/planner", label: "Planner" },
+      { href: "/workouts", label: "Workout Form Library" },
+      { href: "/routines", label: "Routines" },
+    ],
+  },
 ];
 
 const isActiveItem = (pathname: string, item: NavItem) => {

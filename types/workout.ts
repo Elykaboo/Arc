@@ -14,6 +14,8 @@ export type Exercise = {
   primaryMuscles: string[];
   equipment: string;
   description: string;
+  videoUrl?: string;
+  gifUrl?: string;
 };
 
 export type PlannedExercise = {

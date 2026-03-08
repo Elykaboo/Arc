@@ -15,7 +15,7 @@ type StatusResponse = {
   timestamp: string;
 };
 
-const CARD_BATCH_SIZE = 10;
+const PAGE_SIZE = 12;
 
 export default function WorkoutsClient() {
   const [searchInput, setSearchInput] = useState("");
@@ -23,7 +23,8 @@ export default function WorkoutsClient() {
   const [bodypart, setBodypart] = useState("all");
   const [muscle, setMuscle] = useState("all");
   const [equipment, setEquipment] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(CARD_BATCH_SIZE);
+  const [page, setPage] = useState(1);
+  const [featuredExerciseId, setFeaturedExerciseId] = useState("");
 
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [bodyparts, setBodyparts] = useState<string[]>([]);
@@ -33,6 +34,8 @@ export default function WorkoutsClient() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [brokenVideoByExerciseId, setBrokenVideoByExerciseId] = useState<Record<string, boolean>>({});
+  const [brokenGifByExerciseId, setBrokenGifByExerciseId] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const loadMeta = async () => {
@@ -102,8 +105,12 @@ export default function WorkoutsClient() {
   const hasActiveFilters =
     Boolean(search.trim()) || bodypart !== "all" || muscle !== "all" || equipment !== "all";
 
-  const visibleItems = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
-  const canShowMore = visibleCount < items.length;
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return items.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [items, currentPage]);
 
   const resetFilters = () => {
     setSearchInput("");
@@ -153,99 +160,57 @@ export default function WorkoutsClient() {
   }, [queryUrl]);
 
   useEffect(() => {
-    setVisibleCount(CARD_BATCH_SIZE);
+    setPage(1);
   }, [items]);
 
+  useEffect(() => {
+    const nextFeaturedId = pageItems[0]?.id ?? "";
+    setFeaturedExerciseId((current) => {
+      if (current && items.some((item) => item.id === current)) return current;
+      return nextFeaturedId;
+    });
+  }, [items, pageItems]);
+
+  const featuredExercise = useMemo(
+    () => items.find((item) => item.id === featuredExerciseId) ?? pageItems[0] ?? null,
+    [items, featuredExerciseId, pageItems],
+  );
+
+  const canShowVideo = (exercise: Exercise | null): exercise is Exercise =>
+    Boolean(exercise?.videoUrl?.trim()) && !brokenVideoByExerciseId[exercise.id];
+  const canShowGif = (exercise: Exercise | null): exercise is Exercise =>
+    Boolean(exercise?.gifUrl?.trim()) && !brokenGifByExerciseId[exercise.id];
+
   return (
-    <main className="page-scene min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_48%,_#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.10),_transparent_26%),linear-gradient(180deg,_#020617_0%,_#0f172a_44%,_#111827_100%)]">
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-6 py-10">
-        <header className="page-card relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-slate-950 px-6 py-8 text-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.95)] sm:px-8">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(125,211,252,0.24),_transparent_30%),radial-gradient(circle_at_left,_rgba(129,140,248,0.18),_transparent_35%)]" />
-          <div className="relative grid gap-6 lg:grid-cols-[1.4fr_0.9fr] lg:items-end">
-            <div className="space-y-4">
-              <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-slate-200">
-                Exercise Library
-              </span>
-              <div className="space-y-3">
-                <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                  Find the right movement, then build the session around it.
-                </h1>
-                <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                  Browse live exercise data, filter by body part or equipment, and load more only
-                  when you need it.
-                </p>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
-                  API status
-                </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <span
-                    className={`h-2.5 w-2.5 rounded-full ${
-                      status?.status === "ok" ? "bg-emerald-400" : "bg-amber-400"
-                    }`}
-                  />
-                  <span className="text-sm font-medium text-white">
-                    {status?.status === "ok" ? "Online" : "Checking"}
-                  </span>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
-                  Visible now
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-white">{visibleItems.length}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
-                  Total matches
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-white">{items.length}</p>
-              </div>
-            </div>
-          </div>
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
+        <header className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-500">Workout Form Library</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">Find proper form like a video feed</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            Search exercises, filter quickly, and review API-provided form media for each movement.
+          </p>
         </header>
 
-        <section className="page-card overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)] backdrop-blur dark:border-slate-700/80 dark:bg-slate-900/80 dark:shadow-[0_20px_60px_-40px_rgba(0,0,0,0.55)]">
-          <div className="border-b border-slate-200/80 px-6 py-5 dark:border-slate-700/80">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
-                  Refine results
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">Dial in your search</h2>
-              </div>
-              <button
-                type="button"
-                onClick={resetFilters}
-                disabled={!hasActiveFilters}
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-400 dark:hover:text-slate-100"
-              >
-                Reset filters
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-5 px-6 py-6">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <label className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-                <span className="font-medium text-slate-800 dark:text-slate-100">Search</span>
+        <div className="grid gap-4 lg:grid-cols-[290px_minmax(0,1fr)]">
+          <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-20 lg:h-fit">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Filters</p>
+            <div className="mt-3 space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Search
                 <input
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Search by name"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-slate-500 dark:focus:bg-slate-800"
+                  placeholder="e.g. squat form"
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 />
               </label>
-
-              <label className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-                <span className="font-medium text-slate-800 dark:text-slate-100">Bodypart</span>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Bodypart
                 <select
                   value={bodypart}
                   onChange={(event) => setBodypart(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:bg-slate-800"
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   <option value="all">All</option>
                   {bodyparts.map((item) => (
@@ -255,13 +220,12 @@ export default function WorkoutsClient() {
                   ))}
                 </select>
               </label>
-
-              <label className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-                <span className="font-medium text-slate-800 dark:text-slate-100">Muscle</span>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Muscle
                 <select
                   value={muscle}
                   onChange={(event) => setMuscle(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:bg-slate-800"
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   <option value="all">All</option>
                   {muscles.map((item) => (
@@ -271,13 +235,12 @@ export default function WorkoutsClient() {
                   ))}
                 </select>
               </label>
-
-              <label className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-                <span className="font-medium text-slate-800 dark:text-slate-100">Equipment</span>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Equipment
                 <select
                   value={equipment}
                   onChange={(event) => setEquipment(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:bg-slate-800"
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   <option value="all">All</option>
                   {equipments.map((item) => (
@@ -287,93 +250,179 @@ export default function WorkoutsClient() {
                   ))}
                 </select>
               </label>
+              <button
+                type="button"
+                onClick={resetFilters}
+                disabled={!hasActiveFilters}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Reset filters
+              </button>
             </div>
+          </aside>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/70">
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Showing <span className="font-semibold text-slate-900 dark:text-slate-100">{visibleItems.length}</span> of{" "}
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{items.length}</span> result
-                {items.length === 1 ? "" : "s"}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:bg-slate-900 dark:text-slate-300">
-                  {bodypart === "all" ? "Any bodypart" : bodypart}
-                </span>
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:bg-slate-900 dark:text-slate-300">
-                  {muscle === "all" ? "Any muscle" : muscle}
-                </span>
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:bg-slate-900 dark:text-slate-300">
-                  {equipment === "all" ? "Any gear" : equipment}
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {error ? (
-          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </p>
-        ) : null}
-
-        {isLoading ? (
-          <div className="rounded-[2rem] border border-slate-200/80 bg-white/80 px-6 py-12 text-center text-sm text-slate-500 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)] dark:border-slate-700/80 dark:bg-slate-900/80 dark:text-slate-300 dark:shadow-[0_20px_60px_-40px_rgba(0,0,0,0.55)]">
-            Loading exercises...
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {visibleItems.map((exercise) => (
-                <li
-                  key={exercise.id}
-                  className="group relative overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_30px_80px_-45px_rgba(15,23,42,0.55)] dark:border-slate-700/80 dark:bg-slate-900 dark:shadow-[0_18px_45px_-35px_rgba(0,0,0,0.55)] dark:hover:border-slate-600 dark:hover:shadow-[0_30px_80px_-45px_rgba(0,0,0,0.7)]"
-                >
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400 opacity-80" />
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
-                        {exercise.category}
-                      </p>
-                      <h2 className="text-lg font-semibold leading-6 text-slate-950 dark:text-slate-100">
-                        {exercise.name}
-                      </h2>
-                    </div>
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      {exercise.equipment}
-                    </span>
+          <section className="space-y-4">
+            {featuredExercise ? (
+              <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="aspect-video bg-[linear-gradient(135deg,#111827,#1e293b,#7f1d1d)]">
+                    {canShowVideo(featuredExercise) ? (
+                      <video
+                        src={featuredExercise.videoUrl}
+                        className="h-full w-full object-cover"
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        controls
+                        onError={() =>
+                          setBrokenVideoByExerciseId((current) => ({
+                            ...current,
+                            [featuredExercise.id]: true,
+                          }))
+                        }
+                      />
+                    ) : canShowGif(featuredExercise) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={featuredExercise.gifUrl}
+                        alt={`${featuredExercise.name} demonstration`}
+                        className="h-full w-full object-cover"
+                        onError={() =>
+                          setBrokenGifByExerciseId((current) => ({
+                            ...current,
+                            [featuredExercise.id]: true,
+                          }))
+                        }
+                      />
+                    ) : null}
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    Targets {exercise.primaryMuscles.join(", ")}.
-                  </p>
-                  <Link
-                    href={`/workouts/${exercise.id}`}
-                    className="mt-6 inline-flex items-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                  >
-                    View details
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {canShowMore ? (
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((current) => current + CARD_BATCH_SIZE)}
-                  className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-30px_rgba(15,23,42,0.85)] transition hover:scale-[1.02] hover:bg-slate-800"
-                >
-                  See more
-                </button>
-              </div>
+                  <div className="space-y-2 bg-slate-950 p-5 text-white">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-200">Featured Form Guide</p>
+                    <h2 className="text-2xl font-bold">{featuredExercise.name}</h2>
+                    <p className="text-sm text-slate-200">
+                      Focus: {featuredExercise.primaryMuscles.join(", ") || "General"} · {featuredExercise.equipment || "Bodyweight"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Link
+                        href={`/workouts/${featuredExercise.id}`}
+                        className="rounded-lg border border-white/35 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                      >
+                        Exercise details
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </article>
             ) : null}
-          </div>
-        )}
 
-        {!isLoading && items.length === 0 ? (
-          <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white/70 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900/70">
-            <p className="text-sm text-slate-500 dark:text-slate-300">No exercises found for current filters.</p>
-          </div>
-        ) : null}
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  {isLoading ? "Loading..." : `${items.length} exercises found`} · Page {currentPage} of {totalPages}
+                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  {status?.status === "ok" ? "API online" : "API checking"}
+                </p>
+              </div>
+
+              {error ? (
+                <p className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+                  {error}
+                </p>
+              ) : null}
+
+              {isLoading ? (
+                <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300">
+                  Loading exercises...
+                </p>
+              ) : items.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300">
+                  No exercises found for the selected filters.
+                </p>
+              ) : (
+                <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {pageItems.map((exercise) => (
+                    <li key={exercise.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:border-slate-600">
+                      <button
+                        type="button"
+                        onClick={() => setFeaturedExerciseId(exercise.id)}
+                        className="mb-2 flex aspect-video w-full items-end rounded-lg bg-[linear-gradient(140deg,#0f172a,#1d4ed8,#7c2d12)] p-2 text-left"
+                      >
+                        {canShowVideo(exercise) ? (
+                          <video
+                            src={exercise.videoUrl}
+                            className="h-full w-full rounded-lg object-cover"
+                            muted
+                            loop
+                            autoPlay
+                            playsInline
+                            onError={() =>
+                              setBrokenVideoByExerciseId((current) => ({
+                                ...current,
+                                [exercise.id]: true,
+                              }))
+                            }
+                          />
+                        ) : canShowGif(exercise) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={exercise.gifUrl}
+                            alt={`${exercise.name} exercise gif`}
+                            className="h-full w-full rounded-lg object-cover"
+                            onError={() =>
+                              setBrokenGifByExerciseId((current) => ({
+                                ...current,
+                                [exercise.id]: true,
+                              }))
+                            }
+                          />
+                        ) : (
+                          <span className="rounded bg-black/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-100">
+                            {exercise.category}
+                          </span>
+                        )}
+                      </button>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{exercise.name}</h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
+                        {exercise.primaryMuscles.join(", ")} · {exercise.equipment || "Bodyweight"}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Link
+                          href={`/workouts/${exercise.id}`}
+                          className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                        >
+                          Details
+                        </Link>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {!isLoading && items.length > 0 ? (
+                <div className="mt-4 flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    disabled={currentPage <= 1}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                    disabled={currentPage >= totalPages}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Next
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );

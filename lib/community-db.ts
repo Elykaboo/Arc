@@ -36,10 +36,21 @@ export type CommunityComment = {
   id: string;
   postId: string;
   postOwnerUid: string;
+  parentCommentId: string | null;
   uid: string;
   authorName: string;
   authorPhotoDataUrl: string;
   text: string;
+  createdAt: Timestamp | null;
+};
+
+export type CommunityCommentLike = {
+  id: string;
+  postId: string;
+  commentId: string;
+  uid: string;
+  authorName: string;
+  authorPhotoDataUrl: string;
   createdAt: Timestamp | null;
 };
 
@@ -77,10 +88,20 @@ const normalizePhotoDataUrls = (value: unknown, fallbackValue: unknown): string[
 type CommunityCommentDocument = {
   postId: string;
   postOwnerUid: string;
+  parentCommentId?: string;
   uid: string;
   authorName: string;
   authorPhotoDataUrl: string;
   text: string;
+  createdAt?: Timestamp;
+};
+
+type CommunityCommentLikeDocument = {
+  postId: string;
+  commentId: string;
+  uid: string;
+  authorName: string;
+  authorPhotoDataUrl: string;
   createdAt?: Timestamp;
 };
 
@@ -122,6 +143,7 @@ const communityCommentsCollection = collection(db, "communityComments").withConv
     return {
       postId: typeof data.postId === "string" ? data.postId : "",
       postOwnerUid: typeof data.postOwnerUid === "string" ? data.postOwnerUid : "",
+      parentCommentId: typeof data.parentCommentId === "string" ? data.parentCommentId : "",
       uid: typeof data.uid === "string" ? data.uid : "",
       authorName: typeof data.authorName === "string" ? data.authorName : "",
       authorPhotoDataUrl: typeof data.authorPhotoDataUrl === "string" ? data.authorPhotoDataUrl : "",
@@ -130,6 +152,22 @@ const communityCommentsCollection = collection(db, "communityComments").withConv
     };
   },
 } satisfies FirestoreDataConverter<CommunityCommentDocument>);
+const communityCommentLikesCollection = collection(db, "communityCommentLikes").withConverter({
+  toFirestore(value: CommunityCommentLikeDocument) {
+    return value;
+  },
+  fromFirestore(snapshot) {
+    const data = snapshot.data();
+    return {
+      postId: typeof data.postId === "string" ? data.postId : "",
+      commentId: typeof data.commentId === "string" ? data.commentId : "",
+      uid: typeof data.uid === "string" ? data.uid : "",
+      authorName: typeof data.authorName === "string" ? data.authorName : "",
+      authorPhotoDataUrl: typeof data.authorPhotoDataUrl === "string" ? data.authorPhotoDataUrl : "",
+      createdAt: data.createdAt,
+    };
+  },
+} satisfies FirestoreDataConverter<CommunityCommentLikeDocument>);
 const communityLikesCollection = collection(db, "communityLikes").withConverter({
   toFirestore(value: CommunityLikeDocument) {
     return value;
@@ -153,6 +191,7 @@ const mapCommunityComment = (
   id: documentId,
   postId: data.postId,
   postOwnerUid: data.postOwnerUid,
+  parentCommentId: data.parentCommentId?.trim() ? data.parentCommentId.trim() : null,
   uid: data.uid,
   authorName: data.authorName,
   authorPhotoDataUrl: data.authorPhotoDataUrl,
@@ -174,6 +213,8 @@ const mapCommunityLike = (
 
 const buildCommunityLikeId = (postId: string, uid: string): string =>
   `${encodeURIComponent(postId.trim())}__${encodeURIComponent(uid.trim())}`;
+const buildCommunityCommentLikeId = (commentId: string, uid: string): string =>
+  `${encodeURIComponent(commentId.trim())}__${encodeURIComponent(uid.trim())}`;
 
 export const createCommunityPost = async (input: {
   uid: string;
@@ -442,7 +483,32 @@ export const deleteCommunityComment = async (commentId: string): Promise<void> =
   const cleanedCommentId = commentId.trim();
   if (!cleanedCommentId) return;
 
-  await deleteDoc(doc(db, "communityComments", cleanedCommentId));
+  const targetIds = new Set<string>([cleanedCommentId]);
+  try {
+    const repliesSnapshot = await getDocs(
+      query(communityCommentsCollection, where("parentCommentId", "==", cleanedCommentId), limit(500)),
+    );
+    for (const replyDocument of repliesSnapshot.docs) {
+      targetIds.add(replyDocument.id);
+    }
+  } catch {
+    // Fallback to deleting only the requested comment when reply lookup fails.
+  }
+
+  await Promise.allSettled(
+    Array.from(targetIds).map((targetId) => deleteDoc(doc(db, "communityComments", targetId))),
+  );
+
+  for (const targetId of targetIds) {
+    try {
+      const likesSnapshot = await getDocs(
+        query(communityCommentLikesCollection, where("commentId", "==", targetId), limit(500)),
+      );
+      await Promise.allSettled(likesSnapshot.docs.map((likeDocument) => deleteDoc(likeDocument.ref)));
+    } catch {
+      // Comment deletion should succeed even when comment-like cleanup cannot run.
+    }
+  }
 };
 
 export const listCommunityCommentsForPosts = async (
@@ -500,6 +566,7 @@ export const listCommunityCommentCountsForPosts = async (
 export const createCommunityComment = async (input: {
   postId: string;
   postOwnerUid: string;
+  parentCommentId?: string | null;
   uid: string;
   authorName: string;
   authorPhotoDataUrl: string;
@@ -509,6 +576,7 @@ export const createCommunityComment = async (input: {
   await addDoc(communityCommentsCollection, {
     postId: input.postId,
     postOwnerUid: input.postOwnerUid,
+    parentCommentId: input.parentCommentId?.trim() || "",
     uid: input.uid,
     authorName: input.authorName,
     authorPhotoDataUrl: input.authorPhotoDataUrl,
@@ -532,4 +600,73 @@ export const createCommunityComment = async (input: {
       // Comment creation should still succeed if notification rules lag behind.
     }
   }
+};
+
+export const likeCommunityComment = async (input: {
+  postId: string;
+  commentId: string;
+  uid: string;
+  authorName: string;
+  authorPhotoDataUrl: string;
+}): Promise<void> => {
+  const postId = input.postId.trim();
+  const commentId = input.commentId.trim();
+  const uid = input.uid.trim();
+  if (!postId || !commentId || !uid) return;
+
+  const likeId = buildCommunityCommentLikeId(commentId, uid);
+  const likeRef = doc(communityCommentLikesCollection, likeId);
+
+  await setDoc(likeRef, {
+    postId,
+    commentId,
+    uid,
+    authorName: input.authorName.trim() || "Arc User",
+    authorPhotoDataUrl: input.authorPhotoDataUrl.trim(),
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const unlikeCommunityComment = async (commentId: string, uid: string): Promise<void> => {
+  const cleanedCommentId = commentId.trim();
+  const cleanedUid = uid.trim();
+  if (!cleanedCommentId || !cleanedUid) return;
+
+  const likeId = buildCommunityCommentLikeId(cleanedCommentId, cleanedUid);
+  await deleteDoc(doc(db, "communityCommentLikes", likeId));
+};
+
+export const listCommunityCommentLikeSummaries = async (
+  commentIds: string[],
+  viewerUid?: string | null,
+): Promise<{ counts: Record<string, number>; likedByViewer: Record<string, boolean> }> => {
+  const cleanedCommentIds = Array.from(new Set(commentIds.map((commentId) => commentId.trim()).filter(Boolean)));
+  if (cleanedCommentIds.length === 0) return { counts: {}, likedByViewer: {} };
+
+  const countRows = await Promise.all(
+    cleanedCommentIds.map(async (commentId) => {
+      const countSnapshot = await getCountFromServer(
+        query(communityCommentLikesCollection, where("commentId", "==", commentId)),
+      );
+      return [commentId, countSnapshot.data().count] as const;
+    }),
+  );
+
+  const counts = Object.fromEntries(countRows);
+  const likedByViewer: Record<string, boolean> = {};
+
+  if (viewerUid?.trim()) {
+    const viewerRows = await Promise.all(
+      cleanedCommentIds.map(async (commentId) => {
+        const likeId = buildCommunityCommentLikeId(commentId, viewerUid);
+        const snapshot = await getDoc(doc(db, "communityCommentLikes", likeId));
+        return [commentId, snapshot.exists()] as const;
+      }),
+    );
+    for (const [commentId, liked] of viewerRows) {
+      likedByViewer[commentId] = liked;
+    }
+  }
+
+  return { counts, likedByViewer };
 };

@@ -1,0 +1,194 @@
+[
+  {
+    "id": "451433ec-f1f1-49a0-bad9-377f4b78efb0",
+    "restaurant": "BurgerKing",
+    "item_name": "Whopper",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 147
+    },
+    "macros": {
+      "calories_kcal": 338,
+      "protein_g": 10,
+      "carbs_g": 25,
+      "fat_g": 22
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "7739a17a-07cd-4956-9dfc-d984f4798f24",
+    "restaurant": "BurgerKing",
+    "item_name": "Whopper Jr",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 267
+    },
+    "macros": {
+      "calories_kcal": 402,
+      "protein_g": 15,
+      "carbs_g": 36,
+      "fat_g": 22
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "c83e26ca-15bd-4280-ad41-e0b7c5c61c3a",
+    "restaurant": "BurgerKing",
+    "item_name": "Double Whopper",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 317
+    },
+    "macros": {
+      "calories_kcal": 314,
+      "protein_g": 30,
+      "carbs_g": 26,
+      "fat_g": 10
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "ca6c4adb-bd34-4b35-bf6d-bdd47edde1d7",
+    "restaurant": "BurgerKing",
+    "item_name": "Bacon King",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 154
+    },
+    "macros": {
+      "calories_kcal": 393,
+      "protein_g": 24,
+      "carbs_g": 45,
+      "fat_g": 13
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "342784f2-f6b9-47aa-9910-1b34f832cdcc",
+    "restaurant": "BurgerKing",
+    "item_name": "Cheeseburger",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 186
+    },
+    "macros": {
+      "calories_kcal": 496,
+      "protein_g": 29,
+      "carbs_g": 41,
+      "fat_g": 24
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "268b88f0-5568-4f08-b069-d585b1f0a1e2",
+    "restaurant": "BurgerKing",
+    "item_name": "Double Cheeseburger",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 195
+    },
+    "macros": {
+      "calories_kcal": 384,
+      "protein_g": 10,
+      "carbs_g": 50,
+      "fat_g": 16
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "7e88cd96-d311-4309-a4a9-7cb5d2252f4f",
+    "restaurant": "BurgerKing",
+    "item_name": "Chicken King",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 276
+    },
+    "macros": {
+      "calories_kcal": 358,
+      "protein_g": 29,
+      "carbs_g": 38,
+      "fat_g": 10
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "915f7546-afef-41b8-bb06-0e7627bdcfd3",
+    "restaurant": "BurgerKing",
+    "item_name": "Spicy Chicken King",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 325
+    },
+    "macros": {
+      "calories_kcal": 504,
+      "protein_g": 24,
+      "carbs_g": 39,
+      "fat_g": 28
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "d0a6d3fb-5f33-492e-8203-5ebd961367fc",
+    "restaurant": "BurgerKing",
+    "item_name": "Onion Rings",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 232
+    },
+    "macros": {
+      "calories_kcal": 572,
+      "protein_g": 20,
+      "carbs_g": 69,
+      "fat_g": 24
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "ad8b8c65-c41f-485d-a8c5-b78cab8fe490",
+    "restaurant": "BurgerKing",
+    "item_name": "French Fries Medium",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 175
+    },
+    "macros": {
+      "calories_kcal": 380,
+      "protein_g": 17,
+      "carbs_g": 24,
+      "fat_g": 24
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "5e323733-bacb-4feb-8396-06fd1827cc0a",
+    "restaurant": "BurgerKing",
+    "item_name": "Chocolate Sundae",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 221
+    },
+    "macros": {
+      "calories_kcal": 649,
+      "protein_g": 27,
+      "carbs_g": 70,
+      "fat_g": 29
+    },
+    "source": "US_reference_estimate"
+  },
+  {
+    "id": "0aa2a24a-9abb-472c-adbd-40a31f4bc98a",
+    "restaurant": "BurgerKing",
+    "item_name": "Vanilla Shake",
+    "serving": {
+      "description": "1 serving",
+      "weight_g": 290
+    },
+    "macros": {
+      "calories_kcal": 434,
+      "protein_g": 14,
+      "carbs_g": 54,
+      "fat_g": 18
+    },
+    "source": "US_reference_estimate"
+  }
+]
