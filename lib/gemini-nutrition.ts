@@ -34,6 +34,8 @@ type GeminiApiErrorBody = {
   };
 };
 
+type GeminiApiErrorDetails = NonNullable<GeminiApiErrorBody["error"]>["details"];
+
 export class GeminiApiError extends Error {
   readonly status: number;
   readonly retryAfterSeconds: number | null;
@@ -187,7 +189,7 @@ Rules:
 - Include all major foods shown.
 - No markdown, no explanation text, JSON only.`;
 
-const parseRetrySeconds = (details: GeminiApiErrorBody["error"]["details"]): number | null => {
+const parseRetrySeconds = (details: GeminiApiErrorDetails): number | null => {
   if (!Array.isArray(details)) return null;
   const retryInfo = details.find((detail) => detail?.["@type"] === "type.googleapis.com/google.rpc.RetryInfo");
   const retryDelay = typeof retryInfo?.retryDelay === "string" ? retryInfo.retryDelay : "";
