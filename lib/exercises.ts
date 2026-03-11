@@ -1,10 +1,15 @@
+import "server-only";
 import type { Exercise } from "@/types/workout";
+import { readServerSecret } from "@/lib/server-secrets";
 
 const EXERCISE_TYPES = ["Strength", "Hypertrophy", "Conditioning"] as const;
-const API_BASE_URL =
-  process.env.EXERCISE_API_BASE_URL ??
-  "https://edb-with-videos-and-images-by-ascendapi.p.rapidapi.com";
-const API_VERSION = process.env.EXERCISE_API_VERSION ?? "/api/v1";
+const API_BASE_URL = readServerSecret("EXERCISE_API_BASE_URL", {
+  defaultValue: "https://edb-with-videos-and-images-by-ascendapi.p.rapidapi.com",
+  required: false,
+});
+const API_VERSION = readServerSecret("EXERCISE_API_VERSION", { defaultValue: "/api/v1", required: false });
+const RAPIDAPI_KEY = readServerSecret("RAPIDAPI_KEY", { required: false });
+const RAPIDAPI_HOST = readServerSecret("RAPIDAPI_HOST", { required: false });
 const API_LIMIT = 100;
 const API_MAX_PAGES = 50;
 const PUBLIC_FALLBACK_URL =
@@ -155,12 +160,12 @@ async function requestApi(path: string) {
     Accept: "application/json",
   };
 
-  if (process.env.RAPIDAPI_KEY) {
-    headers["x-rapidapi-key"] = process.env.RAPIDAPI_KEY;
+  if (RAPIDAPI_KEY) {
+    headers["x-rapidapi-key"] = RAPIDAPI_KEY;
   }
 
-  if (process.env.RAPIDAPI_HOST) {
-    headers["x-rapidapi-host"] = process.env.RAPIDAPI_HOST;
+  if (RAPIDAPI_HOST) {
+    headers["x-rapidapi-host"] = RAPIDAPI_HOST;
   }
 
   const response = await fetch(url, {

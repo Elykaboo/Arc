@@ -306,3 +306,23 @@ export type UpdateLogEntryRequest = {
   mealSlotId?: string;
   mealSlotLabel?: string;
 };
+
+export type PhotoMacroEstimateItem = {
+  id: string;
+  name: string;
+  grams: number;
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+};
+
+export type PhotoMacroEstimateResponse = {
+  items: PhotoMacroEstimateItem[];
+  totals: MacroTargets;
+  model: string;
+};
+
+export type EstimatePhotoRequest = {
+  imageDataUrl: string;
+};

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import NutritionSetupClient from "./nutrition-setup-client";
 
 export const metadata: Metadata = {
   title: "Nutrition Setup",
-  description: "Nutrition setup is unavailable during redevelopment.",
+  description: "Configure body metrics, activity level, and nutrition goal.",
 };
 
 export default function NutritionSetupPage() {
-  redirect("/nutrition");
+  return <NutritionSetupClient />;
 }

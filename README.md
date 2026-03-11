@@ -42,6 +42,7 @@ Recommended Vercel environment variables:
 
 ```bash
 NEXT_PUBLIC_SITE_URL="https://your-project.vercel.app"
+NEXT_PUBLIC_ENABLE_PREPROD_NUTRITION="false"
 
 NEXT_PUBLIC_FIREBASE_API_KEY="..."
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="..."
@@ -51,6 +52,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="..."
 NEXT_PUBLIC_FIREBASE_APP_ID="..."
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="..."
 
+FIREBASE_PROJECT_ID="..."
 RAPIDAPI_KEY="..."
 RAPIDAPI_HOST="edb-with-videos-and-images-by-ascendapi.p.rapidapi.com"
 EXERCISE_API_BASE_URL="https://edb-with-videos-and-images-by-ascendapi.p.rapidapi.com"
@@ -67,7 +69,9 @@ GEMINI_MACRO_DAILY_LIMIT="25"
 
 Notes:
 - `NEXT_PUBLIC_SITE_URL` should be your production Vercel URL or custom domain so metadata uses the correct base URL.
-- Firebase web app variables are required for login, signup, profile, planner sync, and community features.
+- `NEXT_PUBLIC_ENABLE_PREPROD_NUTRITION=true` enables the new pre-prod nutrition photo tracking UI on `/nutrition`.
+- Firebase web app variables (`NEXT_PUBLIC_FIREBASE_*`) are public by design and required for login, signup, profile, planner sync, and community features.
+- All secret material must be server-only env vars (never `NEXT_PUBLIC_*`), including `RAPIDAPI_KEY`, `GEMINI_API_KEY`, `ADMIN_SESSION_SECRET`, `PAYLOAD_SECRET`, and Firebase Admin credentials.
 - `RAPIDAPI_KEY` is recommended for the exercise API routes. Without it, the app falls back to a public exercise dataset when the RapidAPI source is unavailable.
 - `FIREBASE_SERVICE_ACCOUNT_JSON` or `FIREBASE_SERVICE_ACCOUNT_PATH` is required for authenticated server API routes that verify Firebase ID tokens.
 - `GEMINI_API_KEY` is required for nutrition photo macro estimation on `/nutrition`.
@@ -216,6 +220,18 @@ Optional single command (runs app + tunnel together):
 ```bash
 npm run dev:public
 ```
+
+## Security key handling (OWASP-aligned)
+
+- Keep all secrets in environment variables, never hard-code in source.
+- Do not expose secrets in client bundles: only non-sensitive values may use `NEXT_PUBLIC_*`.
+- Use least privilege for provider keys and service accounts.
+- Rotate any key immediately if leaked. Minimum rotation checklist:
+  1. Create a new provider key/credential with scoped permissions.
+  2. Update Vercel/local env vars.
+  3. Deploy/restart services.
+  4. Revoke old key.
+  5. Review logs for suspicious activity during overlap window.
 
 ## RapidAPI client
 

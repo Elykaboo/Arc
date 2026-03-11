@@ -1,7 +1,9 @@
+import "server-only";
 import { readFile } from "node:fs/promises";
 import { applicationDefault, cert, getApps, initializeApp, type ServiceAccount } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { readServerSecret } from "@/lib/server-secrets";
 
 type RawServiceAccountShape = {
   project_id?: string;
@@ -18,7 +20,7 @@ const parseServiceAccountJson = (raw: string): RawServiceAccountShape => {
 };
 
 const loadServiceAccount = async (): Promise<RawServiceAccountShape | null> => {
-  const inlineJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+  const inlineJson = readServerSecret("FIREBASE_SERVICE_ACCOUNT_JSON", { required: false });
   if (inlineJson) {
     try {
       return parseServiceAccountJson(inlineJson);
@@ -29,7 +31,7 @@ const loadServiceAccount = async (): Promise<RawServiceAccountShape | null> => {
     }
   }
 
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim();
+  const serviceAccountPath = readServerSecret("FIREBASE_SERVICE_ACCOUNT_PATH", { required: false });
   if (!serviceAccountPath) return null;
 
   try {
@@ -47,6 +49,12 @@ const ensureAdminApp = async () => {
     return getApps()[0];
   }
 
+  const serverProjectId = readServerSecret("FIREBASE_PROJECT_ID", {
+    // Backward-compatible fallback for existing deployments; prefer FIREBASE_PROJECT_ID.
+    fallbackName: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+    required: false,
+  });
+
   const serviceAccount = await loadServiceAccount();
   if (serviceAccount?.client_email && serviceAccount.private_key) {
     return initializeApp({
@@ -55,17 +63,17 @@ const ensureAdminApp = async () => {
         privateKey: serviceAccount.private_key,
         clientEmail: serviceAccount.client_email,
       } satisfies ServiceAccount),
-      projectId: serviceAccount.project_id || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      projectId: serviceAccount.project_id || serverProjectId,
     });
   }
 
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim() || process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim()) {
+  if (readServerSecret("FIREBASE_SERVICE_ACCOUNT_JSON", { required: false }) || readServerSecret("FIREBASE_SERVICE_ACCOUNT_PATH", { required: false })) {
     throw new Error("Firebase Admin credentials were configured but could not be initialized.");
   }
 
   return initializeApp({
     credential: applicationDefault(),
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    projectId: serverProjectId,
   });
 };
 

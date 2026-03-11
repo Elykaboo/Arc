@@ -1,6 +1,8 @@
+import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { readServerSecret } from "@/lib/server-secrets";
 
 const ADMIN_SESSION_COOKIE = "arc_admin_session";
 const ADMIN_SESSION_TTL_SECONDS = 60 * 60; // 1 hour
@@ -13,11 +15,7 @@ type AdminSessionPayload = {
 };
 
 const readSecret = (): string => {
-  const secret = process.env.ADMIN_SESSION_SECRET?.trim();
-  if (!secret) {
-    throw new Error("Missing ADMIN_SESSION_SECRET.");
-  }
-  return secret;
+  return readServerSecret("ADMIN_SESSION_SECRET");
 };
 
 const toBase64Url = (value: string): string => Buffer.from(value, "utf8").toString("base64url");

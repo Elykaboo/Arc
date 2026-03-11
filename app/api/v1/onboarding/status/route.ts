@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
+import { enforcePublicApiRateLimit } from "@/lib/public-rate-limit";
 import { loadServerUserProfile } from "@/lib/server-profile-db";
 import { getAuthenticatedUid } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  const ipRateLimitResponse = enforcePublicApiRateLimit(request, {
+    feature: "v1-onboarding-status",
+    scope: "read",
+  });
+  if (ipRateLimitResponse) return ipRateLimitResponse;
+
   try {
     const uid = await getAuthenticatedUid(request);
+    const userRateLimitResponse = enforcePublicApiRateLimit(request, {
+      feature: "v1-onboarding-status",
+      uid,
+      scope: "read",
+      skipIp: true,
+    });
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     await loadServerUserProfile(uid);
     return NextResponse.json({
       onboardingComplete: true,

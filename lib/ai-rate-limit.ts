@@ -116,6 +116,8 @@ const applyRateLimit = (
   };
 };
 
+export const __test_applyRateLimit = applyRateLimit;
+
 const withMemoryRateLimit = (params: EnforceRateLimitParams): RateLimitCheck => {
   const key = `${params.feature}:${params.uid}`;
   const nowMs = Date.now();
