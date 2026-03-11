@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server";
+import { enforcePublicApiRateLimit } from "@/lib/public-rate-limit";
+import { InputValidationError, parseJsonBody, parseQueryParams, parseRouteParams, v } from "@/lib/request-validation";
 import { createModerationAction, deleteCommunityPostAsAdmin } from "@/lib/admin-db";
 import { assertAdminAccess } from "@/lib/server-auth";
 import type { AdminApiResponse } from "@/types/admin";
 
 export const runtime = "nodejs";
 
+const paramsSchema = v.object({
+  postId: v.string({ trim: true, minLength: 1, maxLength: 128 }),
+});
+
+const querySchema = v.object({
+  reason: v.string({ trim: true, maxLength: 300, optional: true }),
+});
+
+const reasonBodySchema = v.object({
+  reason: v.string({ trim: true, maxLength: 300, optional: true }),
+});
+
 const readReasonFromDeleteRequest = async (request: Request): Promise<string> => {
-  const { searchParams } = new URL(request.url);
-  const queryReason = searchParams.get("reason")?.trim();
+  const query = parseQueryParams<{ reason?: string }>(request, querySchema);
+  const queryReason = query.reason;
   if (queryReason) return queryReason;
 
   const contentType = request.headers.get("content-type") || "";
@@ -15,18 +29,28 @@ const readReasonFromDeleteRequest = async (request: Request): Promise<string> =>
     return "";
   }
 
-  try {
-    const body = (await request.json()) as { reason?: string };
-    return typeof body.reason === "string" ? body.reason.trim() : "";
-  } catch {
-    return "";
-  }
+  const body = await parseJsonBody<{ reason?: string }>(request, reasonBodySchema);
+  return body.reason ?? "";
 };
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ postId: string }> }) {
+  const ipRateLimitResponse = enforcePublicApiRateLimit(request, {
+    feature: "admin-community-posts-delete",
+    scope: "write",
+  });
+  if (ipRateLimitResponse) return ipRateLimitResponse;
+
   try {
     const context = await assertAdminAccess(request);
-    const { postId } = await params;
+    const userRateLimitResponse = enforcePublicApiRateLimit(request, {
+      feature: "admin-community-posts-delete",
+      uid: context.uid,
+      scope: "write",
+      skipIp: true,
+    });
+    if (userRateLimitResponse) return userRateLimitResponse;
+
+    const { postId } = parseRouteParams<{ postId: string }>(await params, paramsSchema);
     const reason = await readReasonFromDeleteRequest(request);
     const deleted = await deleteCommunityPostAsAdmin(postId);
 
@@ -53,6 +77,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ p
       },
     } satisfies AdminApiResponse<{ postId: string; deleted: boolean }>);
   } catch (error) {
+    if (error instanceof InputValidationError) {
+      return NextResponse.json({ data: null, error: error.message } satisfies AdminApiResponse<null>, { status: 400 });
+    }
     const message = error instanceof Error ? error.message : "Unable to delete post.";
     const status = /forbidden|admin access required/i.test(message)
       ? 403

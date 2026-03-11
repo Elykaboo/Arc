@@ -21,6 +21,9 @@ const loadDotEnvLocal = async () => {
   }
 };
 
+const readServerProjectId = () =>
+  process.env.FIREBASE_PROJECT_ID?.trim() || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim() || "";
+
 const parseServiceAccountFromEnv = () => {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) return null;
@@ -70,13 +73,13 @@ const initializeAdminApp = async () => {
   if (serviceAccount) {
     return initializeApp({
       credential: cert(serviceAccount),
-      projectId: serviceAccount.project_id || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      projectId: serviceAccount.project_id || readServerProjectId(),
     });
   }
 
   return initializeApp({
     credential: applicationDefault(),
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    projectId: readServerProjectId(),
   });
 };
 

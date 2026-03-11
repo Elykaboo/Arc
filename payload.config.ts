@@ -3,19 +3,15 @@ import { fileURLToPath } from "node:url";
 import { buildConfig } from "payload";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { readServerSecret } from "./lib/server-secrets";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
-const payloadSecret = process.env.PAYLOAD_SECRET?.trim() || process.env.ADMIN_SESSION_SECRET?.trim() || "";
-const payloadDatabaseUrl = process.env.PAYLOAD_DATABASE_URL?.trim() || "";
-
-if (!payloadSecret) {
-  throw new Error("Missing PAYLOAD_SECRET (or ADMIN_SESSION_SECRET) in environment.");
-}
-
-if (!payloadDatabaseUrl) {
-  throw new Error("Missing PAYLOAD_DATABASE_URL in environment.");
-}
+const payloadSecret = readServerSecret("PAYLOAD_SECRET", {
+  // Compatibility fallback to avoid breaking existing deployments.
+  fallbackName: "ADMIN_SESSION_SECRET",
+});
+const payloadDatabaseUrl = readServerSecret("PAYLOAD_DATABASE_URL");
 
 export default buildConfig({
   secret: payloadSecret,

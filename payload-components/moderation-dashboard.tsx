@@ -1,6 +1,7 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { auth } from "@/lib/firebase";
 import styles from "./moderation-dashboard.module.css";
@@ -177,9 +178,9 @@ export default function ModerationDashboard() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <a href="/admin" className={styles.backLink}>
+        <Link href="/admin" className={styles.backLink}>
           Back to Main Dashboard
-        </a>
+        </Link>
         <button
           type="button"
           onClick={() => void loadData()}

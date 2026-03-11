@@ -30,6 +30,14 @@ const navItems: NavItem[] = [
   { href: "/socializing", label: "Home", match: "startsWith" },
   { href: "/community", label: "Community", match: "startsWith" },
   {
+    href: "/nutrition-menu",
+    label: "Nutrition",
+    children: [
+      { href: "/nutrition", label: "Nutrition Dashboard" },
+      { href: "/nutrition/setup", label: "Nutrition Setup" },
+    ],
+  },
+  {
     href: "/dashboard-menu",
     label: "Training Dashboard",
     children: [
