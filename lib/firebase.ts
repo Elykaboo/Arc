@@ -19,6 +19,5 @@ export const db = initializeFirestore(app, {
   // Restrictive networks and some browser setups can block Firestore's default transport.
   // Auto-detecting long polling improves local/dev reliability and prevents frequent offline fallbacks.
   experimentalAutoDetectLongPolling: true,
-  useFetchStreams: false,
   localCache: memoryLocalCache(),
 });
