@@ -189,47 +189,100 @@ Rules:
 - Include all major foods shown.
 - No markdown, no explanation text, JSON only.`;
 
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const parseRetrySeconds = (details: GeminiApiErrorDetails): number | null => {
   if (!Array.isArray(details)) return null;
   const retryInfo = details.find((detail) => detail?.["@type"] === "type.googleapis.com/google.rpc.RetryInfo");
   const retryDelay = typeof retryInfo?.retryDelay === "string" ? retryInfo.retryDelay : "";
-  const match = retryDelay.match(/^(\d+)s$/);
+  const match = retryDelay.match(/^(\d+(?:\.\d+)?)s$/);
   if (!match) return null;
-  const seconds = Number.parseInt(match[1], 10);
+  const seconds = Number.parseFloat(match[1]);
   return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+};
+
+const parseRetryAfterHeader = (value: string | null): number | null => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const asSeconds = Number.parseInt(trimmed, 10);
+  if (Number.isFinite(asSeconds) && asSeconds > 0) return asSeconds;
+
+  const asDateMs = Date.parse(trimmed);
+  if (!Number.isFinite(asDateMs)) return null;
+  const seconds = Math.ceil((asDateMs - Date.now()) / 1000);
+  return seconds > 0 ? seconds : null;
+};
+
+const isQuotaExhaustedMessage = (message: string) =>
+  /quota|resource has been exhausted|billing|insufficient|exceeded your current quota/i.test(message);
+
+const build429Message = (providerMessage: string, retryAfterSeconds: number | null): string => {
+  if (isQuotaExhaustedMessage(providerMessage)) {
+    return retryAfterSeconds
+      ? `Gemini quota is currently exhausted. Please retry in about ${Math.ceil(retryAfterSeconds)} seconds.`
+      : "Gemini quota is currently exhausted. Please retry shortly or update Gemini billing/quota.";
+  }
+
+  return retryAfterSeconds
+    ? `Gemini is temporarily rate-limiting requests. Please retry in about ${Math.ceil(retryAfterSeconds)} seconds.`
+    : "Gemini is temporarily rate-limiting requests. Please retry shortly.";
 };
 
 export const estimateMacrosFromFoodPhoto = async (imageDataUrl: string): Promise<PhotoMacroEstimateResponse> => {
   const apiKey = readServerSecret("GEMINI_API_KEY");
   const model = readServerSecret("GEMINI_MODEL", { defaultValue: "gemini-2.0-flash", required: false });
   const { mimeType, base64 } = parseImageDataUrl(imageDataUrl);
+  const maxAttempts = 2;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: buildPrompt() },
-              {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: base64,
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: buildPrompt() },
+                {
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: base64,
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      }),
-    },
-  );
+              ],
+            },
+          ],
+        }),
+      },
+    );
 
-  if (!response.ok) {
+    if (response.ok) {
+      const data = (await response.json()) as {
+        candidates?: Array<{
+          content?: {
+            parts?: Array<{ text?: string }>;
+          };
+        }>;
+      };
+
+      const text =
+        data.candidates?.[0]?.content?.parts
+          ?.map((part) => (typeof part.text === "string" ? part.text : ""))
+          .join("\n")
+          .trim() || "";
+
+      if (!text) {
+        throw new Error("Gemini response was empty.");
+      }
+
+      return normalizeGeminiEstimateResponse(text, model);
+    }
+
     const fallbackMessage = "Gemini could not estimate this photo right now.";
     const text = await response.text().catch(() => "");
     let parsed: GeminiApiErrorBody | null = null;
@@ -240,37 +293,24 @@ export const estimateMacrosFromFoodPhoto = async (imageDataUrl: string): Promise
     }
 
     const providerMessage = typeof parsed?.error?.message === "string" ? parsed.error.message.trim() : "";
-    const retryAfterSeconds = parseRetrySeconds(parsed?.error?.details);
+    const retryAfterSeconds =
+      parseRetrySeconds(parsed?.error?.details) ?? parseRetryAfterHeader(response.headers.get("Retry-After"));
+    const shouldRetry =
+      attempt < maxAttempts &&
+      (response.status === 429 || response.status === 503) &&
+      (retryAfterSeconds === null || retryAfterSeconds <= 5);
+
+    if (shouldRetry) {
+      await sleep(Math.max(1, Math.ceil(retryAfterSeconds ?? 1)) * 1000);
+      continue;
+    }
+
     if (response.status === 429) {
-      throw new GeminiApiError(
-        retryAfterSeconds
-          ? `Gemini quota is currently exhausted. Please retry in about ${retryAfterSeconds} seconds.`
-          : "Gemini quota is currently exhausted. Please retry shortly or update Gemini billing/quota.",
-        429,
-        retryAfterSeconds,
-      );
+      throw new GeminiApiError(build429Message(providerMessage, retryAfterSeconds), 429, retryAfterSeconds);
     }
 
     throw new GeminiApiError(providerMessage || fallbackMessage, response.status || 502, retryAfterSeconds);
   }
 
-  const data = (await response.json()) as {
-    candidates?: Array<{
-      content?: {
-        parts?: Array<{ text?: string }>;
-      };
-    }>;
-  };
-
-  const text =
-    data.candidates?.[0]?.content?.parts
-      ?.map((part) => (typeof part.text === "string" ? part.text : ""))
-      .join("\n")
-      .trim() || "";
-
-  if (!text) {
-    throw new Error("Gemini response was empty.");
-  }
-
-  return normalizeGeminiEstimateResponse(text, model);
+  throw new GeminiApiError("Gemini could not estimate this photo right now.", 502);
 };

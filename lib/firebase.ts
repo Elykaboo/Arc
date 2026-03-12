@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, memoryLocalCache } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,4 +15,10 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+  // Restrictive networks and some browser setups can block Firestore's default transport.
+  // Auto-detecting long polling improves local/dev reliability and prevents frequent offline fallbacks.
+  experimentalAutoDetectLongPolling: true,
+  useFetchStreams: false,
+  localCache: memoryLocalCache(),
+});
