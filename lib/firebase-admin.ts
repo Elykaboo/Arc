@@ -71,10 +71,20 @@ const ensureAdminApp = async () => {
     throw new Error("Firebase Admin credentials were configured but could not be initialized.");
   }
 
-  return initializeApp({
-    credential: applicationDefault(),
-    projectId: serverProjectId,
-  });
+  try {
+    return initializeApp({
+      credential: applicationDefault(),
+      projectId: serverProjectId,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/default credentials/i.test(message)) {
+      throw new Error(
+        "Firebase Admin credentials are missing. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env.local.",
+      );
+    }
+    throw error;
+  }
 };
 
 export const getAdminAuth = async () => {

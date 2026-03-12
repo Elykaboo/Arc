@@ -111,6 +111,51 @@ const alignMealsToLatestSetup = (dashboard: NutritionDashboardResponse, localMea
   });
 };
 
+const isMissingFirebaseAdminCredentialsError = (message: string) =>
+  /could not load the default credentials|firebase admin credentials are missing|missing required server environment variable: firebase_project_id/i.test(
+    message,
+  );
+
+const buildLocalFallbackDashboard = (date: string): NutritionDashboardResponse => {
+  const slots = [
+    { id: "breakfast", label: "Breakfast", position: 0 },
+    { id: "lunch", label: "Lunch", position: 1 },
+    { id: "dinner", label: "Dinner", position: 2 },
+  ];
+  const meals: LoggedMeal[] = slots.map((slot) => ({
+    slotId: slot.id,
+    slotLabel: slot.label,
+    entries: [],
+    totals: emptyMacros(),
+  }));
+  const targets: MacroTargets = {
+    calories: 2200,
+    proteinGrams: 140,
+    carbsGrams: 260,
+    fatGrams: 70,
+  };
+
+  return {
+    date,
+    targets,
+    totals: emptyMacros(),
+    remaining: { ...targets },
+    mealSetup: {
+      uid: "local-dev",
+      slots,
+      updatedAt: new Date().toISOString(),
+    },
+    meals,
+    recentItems: [],
+    frequentItems: [],
+    myFoodsCount: 0,
+    myRecipesCount: 0,
+    myMealsCount: 0,
+    planSuggestions: [],
+    plan: null,
+  };
+};
+
 const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -204,7 +249,23 @@ export default function NutritionClient() {
         });
       } catch (error) {
         if (cancelled) return;
-        setDashboardError(error instanceof Error ? error.message : "Unable to load nutrition dashboard.");
+        const message = error instanceof Error ? error.message : "Unable to load nutrition dashboard.";
+        if (isMissingFirebaseAdminCredentialsError(message)) {
+          const fallback = buildLocalFallbackDashboard(date);
+          const localMeals = loadLocalMeals(date);
+          const merged = localMeals ? applyMealsToDashboard(fallback, alignMealsToLatestSetup(fallback, localMeals)) : fallback;
+          setDashboard(merged);
+          if (localMeals) {
+            persistLocalMeals(date, merged.meals);
+          }
+          setSelectedSlotId((current) => {
+            if (current && merged.mealSetup.slots.some((slot) => slot.id === current)) return current;
+            return merged.mealSetup.slots[0]?.id ?? "";
+          });
+          setDashboardError(null);
+          return;
+        }
+        setDashboardError(message);
       } finally {
         if (!cancelled) setDashboardLoading(false);
       }
@@ -266,6 +327,12 @@ export default function NutritionClient() {
     } finally {
       setEstimateLoading(false);
     }
+  };
+
+  const clearEstimateDraft = () => {
+    setPhotoDataUrl("");
+    setDraftItems([]);
+    setEstimateError(null);
   };
 
   const updateItemGrams = (itemId: string, gramsInput: string) => {
@@ -665,6 +732,15 @@ export default function NutritionClient() {
                   className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {estimateLoading ? "Estimating..." : "Estimate Food"}
+                </button>
+                <button
+                  type="button"
+                  onClick={clearEstimateDraft}
+                  disabled={estimateLoading || (!photoDataUrl && draftItems.length === 0 && !estimateError)}
+                  aria-label="Clear selected photo and estimate"
+                  className="grid h-9 w-9 place-items-center rounded-lg border border-slate-300 bg-white text-sm font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  X
                 </button>
               </div>
 
