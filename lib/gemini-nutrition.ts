@@ -219,6 +219,12 @@ const isQuotaExhaustedMessage = (message: string) =>
   /quota|resource has been exhausted|billing|insufficient|exceeded your current quota/i.test(message);
 
 const build429Message = (providerMessage: string, retryAfterSeconds: number | null): string => {
+  // If provider gives a retry delay, treat this as temporary throttling.
+  // "Quota exhausted" is reserved for hard/billing limits without a near-term retry window.
+  if (retryAfterSeconds !== null && retryAfterSeconds > 0) {
+    return `Gemini is temporarily rate-limiting requests. Please retry in about ${Math.ceil(retryAfterSeconds)} seconds.`;
+  }
+
   if (isQuotaExhaustedMessage(providerMessage)) {
     return retryAfterSeconds
       ? `Gemini quota is currently exhausted. Please retry in about ${Math.ceil(retryAfterSeconds)} seconds.`
