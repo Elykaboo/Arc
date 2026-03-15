@@ -95,6 +95,12 @@ const extractPlannerItems = (draft: unknown): PlannerItem[] => {
   return items;
 };
 
+const extractPlannerSplitName = (draft: unknown): string => {
+  if (!draft || typeof draft !== "object") return "";
+  const value = (draft as Record<string, unknown>).splitName;
+  return typeof value === "string" ? value : "";
+};
+
 const buildFallbackUsername = (email: string | null | undefined): string => {
   if (!email) return "";
   return email.split("@")[0] || "";
@@ -275,9 +281,10 @@ export default function ProfileClient() {
         const draft = await loadPlannerDraft(userId);
         if (cancelled) return;
 
+        const customSplitName = extractPlannerSplitName(draft).trim();
         const items = extractPlannerItems(draft);
         if (items.length === 0) {
-          setCurrentSplitName("");
+          setCurrentSplitName(customSplitName);
           setCurrentSplitExercises([]);
           setIsSplitLoading(false);
           return;
@@ -287,9 +294,10 @@ export default function ProfileClient() {
           new Set(items.map((item) => toSplitToken(item.templateLabel || "")).filter(Boolean)),
         );
         const splitLabel =
-          splitTokens.length > 0
+          customSplitName ||
+          (splitTokens.length > 0
             ? splitTokens.join(" / ")
-            : `${Math.min(weekdays.length, Math.max(1, items.length))}-Day Split`;
+            : `${Math.min(weekdays.length, Math.max(1, items.length))}-Day Split`);
 
         const nameByExerciseId = new Map<string, string>();
         const orderedExerciseNames: string[] = [];

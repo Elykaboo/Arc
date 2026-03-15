@@ -222,18 +222,42 @@ const deriveSplitLabelFromPlan = (plan: WeeklyDraft): string => {
   return "";
 };
 
-const readLocalDraft = (): { draft: WeeklyDraft; snapshot: string } => {
+const extractSplitName = (draft: unknown): string => {
+  if (!draft || typeof draft !== "object") return "";
+  const value = (draft as Record<string, unknown>).splitName;
+  return typeof value === "string" ? value : "";
+};
+
+const createDraftPayload = (plan: WeeklyDraft, splitName: string): Record<string, unknown> => ({
+  ...plan,
+  splitName,
+});
+
+const readLocalDraft = (): { draft: WeeklyDraft; splitName: string; snapshot: string } => {
   const saved = window.localStorage.getItem(plannerStorageKey);
   if (!saved) {
-    return { draft: emptyDraft, snapshot: JSON.stringify(emptyDraft) };
+    return {
+      draft: emptyDraft,
+      splitName: "",
+      snapshot: JSON.stringify(createDraftPayload(emptyDraft, "")),
+    };
   }
 
   try {
     const parsed = JSON.parse(saved);
     const normalized = normalizeDraft(parsed);
-    return { draft: normalized, snapshot: JSON.stringify(normalized) };
+    const splitName = extractSplitName(parsed);
+    return {
+      draft: normalized,
+      splitName,
+      snapshot: JSON.stringify(createDraftPayload(normalized, splitName)),
+    };
   } catch {
-    return { draft: emptyDraft, snapshot: JSON.stringify(emptyDraft) };
+    return {
+      draft: emptyDraft,
+      splitName: "",
+      snapshot: JSON.stringify(createDraftPayload(emptyDraft, "")),
+    };
   }
 };
 
@@ -244,6 +268,7 @@ export default function PlannerClient() {
   const [exerciseLoadError, setExerciseLoadError] = useState<string | null>(null);
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string>("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [splitName, setSplitName] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState(routineTemplates[0]?.id ?? "");
   const [isClient, setIsClient] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -272,6 +297,7 @@ export default function PlannerClient() {
       const local = readLocalDraft();
       if (!userId) {
         setPlan(local.draft);
+        setSplitName(local.splitName);
         setLastSavedSnapshot(local.snapshot);
         setCloudStatus("idle");
         return;
@@ -284,14 +310,17 @@ export default function PlannerClient() {
 
         const sourceDraft = remoteDraft ?? local.draft;
         const normalized = normalizeDraft(sourceDraft);
-        const snapshot = JSON.stringify(normalized);
+        const resolvedSplitName = remoteDraft ? extractSplitName(remoteDraft) : local.splitName;
+        const snapshot = JSON.stringify(createDraftPayload(normalized, resolvedSplitName));
 
         setPlan(normalized);
+        setSplitName(resolvedSplitName);
         setLastSavedSnapshot(snapshot);
         setCloudStatus("idle");
       } catch {
         if (isCancelled) return;
         setPlan(local.draft);
+        setSplitName(local.splitName);
         setLastSavedSnapshot(local.snapshot);
         setCloudStatus("error");
       }
@@ -356,7 +385,10 @@ export default function PlannerClient() {
     [plan],
   );
 
-  const planSnapshot = useMemo(() => JSON.stringify(plan), [plan]);
+  const planSnapshot = useMemo(
+    () => JSON.stringify(createDraftPayload(plan, splitName)),
+    [plan, splitName],
+  );
   const hasUnsavedChanges = planSnapshot !== lastSavedSnapshot;
   const selectedTemplate = useMemo(
     () => routineTemplates.find((template) => template.id === selectedTemplateId) ?? null,
@@ -427,6 +459,7 @@ export default function PlannerClient() {
   }, [activeDayOverlay]);
 
   const savePlan = async () => {
+    const draftPayload = createDraftPayload(plan, splitName);
     window.localStorage.setItem(plannerStorageKey, planSnapshot);
     setLastSavedSnapshot(planSnapshot);
     setSavedAt(new Date());
@@ -435,8 +468,8 @@ export default function PlannerClient() {
 
     setCloudStatus("syncing");
     try {
-      await savePlannerDraft(userId, plan);
-      const currentSplit = deriveSplitLabelFromPlan(plan);
+      await savePlannerDraft(userId, draftPayload);
+      const currentSplit = splitName.trim() || deriveSplitLabelFromPlan(plan);
 
       try {
         const existingProfile = await loadUserProfile(userId);
@@ -475,6 +508,7 @@ export default function PlannerClient() {
 
   const resetPlan = () => {
     setPlan(emptyDraft);
+    setSplitName("");
   };
 
   const applySelectedTemplate = () => {
@@ -505,6 +539,7 @@ export default function PlannerClient() {
     ) as WeeklyDraft;
 
     setPlan(hydratedDraft);
+    setSplitName(selectedTemplate.name);
     setSavedAt(null);
   };
 
@@ -623,6 +658,17 @@ export default function PlannerClient() {
             className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
             style={{ width: `${(summary / 7) * 100}%` }}
           />
+        </div>
+        <div className="mt-4">
+          <label className="block space-y-1 text-sm text-slate-700">
+            Split name
+            <input
+              value={splitName}
+              onChange={(event) => setSplitName(event.target.value)}
+              placeholder="e.g. Strength + Hypertrophy"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+            />
+          </label>
         </div>
         <div className="mt-4 flex flex-wrap items-end gap-2">
           <label className="min-w-[240px] flex-1 space-y-1 text-sm text-slate-700">
